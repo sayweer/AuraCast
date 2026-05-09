@@ -1,12 +1,20 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import { useWallet } from '@solana/wallet-adapter-react'
 
 interface LandingProps {
-  onConnect: () => void;
+  onConnect?: () => void;
 }
 
 export default function Landing({ onConnect }: LandingProps) {
+  const { connected } = useWallet()
+
+  useEffect(() => {
+    if (connected) onConnect?.()
+  }, [connected, onConnect])
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-8">
       {/* Center Content */}
@@ -25,12 +33,9 @@ export default function Landing({ onConnect }: LandingProps) {
         </div>
 
         {/* Main CTA Button */}
-        <Button
-          onClick={onConnect}
-          className="mt-4 bg-primary text-primary-foreground hover:bg-secondary rounded-xl py-6 px-8 text-lg font-semibold"
-        >
-          Connect Wallet to Get Started
-        </Button>
+        <div className="[&>button]:bg-primary [&>button]:text-white [&>button]:px-8 [&>button]:py-4 [&>button]:rounded-xl [&>button]:text-lg [&>button]:font-semibold [&>button:hover]:bg-secondary mt-4">
+          <WalletMultiButton />
+        </div>
 
         {/* Bottom Text */}
         <div className="mt-8 text-center text-muted-foreground text-xs">

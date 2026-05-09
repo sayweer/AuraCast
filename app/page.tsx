@@ -6,11 +6,9 @@ import Onboarding from '@/components/screens/Onboarding';
 import Dashboard from '@/components/screens/Dashboard';
 import SettingsModal from '@/components/SettingsModal';
 import { useWallet } from '@solana/wallet-adapter-react'
-import { useWalletModal } from '@solana/wallet-adapter-react-ui'
 
 export default function App() {
   const { publicKey, disconnect, connected } = useWallet()
-  const { setVisible } = useWalletModal()
   const walletAddress = publicKey?.toBase58() ?? ''
 
   const [appState, setAppState] = useState<'landing' | 'onboarding' | 'dashboard'>('landing');
@@ -86,10 +84,6 @@ export default function App() {
 
     fetchStats()
   }, [appState, publicKey])
-
-  const handleConnectWallet = () => {
-    setVisible(true)
-  }
 
   const handleDisconnectWallet = async () => {
     await disconnect()
@@ -171,7 +165,7 @@ export default function App() {
   return (
     <div className="app-container min-h-screen w-full bg-background text-foreground">
       {appState === 'landing' && (
-        <Landing onConnect={handleConnectWallet} />
+        <Landing />
       )}
 
       {appState === 'onboarding' && (
