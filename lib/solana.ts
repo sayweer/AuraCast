@@ -36,7 +36,8 @@ export async function verifyTransaction(
   if (recipientIndex === -1) throw new TransactionVerificationError(txSignature)
 
   const diff = postBalances[recipientIndex] - preBalances[recipientIndex]
-  if (diff < expectedLamports) throw new TransactionVerificationError(txSignature)
+  const minExpected = Math.floor(expectedLamports * 0.9)
+  if (diff < minExpected) throw new TransactionVerificationError(txSignature)
 
   return true
 }

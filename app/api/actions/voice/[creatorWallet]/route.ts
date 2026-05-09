@@ -74,12 +74,21 @@ export async function POST(
       'confirmed'
     )
 
+    const platformWallet = process.env.PLATFORM_WALLET ?? ''
+    const platformFee = Math.floor(creator.price_lamports * 0.1)
+    const creatorAmount = creator.price_lamports - platformFee
+
     const transaction = new Transaction()
     transaction.add(
       SystemProgram.transfer({
         fromPubkey: new PublicKey(account),
         toPubkey: new PublicKey(params.creatorWallet),
-        lamports: creator.price_lamports,
+        lamports: creatorAmount,
+      }),
+      SystemProgram.transfer({
+        fromPubkey: new PublicKey(account),
+        toPubkey: new PublicKey(platformWallet),
+        lamports: platformFee,
       })
     )
     transaction.feePayer = new PublicKey(account)
