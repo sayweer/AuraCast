@@ -1,95 +1,125 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import Landing from '@/components/screens/Landing';
+import Onboarding from '@/components/screens/Onboarding';
+import Dashboard from '@/components/screens/Dashboard';
+import SettingsModal from '@/components/SettingsModal';
+
+export default function App() {
+  const [appState, setAppState] = useState<'landing' | 'onboarding' | 'dashboard'>('landing');
+  const [onboardingStep, setOnboardingStep] = useState<1 | 2>(1);
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [audioReady, setAudioReady] = useState(false);
+  const [selectedPrice, setSelectedPrice] = useState(1.5);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [copiedBlink, setCopiedBlink] = useState(false);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingSeconds(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording]);
+
+  const handleConnectWallet = () => {
+    setWalletAddress('6vUTX...KDsb');
+    setWalletConnected(true);
+    setAppState('onboarding');
+    setOnboardingStep(1);
+  };
+
+  const handleDisconnectWallet = () => {
+    setAppState('landing');
+    setWalletConnected(false);
+    setWalletAddress('');
+    setOnboardingStep(1);
+    setAudioReady(false);
+    setRecordingSeconds(0);
+    setIsRecording(false);
+  };
+
+  const handleStartRecording = () => {
+    if (!isRecording) {
+      setIsRecording(true);
+      setRecordingSeconds(0);
+    } else if (recordingSeconds >= 30) {
+      setIsRecording(false);
+      setAudioReady(true);
+    }
+  };
+
+  const handleCopyBlink = () => {
+    setCopiedBlink(true);
+    setTimeout(() => setCopiedBlink(false), 2000);
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="app-container min-h-screen w-full bg-background text-foreground">
+      {appState === 'landing' && (
+        <Landing onConnect={handleConnectWallet} />
+      )}
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {appState === 'onboarding' && (
+        <Onboarding
+          step={onboardingStep}
+          isRecording={isRecording}
+          recordingSeconds={recordingSeconds}
+          audioReady={audioReady}
+          selectedPrice={selectedPrice}
+          walletAddress={walletAddress}
+          onStartRecording={handleStartRecording}
+          onNextStep={() => setOnboardingStep(2)}
+          onBackStep={() => setOnboardingStep(1)}
+          onSelectPrice={setSelectedPrice}
+          onLaunch={() => setAppState('dashboard')}
+        />
+      )}
+
+      {appState === 'dashboard' && (
+        <Dashboard
+          walletAddress={walletAddress}
+          selectedPrice={selectedPrice}
+          copiedBlink={copiedBlink}
+          settingsOpen={settingsOpen}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onCloseSettings={() => setSettingsOpen(false)}
+          onCopyBlink={handleCopyBlink}
+          onDisconnect={handleDisconnectWallet}
+          onRerecord={() => {
+            setAppState('onboarding');
+            setOnboardingStep(1);
+            setAudioReady(false);
+            setRecordingSeconds(0);
+            setIsRecording(false);
+          }}
+        />
+      )}
+
+      <SettingsModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        walletAddress={walletAddress}
+        selectedPrice={selectedPrice}
+        onDisconnect={handleDisconnectWallet}
+        onRerecord={() => {
+          setAppState('onboarding');
+          setOnboardingStep(1);
+          setAudioReady(false);
+          setRecordingSeconds(0);
+          setIsRecording(false);
+          setSettingsOpen(false);
+        }}
+        onPriceUpdate={(newPrice) => {
+          setSelectedPrice(newPrice);
+        }}
+      />
     </div>
   );
 }
