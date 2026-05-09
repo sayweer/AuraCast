@@ -93,7 +93,7 @@ core trust mechanism that makes creators willing to participate.
 
 ## 🎬 Try The Demo
 
-1. Open → [dashboard URL]
+1. Open → https://auracast-murex.vercel.app
 2. See demo creator **"Sarco"** already registered
 3. Copy the Blink URL → open in browser
 4. Type any message → pay on devnet
