@@ -7,6 +7,12 @@ import { Copy, Check, Settings, ExternalLink, TrendingUp, CheckCircle2, RotateCw
 interface DashboardProps {
   walletAddress: string;
   selectedPrice: number;
+  creatorStats: {
+    totalEarned: number
+    totalMessages: number
+    priceInLamports: number
+    voiceId: string
+  } | null;
   copiedBlink: boolean;
   settingsOpen: boolean;
   onOpenSettings: () => void;
@@ -19,13 +25,16 @@ interface DashboardProps {
 export default function Dashboard({
   walletAddress,
   selectedPrice,
+  creatorStats,
   copiedBlink,
   onOpenSettings,
   onCopyBlink,
 }: DashboardProps) {
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
-  const blinkUrl = 'https://dial.to/?action=solana-action:https://auracast.xyz/api/create-message';
-  const truncatedBlinkUrl = blinkUrl.substring(0, 50) + '...';
+  const blinkUrl = walletAddress
+    ? `https://dial.to/?action=solana-action:https://auracast-murex.vercel.app/api/actions/voice/${walletAddress}`
+    : ''
+  const truncatedBlinkUrl = blinkUrl.length > 50 ? blinkUrl.substring(0, 50) + '...' : blinkUrl
 
   const sampleRequests = [
     { time: '2m ago', preview: 'Happy birthday Sarah, I hope...', amount: '1.5 SOL', status: 'Completed', statusColor: 'text-accent' },
@@ -65,8 +74,12 @@ export default function Dashboard({
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-muted-foreground text-sm mb-2">Total Earned</p>
-                <h3 className="text-4xl font-bold">24.7 SOL</h3>
-                <p className="text-muted-foreground text-sm mt-1">≈ $3,705 USD</p>
+                <h3 className="text-4xl font-bold">
+                  {((creatorStats?.totalEarned ?? 0) / 1e9).toFixed(2)} SOL
+                </h3>
+                <p className="text-muted-foreground text-sm mt-1">
+                  ≈ ${(((creatorStats?.totalEarned ?? 0) / 1e9) * 150).toFixed(0)} USD
+                </p>
               </div>
               <TrendingUp className="w-8 h-8 text-primary" />
             </div>
@@ -77,7 +90,7 @@ export default function Dashboard({
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-muted-foreground text-sm mb-2">Messages Generated</p>
-                <h3 className="text-4xl font-bold">164</h3>
+                <h3 className="text-4xl font-bold">{creatorStats?.totalMessages ?? 0}</h3>
                 <p className="text-muted-foreground text-sm mt-1">All time requests</p>
               </div>
             </div>
@@ -113,7 +126,10 @@ export default function Dashboard({
               className="flex-1 bg-black/40 border border-border rounded-lg px-4 py-2 text-sm font-mono text-muted-foreground"
             />
             <Button
-              onClick={onCopyBlink}
+              onClick={() => {
+                navigator.clipboard.writeText(blinkUrl)
+                onCopyBlink()
+              }}
               size="sm"
               className="bg-primary hover:bg-secondary text-primary-foreground"
             >
@@ -129,6 +145,12 @@ export default function Dashboard({
             </Button>
             <Button
               size="sm"
+              onClick={() => {
+                const shareText = encodeURIComponent(
+                  `Get a personalized voice message from me on @AuraCast! 🎙\n${blinkUrl}`
+                )
+                window.open(`https://twitter.com/intent/tweet?text=${shareText}`, '_blank')
+              }}
               className="bg-primary hover:bg-secondary text-primary-foreground"
             >
               <span>🐦 Share on X</span>

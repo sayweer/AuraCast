@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Mic, ChevronRight, RotateCw } from 'lucide-react';
@@ -16,6 +17,13 @@ interface OnboardingProps {
   onBackStep: () => void;
   onSelectPrice: (price: number) => void;
   onLaunch: () => void;
+  selectedGender: 'male' | 'female' | 'other' | null;
+  selectedAccent: string | null;
+  onSelectGender: (g: 'male' | 'female' | 'other') => void;
+  onSelectAccent: (a: string) => void;
+  onAudioReady: (blob: Blob) => void;
+  isRegistering: boolean;
+  registerError: string | null;
 }
 
 const formatTime = (seconds: number) => {
@@ -45,8 +53,46 @@ export default function Onboarding({
   onBackStep,
   onSelectPrice,
   onLaunch,
+  selectedGender,
+  selectedAccent,
+  onSelectGender,
+  onSelectAccent,
+  onAudioReady,
+  isRegistering,
+  registerError,
 }: OnboardingProps) {
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+
+  const handleRecord = async () => {
+    if (!isRecording) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        const mediaRecorder = new MediaRecorder(stream)
+        mediaRecorderRef.current = mediaRecorder
+        audioChunksRef.current = []
+
+        mediaRecorder.ondataavailable = (e) => {
+          audioChunksRef.current.push(e.data)
+        }
+
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+          onAudioReady(blob)
+          stream.getTracks().forEach(t => t.stop())
+        }
+
+        mediaRecorder.start()
+        onStartRecording()
+      } catch {
+        // mic permission denied
+      }
+    } else if (recordingSeconds >= 30) {
+      mediaRecorderRef.current?.stop()
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -91,6 +137,47 @@ export default function Onboarding({
               </p>
             </div>
 
+            {/* Gender Selection */}
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">Your gender</label>
+              <div className="flex gap-2">
+                {(['male', 'female', 'other'] as const).map((g) => (
+                  <button
+                    key={g}
+                    onClick={() => onSelectGender(g)}
+                    className={`flex-1 py-2 rounded-lg border text-sm font-medium capitalize transition-all ${
+                      selectedGender === g
+                        ? 'bg-primary border-primary text-primary-foreground'
+                        : 'bg-background border-border hover:border-primary/50'
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Accent Selection */}
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">Your accent</label>
+              <select
+                value={selectedAccent ?? ''}
+                onChange={(e) => onSelectAccent(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+              >
+                <option value="" disabled>Select your accent…</option>
+                <option value="American">🇺🇸 American</option>
+                <option value="British">🇬🇧 British</option>
+                <option value="Australian">🇦🇺 Australian</option>
+                <option value="Indian">🇮🇳 Indian</option>
+                <option value="Turkish">🇹🇷 Turkish</option>
+                <option value="German">🇩🇪 German</option>
+                <option value="French">🇫🇷 French</option>
+                <option value="Spanish">🇪🇸 Spanish</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
             {/* Script Box */}
             <div className="space-y-2">
               <label className="text-sm text-muted-foreground">Read this text aloud:</label>
@@ -104,7 +191,7 @@ export default function Onboarding({
             {/* Recording Button */}
             <div className="flex flex-col items-center gap-4">
               <button
-                onClick={onStartRecording}
+                onClick={handleRecord}
                 disabled={audioReady}
                 className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${
                   audioReady
@@ -134,7 +221,7 @@ export default function Onboarding({
             {/* Continue Button */}
             <Button
               onClick={onNextStep}
-              disabled={!audioReady}
+              disabled={!audioReady || !selectedGender || !selectedAccent}
               className="w-full bg-primary text-primary-foreground hover:bg-secondary disabled:bg-primary/30 disabled:text-primary/50 disabled:cursor-not-allowed"
             >
               Create My Voice Clone <ChevronRight className="w-4 h-4 ml-2" />
@@ -196,11 +283,22 @@ export default function Onboarding({
               </Button>
               <Button
                 onClick={onLaunch}
-                className="flex-1 bg-primary text-primary-foreground hover:bg-secondary"
+                disabled={isRegistering}
+                className="flex-1 bg-primary text-primary-foreground hover:bg-secondary disabled:opacity-60"
               >
-                Launch My Voice 🚀
+                {isRegistering ? (
+                  <>
+                    <RotateCw className="w-4 h-4 mr-2 animate-spin" />
+                    Creating your voice clone...
+                  </>
+                ) : (
+                  'Launch My Voice 🚀'
+                )}
               </Button>
             </div>
+            {registerError && (
+              <p className="text-sm text-red-400 text-center">{registerError}</p>
+            )}
           </Card>
         )}
       </div>

@@ -13,6 +13,7 @@ interface SettingsModalProps {
   onDisconnect: () => void;
   onRerecord: () => void;
   onPriceUpdate: (price: number) => void;
+  onPriceUpdateSuccess: (newLamports: number) => void;
 }
 
 export default function SettingsModal({
@@ -23,16 +24,47 @@ export default function SettingsModal({
   onDisconnect,
   onRerecord,
   onPriceUpdate,
+  onPriceUpdateSuccess,
 }: SettingsModalProps) {
   const [blockAdult, setBlockAdult] = useState(true);
   const [blockProfanity, setBlockProfanity] = useState(true);
   const [blockPolitical, setBlockPolitical] = useState(true);
-  const [priceInput, setPriceInput] = useState(selectedPrice.toString());
+  const [newPrice, setNewPrice] = useState(selectedPrice);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [priceError, setPriceError] = useState<string | null>(null);
+  const [priceSuccess, setPriceSuccess] = useState(false);
 
-  const handlePriceUpdate = () => {
-    const newPrice = parseFloat(priceInput);
-    if (!isNaN(newPrice)) {
-      onPriceUpdate(newPrice);
+  const handlePriceUpdate = async () => {
+    if (newPrice < 1 || newPrice > 3) {
+      setPriceError('Price must be between 1 and 3 SOL');
+      return;
+    }
+    setIsUpdating(true);
+    setPriceError(null);
+    setPriceSuccess(false);
+
+    try {
+      const res = await fetch('/api/creator/update-price', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress,
+          priceInLamports: Math.round(newPrice * 1_000_000_000),
+        }),
+      });
+
+      if (res.ok) {
+        setPriceSuccess(true);
+        onPriceUpdate(newPrice);
+        onPriceUpdateSuccess(Math.round(newPrice * 1_000_000_000));
+        setTimeout(() => setPriceSuccess(false), 3000);
+      } else {
+        setPriceError('Update failed. Try again.');
+      }
+    } catch {
+      setPriceError('Network error. Try again.');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -170,19 +202,29 @@ export default function SettingsModal({
             <label className="text-sm text-muted-foreground">Price per message</label>
             <div className="flex gap-2 items-center">
               <input
-                type="text"
-                value={priceInput}
-                onChange={(e) => setPriceInput(e.target.value)}
-                className="flex-1 bg-black/40 border border-border rounded-lg px-3 py-2 text-sm"
+                type="number"
+                min={1}
+                max={3}
+                step={0.5}
+                value={newPrice}
+                onChange={(e) => setNewPrice(parseFloat(e.target.value))}
+                className="w-20 bg-black/40 border border-border rounded-lg px-3 py-2 text-sm"
               />
               <span className="text-sm text-muted-foreground">SOL</span>
               <Button
                 onClick={handlePriceUpdate}
-                className="bg-primary hover:bg-secondary text-primary-foreground px-3"
+                disabled={isUpdating}
+                className="bg-primary hover:bg-secondary text-primary-foreground px-3 disabled:opacity-50"
               >
-                Update
+                {isUpdating ? 'Updating...' : 'Update'}
               </Button>
             </div>
+            {priceError && (
+              <p className="text-xs text-red-400">{priceError}</p>
+            )}
+            {priceSuccess && (
+              <p className="text-xs text-green-400">✓ Price updated successfully!</p>
+            )}
           </div>
 
           {/* Footer */}

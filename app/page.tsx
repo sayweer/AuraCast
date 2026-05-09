@@ -5,18 +5,34 @@ import Landing from '@/components/screens/Landing';
 import Onboarding from '@/components/screens/Onboarding';
 import Dashboard from '@/components/screens/Dashboard';
 import SettingsModal from '@/components/SettingsModal';
+import { useWallet } from '@solana/wallet-adapter-react'
+import { useWalletModal } from '@solana/wallet-adapter-react-ui'
 
 export default function App() {
+  const { publicKey, disconnect, connected } = useWallet()
+  const { setVisible } = useWalletModal()
+  const walletAddress = publicKey?.toBase58() ?? ''
+
   const [appState, setAppState] = useState<'landing' | 'onboarding' | 'dashboard'>('landing');
   const [onboardingStep, setOnboardingStep] = useState<1 | 2>(1);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [audioReady, setAudioReady] = useState(false);
   const [selectedPrice, setSelectedPrice] = useState(1.5);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [copiedBlink, setCopiedBlink] = useState(false);
+  const [isCheckingDB, setIsCheckingDB] = useState(false)
+  const [isRegistering, setIsRegistering] = useState(false)
+  const [registerError, setRegisterError] = useState<string | null>(null)
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female' | 'other' | null>(null)
+  const [selectedAccent, setSelectedAccent] = useState<string | null>(null)
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
+  const [creatorStats, setCreatorStats] = useState<{
+    totalEarned: number
+    totalMessages: number
+    priceInLamports: number
+    voiceId: string
+  } | null>(null)
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -28,37 +44,129 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  const handleConnectWallet = () => {
-    setWalletAddress('6vUTX...KDsb');
-    setWalletConnected(true);
-    setAppState('onboarding');
-    setOnboardingStep(1);
-  };
+  useEffect(() => {
+    if (!connected || !publicKey || appState !== 'landing') return
 
-  const handleDisconnectWallet = () => {
-    setAppState('landing');
-    setWalletConnected(false);
-    setWalletAddress('');
-    setOnboardingStep(1);
-    setAudioReady(false);
-    setRecordingSeconds(0);
-    setIsRecording(false);
-  };
+    const checkCreator = async () => {
+      setIsCheckingDB(true)
+      try {
+        const res = await fetch(`/api/creator/${publicKey.toBase58()}`)
+        if (res.ok) {
+          setAppState('dashboard')
+        } else {
+          setAppState('onboarding')
+          setOnboardingStep(1)
+        }
+      } catch {
+        setAppState('onboarding')
+        setOnboardingStep(1)
+      } finally {
+        setIsCheckingDB(false)
+      }
+    }
+
+    checkCreator()
+  }, [connected, publicKey])
+
+  useEffect(() => {
+    if (appState !== 'dashboard' || !publicKey) return
+
+    const fetchStats = async () => {
+      const res = await fetch(`/api/creator/${publicKey.toBase58()}`)
+      if (res.ok) {
+        const creator = await res.json()
+        setCreatorStats({
+          totalEarned: creator.total_earned,
+          totalMessages: creator.total_messages,
+          priceInLamports: creator.price_lamports,
+          voiceId: creator.voice_id,
+        })
+      }
+    }
+
+    fetchStats()
+  }, [appState, publicKey])
+
+  const handleConnectWallet = () => {
+    setVisible(true)
+  }
+
+  const handleDisconnectWallet = async () => {
+    await disconnect()
+    setAppState('landing')
+    setOnboardingStep(1)
+    setAudioReady(false)
+    setRecordingSeconds(0)
+    setIsRecording(false)
+    setSelectedGender(null)
+    setSelectedAccent(null)
+    setAudioBlob(null)
+    setRegisterError(null)
+    setCreatorStats(null)
+  }
 
   const handleStartRecording = () => {
-    if (!isRecording) {
-      setIsRecording(true);
-      setRecordingSeconds(0);
-    } else if (recordingSeconds >= 30) {
-      setIsRecording(false);
-      setAudioReady(true);
+    setIsRecording(true)
+    setRecordingSeconds(0)
+  }
+
+  const handleAudioReady = (blob: Blob) => {
+    setAudioBlob(blob)
+    setAudioReady(true)
+    setIsRecording(false)
+  }
+
+  const handleLaunch = async () => {
+    if (!publicKey || !audioBlob) return
+    setIsRegistering(true)
+    setRegisterError(null)
+
+    try {
+      const arrayBuffer = await audioBlob.arrayBuffer()
+      const base64 = Buffer.from(arrayBuffer).toString('base64')
+
+      const res = await fetch('/api/creator/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress: publicKey.toBase58(),
+          creatorName: publicKey.toBase58().slice(0, 8),
+          audioBase64: base64,
+          fileName: 'voice.webm',
+          priceInLamports: Math.round(selectedPrice * 1_000_000_000),
+          gender: selectedGender,
+          accent: selectedAccent,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setRegisterError(data.error ?? 'Registration failed')
+        return
+      }
+
+      setAppState('dashboard')
+    } catch {
+      setRegisterError('Network error. Please try again.')
+    } finally {
+      setIsRegistering(false)
     }
-  };
+  }
 
   const handleCopyBlink = () => {
     setCopiedBlink(true);
     setTimeout(() => setCopiedBlink(false), 2000);
   };
+
+  if (isCheckingDB) {
+    return (
+      <div className="app-container min-h-screen w-full bg-background text-foreground flex flex-col items-center justify-center gap-3">
+        <div className="text-lg font-semibold">🎙 Checking your voice profile...</div>
+        <div className="text-sm text-muted-foreground">Connecting to Solana...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="app-container min-h-screen w-full bg-background text-foreground">
@@ -78,7 +186,14 @@ export default function App() {
           onNextStep={() => setOnboardingStep(2)}
           onBackStep={() => setOnboardingStep(1)}
           onSelectPrice={setSelectedPrice}
-          onLaunch={() => setAppState('dashboard')}
+          selectedGender={selectedGender}
+          selectedAccent={selectedAccent}
+          onSelectGender={setSelectedGender}
+          onSelectAccent={setSelectedAccent}
+          onAudioReady={handleAudioReady}
+          onLaunch={handleLaunch}
+          isRegistering={isRegistering}
+          registerError={registerError}
         />
       )}
 
@@ -86,6 +201,7 @@ export default function App() {
         <Dashboard
           walletAddress={walletAddress}
           selectedPrice={selectedPrice}
+          creatorStats={creatorStats}
           copiedBlink={copiedBlink}
           settingsOpen={settingsOpen}
           onOpenSettings={() => setSettingsOpen(true)}
@@ -98,6 +214,11 @@ export default function App() {
             setAudioReady(false);
             setRecordingSeconds(0);
             setIsRecording(false);
+            setSelectedGender(null);
+            setSelectedAccent(null);
+            setAudioBlob(null);
+            setRegisterError(null);
+            setCreatorStats(null);
           }}
         />
       )}
@@ -114,10 +235,18 @@ export default function App() {
           setAudioReady(false);
           setRecordingSeconds(0);
           setIsRecording(false);
+          setSelectedGender(null);
+          setSelectedAccent(null);
+          setAudioBlob(null);
+          setRegisterError(null);
+          setCreatorStats(null);
           setSettingsOpen(false);
         }}
         onPriceUpdate={(newPrice) => {
           setSelectedPrice(newPrice);
+        }}
+        onPriceUpdateSuccess={(newLamports) => {
+          setCreatorStats(prev => prev ? { ...prev, priceInLamports: newLamports } : null);
         }}
       />
     </div>
