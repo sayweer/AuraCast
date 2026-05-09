@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
-import { SolanaWalletProvider } from '@/components/WalletProvider'
+import { WalletProviderDynamic } from '@/components/WalletProviderDynamic'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -28,9 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${geistSans.variable} ${geistMono.variable}`}>
       <body className="font-sans antialiased">
-        <SolanaWalletProvider>
+        <WalletProviderDynamic>
           {children}
-        </SolanaWalletProvider>
+        </WalletProviderDynamic>
       </body>
     </html>
   )
