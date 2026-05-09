@@ -13,6 +13,13 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
       )
     }
 
+    if (priceInLamports < 10_000_000 || priceInLamports > 100_000_000) {
+      return NextResponse.json(
+        { error: 'Price must be between 0.01 and 0.1 SOL per 150 characters' },
+        { status: 400 }
+      )
+    }
+
     const supabase = createClient(
       process.env.SUPABASE_URL ?? '',
       process.env.SUPABASE_ANON_KEY ?? ''

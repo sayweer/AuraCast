@@ -32,13 +32,13 @@ const formatTime = (seconds: number) => {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
 
-const priceOptions = [1, 1.5, 2, 2.5, 3];
+const priceOptions = [0.01, 0.03, 0.05, 0.08, 0.1];
 const usdPrices: Record<number, number> = {
-  1: 150,
-  1.5: 225,
-  2: 300,
-  2.5: 375,
-  3: 450,
+  0.01: 1.5,
+  0.03: 4.5,
+  0.05: 7.5,
+  0.08: 12,
+  0.1: 15,
 };
 
 export default function Onboarding({
@@ -231,7 +231,7 @@ export default function Onboarding({
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">Set Your Voice Price</h2>
-              <p className="text-muted-foreground">How much SOL per fan message?</p>
+              <p className="text-muted-foreground">How much SOL per 150 characters?</p>
             </div>
 
             {/* Price Options */}
@@ -247,7 +247,7 @@ export default function Onboarding({
                   }`}
                 >
                   <div className="font-semibold">{price}</div>
-                  <div className="text-xs text-muted-foreground mt-1">SOL</div>
+                  <div className="text-xs text-muted-foreground mt-1">SOL / 150 chars</div>
                   <div className="text-xs text-muted-foreground">${usdPrices[price]}</div>
                 </button>
               ))}
@@ -260,13 +260,13 @@ export default function Onboarding({
 
             {/* Earnings Preview */}
             <div className="bg-black/40 border border-border rounded-lg p-4 space-y-2">
-              <p className="text-sm text-muted-foreground">If you get 10 requests/day:</p>
+              <p className="text-sm text-muted-foreground">If a fan sends 300 characters (2 units):</p>
               <div className="space-y-1">
                 <p className="text-lg font-semibold text-accent">
-                  Daily: {(selectedPrice * 10 * 0.9).toFixed(2)} SOL
+                  Per request: {(selectedPrice * 2 * 0.9).toFixed(4)} SOL
                 </p>
                 <p className="text-lg font-semibold text-accent">
-                  Monthly: {(selectedPrice * 10 * 0.9 * 30).toFixed(2)} SOL
+                  Monthly (10 req/day): {(selectedPrice * 2 * 0.9 * 30 * 10).toFixed(2)} SOL
                 </p>
               </div>
               <p className="text-xs text-muted-foreground">(after 10% platform fee)</p>

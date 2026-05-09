@@ -35,8 +35,8 @@ export default function SettingsModal({
   const [priceSuccess, setPriceSuccess] = useState(false);
 
   const handlePriceUpdate = async () => {
-    if (newPrice < 1 || newPrice > 3) {
-      setPriceError('Price must be between 1 and 3 SOL');
+    if (newPrice < 0.01 || newPrice > 0.1) {
+      setPriceError('Price must be between 0.01 and 0.1 SOL');
       return;
     }
     setIsUpdating(true);
@@ -199,13 +199,13 @@ export default function SettingsModal({
           {/* Pricing Section */}
           <div className="space-y-3 pb-4 border-b border-border">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Pricing</h3>
-            <label className="text-sm text-muted-foreground">Price per message</label>
+            <label className="text-sm text-muted-foreground">Price per 150 characters</label>
             <div className="flex gap-2 items-center">
               <input
                 type="number"
-                min={1}
-                max={3}
-                step={0.5}
+                min={0.01}
+                max={0.1}
+                step={0.01}
                 value={newPrice}
                 onChange={(e) => setNewPrice(parseFloat(e.target.value))}
                 className="w-20 bg-black/40 border border-border rounded-lg px-3 py-2 text-sm"

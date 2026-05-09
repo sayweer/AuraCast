@@ -16,7 +16,7 @@ export default function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [audioReady, setAudioReady] = useState(false);
-  const [selectedPrice, setSelectedPrice] = useState(1.5);
+  const [selectedPrice, setSelectedPrice] = useState(0.05);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [copiedBlink, setCopiedBlink] = useState(false);
   const [isCheckingDB, setIsCheckingDB] = useState(false)
