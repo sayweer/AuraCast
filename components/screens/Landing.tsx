@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import { WalletButton } from '@/components/WalletButton'
 import { useWallet } from '@solana/wallet-adapter-react'
 
 interface LandingProps {
@@ -34,7 +34,7 @@ export default function Landing({ onConnect }: LandingProps) {
 
         {/* Main CTA Button */}
         <div className="[&>button]:bg-primary [&>button]:text-white [&>button]:px-8 [&>button]:py-4 [&>button]:rounded-xl [&>button]:text-lg [&>button]:font-semibold [&>button:hover]:bg-secondary mt-4">
-          <WalletMultiButton />
+          <WalletButton />
         </div>
 
         {/* Bottom Text */}

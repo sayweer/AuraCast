@@ -136,6 +136,10 @@ export default function App() {
       const data = await res.json()
 
       if (!res.ok) {
+        if (res.status === 409) {
+          setAppState('dashboard')
+          return
+        }
         setRegisterError(data.error ?? 'Registration failed')
         return
       }
