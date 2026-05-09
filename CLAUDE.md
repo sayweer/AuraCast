@@ -32,6 +32,7 @@ types/index.ts → all TypeScript interfaces
 - Claude model is always "claude-haiku-4-5" (cost + speed critical)
 - No Anchor for hackathon — use SystemProgram.transfer directly
 - Audio stored as base64 data URL for hackathon (no S3)
+- Git Control: Do NEVER automatically run 'git commit' or 'git push'. I will handle all version control and repository updates manually.
 
 ## Environment Variables
 ELEVENLABS_API_KEY → ElevenLabs dashboard
