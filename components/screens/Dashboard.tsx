@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Copy, Check, Settings, ExternalLink, TrendingUp } from 'lucide-react';
+import { Copy, Check, Settings, TrendingUp } from 'lucide-react';
 
 interface DashboardProps {
   walletAddress: string;
@@ -36,9 +36,15 @@ export default function Dashboard({
   const actionUrl = walletAddress
     ? `https://auracast-murex.vercel.app/api/actions/voice/${walletAddress}`
     : ''
-  const blinkUrl = walletAddress
-    ? `https://blinks.xyz/inspector?action=${encodeURIComponent(actionUrl)}`
-    : ''
+  const blinkUrl = actionUrl
+  const shareText = encodeURIComponent(
+    `🎙 Get a personalized AI voice message from me on AuraCast!\n\n` +
+    `${blinkUrl}\n\n` +
+    `(Phantom wallet required)\n#Solana #AI`
+  )
+  const xShareUrl = blinkUrl
+    ? `https://x.com/intent/post?text=${shareText}`
+    : '#'
 
   return (
     <div className="min-h-screen pb-12">
@@ -139,26 +145,27 @@ export default function Dashboard({
                 </>
               )}
             </Button>
-            <Button
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault()
-                if (!blinkUrl) return
-                const shareText = encodeURIComponent(
-                  `🎙 Get a personalized AI voice message from me on AuraCast!\n\n${blinkUrl}\n\n#Solana #AI`
-                )
-                const url = `https://x.com/intent/post?text=${shareText}`
-                window.open(url, '_blank', 'noopener,noreferrer')
-              }}
-              className="bg-primary hover:bg-secondary text-primary-foreground"
+            <a
+              href={blinkUrl ? `https://blinks.xyz/inspector?action=${encodeURIComponent(blinkUrl)}` : '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-transparent border border-border text-foreground rounded-lg text-sm font-medium hover:bg-muted transition-colors"
+              onClick={(e) => { if (!blinkUrl) e.preventDefault() }}
             >
-              <span>🐦 Share on X</span>
-              <ExternalLink className="w-4 h-4 ml-2" />
-            </Button>
+              🔍 Preview Blink
+            </a>
+            <a
+              href={xShareUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              🐦 Share on X
+            </a>
           </div>
 
           <p className="text-sm text-muted-foreground">
-            Share this link on X, Telegram, or anywhere — fans can send you voice requests without leaving their feed
+            Share this link on X, Telegram, or anywhere — fans with Phantom or Backpack will see an interactive Blink. Use Preview to test it yourself.
           </p>
         </Card>
 
