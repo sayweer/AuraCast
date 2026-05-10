@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Copy, Check, Settings, ExternalLink, TrendingUp, CheckCircle2, RotateCw } from 'lucide-react';
+import { Copy, Check, Settings, ExternalLink, TrendingUp } from 'lucide-react';
 
 interface DashboardProps {
   walletAddress: string;
@@ -13,6 +13,7 @@ interface DashboardProps {
     priceInLamports: number
     voiceId: string
   } | null;
+  priceInSol: string;
   copiedBlink: boolean;
   settingsOpen: boolean;
   onOpenSettings: () => void;
@@ -26,6 +27,7 @@ export default function Dashboard({
   walletAddress,
   selectedPrice,
   creatorStats,
+  priceInSol,
   copiedBlink,
   onOpenSettings,
   onCopyBlink,
@@ -34,15 +36,6 @@ export default function Dashboard({
   const blinkUrl = walletAddress
     ? `https://dial.to/?action=solana-action:https://auracast-murex.vercel.app/api/actions/voice/${walletAddress}`
     : ''
-  const truncatedBlinkUrl = blinkUrl.length > 50 ? blinkUrl.substring(0, 50) + '...' : blinkUrl
-
-  const sampleRequests = [
-    { time: '2m ago', preview: 'Happy birthday Sarah, I hope...', amount: '1.5 SOL', status: 'Completed', statusColor: 'text-accent' },
-    { time: '18m ago', preview: 'You inspire me every single day...', amount: '1.5 SOL', status: 'Completed', statusColor: 'text-accent' },
-    { time: '1h ago', preview: '██████ [Content Blocked]', amount: '1.5 SOL', status: 'Refunded', statusColor: 'text-destructive', dimmed: true },
-    { time: '3h ago', preview: 'Can you congratulate Mike on his...', amount: '1.5 SOL', status: 'Completed', statusColor: 'text-accent' },
-    { time: '7h ago', preview: 'Tell my team that we crushed it...', amount: '1.5 SOL', status: 'Completed', statusColor: 'text-accent' },
-  ];
 
   return (
     <div className="min-h-screen pb-12">
@@ -96,13 +89,11 @@ export default function Dashboard({
             </div>
           </Card>
 
-          {/* This Month */}
+          {/* Price Per 150 Chars */}
           <Card className="bg-card border-border p-6 space-y-2 md:col-span-3 lg:col-span-1">
-            <p className="text-muted-foreground text-sm">This Month</p>
-            <h3 className="text-3xl font-bold">8.5 SOL</h3>
-            <p className="text-accent text-sm flex items-center gap-1">
-              <TrendingUp className="w-4 h-4" /> 23% vs last month
-            </p>
+            <p className="text-muted-foreground text-sm">Price Per 150 Chars</p>
+            <h3 className="text-4xl font-bold">{priceInSol} SOL</h3>
+            <p className="text-muted-foreground text-sm mt-1">Your current rate</p>
           </Card>
         </div>
 
@@ -123,10 +114,12 @@ export default function Dashboard({
               type="text"
               value={blinkUrl}
               readOnly
+              placeholder="Connect wallet to get your Blink URL"
               className="flex-1 bg-black/40 border border-border rounded-lg px-4 py-2 text-sm font-mono text-muted-foreground"
             />
             <Button
               onClick={() => {
+                if (!blinkUrl) return
                 navigator.clipboard.writeText(blinkUrl)
                 onCopyBlink()
               }}
@@ -146,6 +139,7 @@ export default function Dashboard({
             <Button
               size="sm"
               onClick={() => {
+                if (!blinkUrl) return
                 const shareText = encodeURIComponent(
                   `Get a personalized voice message from me on @AuraCast! 🎙\n${blinkUrl}`
                 )
@@ -163,47 +157,6 @@ export default function Dashboard({
           </p>
         </Card>
 
-        {/* Recent Requests Table */}
-        <Card className="bg-card border-border p-6 space-y-4">
-          <h3 className="text-lg font-bold">Recent Voice Requests</h3>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-muted-foreground font-medium">Time</th>
-                  <th className="text-left py-3 px-4 text-muted-foreground font-medium">Message Preview</th>
-                  <th className="text-left py-3 px-4 text-muted-foreground font-medium">Amount</th>
-                  <th className="text-left py-3 px-4 text-muted-foreground font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sampleRequests.map((request, idx) => (
-                  <tr
-                    key={idx}
-                    className={`border-b border-border hover:bg-primary/5 transition-colors ${
-                      request.dimmed ? 'opacity-60' : ''
-                    } ${idx % 2 === 0 ? 'bg-transparent' : 'bg-black/10'}`}
-                  >
-                    <td className="py-3 px-4 text-muted-foreground">{request.time}</td>
-                    <td className="py-3 px-4 font-mono text-xs max-w-xs truncate">{request.preview}</td>
-                    <td className="py-3 px-4">{request.amount}</td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1 ${request.statusColor}`}>
-                        {request.status === 'Completed' ? (
-                          <CheckCircle2 className="w-4 h-4" />
-                        ) : (
-                          <RotateCw className="w-4 h-4" />
-                        )}
-                        {request.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
       </div>
     </div>
   );

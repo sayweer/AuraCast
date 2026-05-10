@@ -190,6 +190,7 @@ export default function App() {
           walletAddress={walletAddress}
           selectedPrice={selectedPrice}
           creatorStats={creatorStats}
+          priceInSol={((creatorStats?.priceInLamports ?? Math.round(selectedPrice * 1_000_000_000)) / 1_000_000_000).toFixed(4)}
           copiedBlink={copiedBlink}
           settingsOpen={settingsOpen}
           onOpenSettings={() => setSettingsOpen(true)}
