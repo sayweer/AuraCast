@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Mic, ChevronRight, RotateCw } from 'lucide-react';
@@ -17,10 +17,6 @@ interface OnboardingProps {
   onBackStep: () => void;
   onSelectPrice: (price: number) => void;
   onLaunch: () => void;
-  selectedGender: 'male' | 'female' | 'other' | null;
-  selectedAccent: string | null;
-  onSelectGender: (g: 'male' | 'female' | 'other') => void;
-  onSelectAccent: (a: string) => void;
   onAudioReady: (blob: Blob) => void;
   isRegistering: boolean;
   registerError: string | null;
@@ -53,10 +49,6 @@ export default function Onboarding({
   onBackStep,
   onSelectPrice,
   onLaunch,
-  selectedGender,
-  selectedAccent,
-  onSelectGender,
-  onSelectAccent,
   onAudioReady,
   isRegistering,
   registerError,
@@ -65,6 +57,12 @@ export default function Onboarding({
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
+
+  useEffect(() => {
+    if (isRecording && recordingSeconds >= 180) {
+      mediaRecorderRef.current?.stop()
+    }
+  }, [isRecording, recordingSeconds])
 
   const handleRecord = async () => {
     if (!isRecording) {
@@ -127,55 +125,14 @@ export default function Onboarding({
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">Create Your Voice Identity</h2>
-              <p className="text-muted-foreground">Record yourself speaking clearly for 2–4 minutes</p>
+              <p className="text-muted-foreground">Record yourself speaking clearly for 1–2 minutes</p>
             </div>
 
             {/* Info Box */}
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
               <p className="text-sm text-amber-100">
-                💡 The longer and clearer your recording, the more accurate your AI voice clone will be.
+                💡 1–2 minutes of clear audio gives the best results. Avoid recording more than 3 minutes.
               </p>
-            </div>
-
-            {/* Gender Selection */}
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground">Your gender</label>
-              <div className="flex gap-2">
-                {(['male', 'female', 'other'] as const).map((g) => (
-                  <button
-                    key={g}
-                    onClick={() => onSelectGender(g)}
-                    className={`flex-1 py-2 rounded-lg border text-sm font-medium capitalize transition-all ${
-                      selectedGender === g
-                        ? 'bg-primary border-primary text-primary-foreground'
-                        : 'bg-background border-border hover:border-primary/50'
-                    }`}
-                  >
-                    {g}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Accent Selection */}
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground">Your accent</label>
-              <select
-                value={selectedAccent ?? ''}
-                onChange={(e) => onSelectAccent(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
-              >
-                <option value="" disabled>Select your accent…</option>
-                <option value="American">🇺🇸 American</option>
-                <option value="British">🇬🇧 British</option>
-                <option value="Australian">🇦🇺 Australian</option>
-                <option value="Indian">🇮🇳 Indian</option>
-                <option value="Turkish">🇹🇷 Turkish</option>
-                <option value="German">🇩🇪 German</option>
-                <option value="French">🇫🇷 French</option>
-                <option value="Spanish">🇪🇸 Spanish</option>
-                <option value="Other">Other</option>
-              </select>
             </div>
 
             {/* Script Box */}
@@ -221,7 +178,7 @@ export default function Onboarding({
             {/* Continue Button */}
             <Button
               onClick={onNextStep}
-              disabled={!audioReady || !selectedGender || !selectedAccent}
+              disabled={!audioReady}
               className="w-full bg-primary text-primary-foreground hover:bg-secondary disabled:bg-primary/30 disabled:text-primary/50 disabled:cursor-not-allowed"
             >
               Create My Voice Clone <ChevronRight className="w-4 h-4 ml-2" />

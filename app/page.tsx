@@ -22,8 +22,6 @@ export default function App() {
   const [isCheckingDB, setIsCheckingDB] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
   const [registerError, setRegisterError] = useState<string | null>(null)
-  const [selectedGender, setSelectedGender] = useState<'male' | 'female' | 'other' | null>(null)
-  const [selectedAccent, setSelectedAccent] = useState<string | null>(null)
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [creatorStats, setCreatorStats] = useState<{
     totalEarned: number
@@ -92,8 +90,6 @@ export default function App() {
     setAudioReady(false)
     setRecordingSeconds(0)
     setIsRecording(false)
-    setSelectedGender(null)
-    setSelectedAccent(null)
     setAudioBlob(null)
     setRegisterError(null)
     setCreatorStats(null)
@@ -128,8 +124,6 @@ export default function App() {
           audioBase64: base64,
           fileName: 'voice.webm',
           priceInLamports: Math.round(selectedPrice * 1_000_000_000),
-          gender: selectedGender,
-          accent: selectedAccent,
         }),
       })
 
@@ -184,10 +178,6 @@ export default function App() {
           onNextStep={() => setOnboardingStep(2)}
           onBackStep={() => setOnboardingStep(1)}
           onSelectPrice={setSelectedPrice}
-          selectedGender={selectedGender}
-          selectedAccent={selectedAccent}
-          onSelectGender={setSelectedGender}
-          onSelectAccent={setSelectedAccent}
           onAudioReady={handleAudioReady}
           onLaunch={handleLaunch}
           isRegistering={isRegistering}
@@ -212,8 +202,6 @@ export default function App() {
             setAudioReady(false);
             setRecordingSeconds(0);
             setIsRecording(false);
-            setSelectedGender(null);
-            setSelectedAccent(null);
             setAudioBlob(null);
             setRegisterError(null);
             setCreatorStats(null);
@@ -233,8 +221,6 @@ export default function App() {
           setAudioReady(false);
           setRecordingSeconds(0);
           setIsRecording(false);
-          setSelectedGender(null);
-          setSelectedAccent(null);
           setAudioBlob(null);
           setRegisterError(null);
           setCreatorStats(null);
