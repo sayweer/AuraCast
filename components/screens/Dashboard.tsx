@@ -33,8 +33,11 @@ export default function Dashboard({
   onCopyBlink,
 }: DashboardProps) {
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
+  const actionUrl = walletAddress
+    ? `https://auracast-murex.vercel.app/api/actions/voice/${walletAddress}`
+    : ''
   const blinkUrl = walletAddress
-    ? `https://dial.to/?action=solana-action:https://auracast-murex.vercel.app/api/actions/voice/${walletAddress}`
+    ? `https://blinks.xyz/inspector?action=${encodeURIComponent(actionUrl)}`
     : ''
 
   return (
@@ -138,12 +141,14 @@ export default function Dashboard({
             </Button>
             <Button
               size="sm"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault()
                 if (!blinkUrl) return
                 const shareText = encodeURIComponent(
-                  `Get a personalized voice message from me on @AuraCast! 🎙\n${blinkUrl}`
+                  `🎙 Get a personalized AI voice message from me on AuraCast!\n\n${blinkUrl}\n\n#Solana #AI`
                 )
-                window.open(`https://twitter.com/intent/tweet?text=${shareText}`, '_blank')
+                const url = `https://x.com/intent/post?text=${shareText}`
+                window.open(url, '_blank', 'noopener,noreferrer')
               }}
               className="bg-primary hover:bg-secondary text-primary-foreground"
             >
