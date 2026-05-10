@@ -33,16 +33,14 @@ export default function Dashboard({
   onCopyBlink,
 }: DashboardProps) {
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
-  const actionUrl = walletAddress
-    ? `https://auracast-murex.vercel.app/api/actions/voice/${walletAddress}`
+  const fanPageUrl = walletAddress
+    ? `https://auracast-murex.vercel.app/fan/${walletAddress}`
     : ''
-  const blinkUrl = actionUrl
   const shareText = encodeURIComponent(
-    `🎙 Get a personalized AI voice message from me on AuraCast!\n\n` +
-    `${blinkUrl}\n\n` +
-    `(Phantom wallet required)\n#Solana #AI`
+    `🎙 Send me a personalized voice message on AuraCast!\n\n` +
+    `${fanPageUrl}\n\n#AuraCast #Solana #AI`
   )
-  const xShareUrl = blinkUrl
+  const xShareUrl = fanPageUrl
     ? `https://x.com/intent/post?text=${shareText}`
     : '#'
 
@@ -106,30 +104,26 @@ export default function Dashboard({
           </Card>
         </div>
 
-        {/* Blink URL Card */}
+        {/* Fan Page URL Card */}
         <Card className="bg-card border-border p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold">🔗 Your Voice Blink</span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-accent/20 text-accent text-xs font-bold">
-                <span className="w-2 h-2 rounded-full bg-accent"></span>
-                LIVE
-              </span>
+              <span className="text-lg font-bold">🔗 Your Fan Page Link</span>
             </div>
           </div>
 
           <div className="flex gap-2 items-center">
             <input
               type="text"
-              value={blinkUrl}
+              value={fanPageUrl}
               readOnly
-              placeholder="Connect wallet to get your Blink URL"
+              placeholder="Connect wallet to get your fan page link"
               className="flex-1 bg-black/40 border border-border rounded-lg px-4 py-2 text-sm font-mono text-muted-foreground"
             />
             <Button
               onClick={() => {
-                if (!blinkUrl) return
-                navigator.clipboard.writeText(blinkUrl)
+                if (!fanPageUrl) return
+                navigator.clipboard.writeText(fanPageUrl)
                 onCopyBlink()
               }}
               size="sm"
@@ -146,15 +140,6 @@ export default function Dashboard({
               )}
             </Button>
             <a
-              href={blinkUrl ? `https://blinks.xyz/inspector?action=${encodeURIComponent(blinkUrl)}` : '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-transparent border border-border text-foreground rounded-lg text-sm font-medium hover:bg-muted transition-colors"
-              onClick={(e) => { if (!blinkUrl) e.preventDefault() }}
-            >
-              🔍 Preview Blink
-            </a>
-            <a
               href={xShareUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -165,7 +150,7 @@ export default function Dashboard({
           </div>
 
           <p className="text-sm text-muted-foreground">
-            Share this link on X, Telegram, or anywhere — fans with Phantom or Backpack will see an interactive Blink. Use Preview to test it yourself.
+            Share this link anywhere — fans click it, type a message, pay SOL, and instantly hear it in your voice.
           </p>
         </Card>
 
