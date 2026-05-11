@@ -29,6 +29,9 @@ export default function App() {
     priceInLamports: number
     voiceId: string
   } | null>(null)
+  const [blockAdult, setBlockAdult] = useState(true)
+  const [blockProfanity, setBlockProfanity] = useState(true)
+  const [blockPolitical, setBlockPolitical] = useState(true)
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -77,6 +80,9 @@ export default function App() {
           priceInLamports: creator.price_lamports,
           voiceId: creator.voice_id,
         })
+        setBlockAdult(creator.block_adult ?? true)
+        setBlockProfanity(creator.block_profanity ?? true)
+        setBlockPolitical(creator.block_political ?? true)
       }
     }
 
@@ -93,6 +99,47 @@ export default function App() {
     setAudioBlob(null)
     setRegisterError(null)
     setCreatorStats(null)
+    setBlockAdult(true)
+    setBlockProfanity(true)
+    setBlockPolitical(true)
+  }
+
+  const handleFilterUpdate = async (
+    key: 'blockAdult' | 'blockProfanity' | 'blockPolitical',
+    value: boolean
+  ) => {
+    if (!walletAddress) return
+    const newFilters = {
+      blockAdult: key === 'blockAdult' ? value : blockAdult,
+      blockProfanity: key === 'blockProfanity' ? value : blockProfanity,
+      blockPolitical: key === 'blockPolitical' ? value : blockPolitical,
+    }
+    if (key === 'blockAdult') setBlockAdult(value)
+    if (key === 'blockProfanity') setBlockProfanity(value)
+    if (key === 'blockPolitical') setBlockPolitical(value)
+    try {
+      await fetch('/api/creator/update-filters', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress, ...newFilters }),
+      })
+    } catch {
+      if (key === 'blockAdult') setBlockAdult(!value)
+      if (key === 'blockProfanity') setBlockProfanity(!value)
+      if (key === 'blockPolitical') setBlockPolitical(!value)
+    }
+  }
+
+  const handleDeleteVoice = async () => {
+    if (!walletAddress) return
+    await fetch('/api/creator/delete-voice', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ walletAddress }),
+    })
+    setCreatorStats(null)
+    setAppState('onboarding')
+    setOnboardingStep(1)
   }
 
   const handleStartRecording = () => {
@@ -233,6 +280,12 @@ export default function App() {
         onPriceUpdateSuccess={(newLamports) => {
           setCreatorStats(prev => prev ? { ...prev, priceInLamports: newLamports } : null);
         }}
+        blockAdult={blockAdult}
+        blockProfanity={blockProfanity}
+        blockPolitical={blockPolitical}
+        onFilterUpdate={handleFilterUpdate}
+        voiceId={creatorStats?.voiceId ?? null}
+        onDeleteVoice={handleDeleteVoice}
       />
     </div>
   );

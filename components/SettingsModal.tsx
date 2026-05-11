@@ -14,6 +14,12 @@ interface SettingsModalProps {
   onRerecord: () => void;
   onPriceUpdate: (price: number) => void;
   onPriceUpdateSuccess: (newLamports: number) => void;
+  blockAdult: boolean;
+  blockProfanity: boolean;
+  blockPolitical: boolean;
+  onFilterUpdate: (key: 'blockAdult' | 'blockProfanity' | 'blockPolitical', value: boolean) => void;
+  voiceId: string | null;
+  onDeleteVoice: () => Promise<void>;
 }
 
 export default function SettingsModal({
@@ -25,11 +31,15 @@ export default function SettingsModal({
   onRerecord,
   onPriceUpdate,
   onPriceUpdateSuccess,
+  blockAdult,
+  blockProfanity,
+  blockPolitical,
+  onFilterUpdate,
+  voiceId,
+  onDeleteVoice,
 }: SettingsModalProps) {
-  const [blockAdult, setBlockAdult] = useState(true);
-  const [blockProfanity, setBlockProfanity] = useState(true);
-  const [blockPolitical, setBlockPolitical] = useState(true);
   const [newPrice, setNewPrice] = useState(selectedPrice);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [priceError, setPriceError] = useState<string | null>(null);
   const [priceSuccess, setPriceSuccess] = useState(false);
@@ -110,6 +120,20 @@ export default function SettingsModal({
           {/* Voice Management Section */}
           <div className="space-y-3 pb-4 border-b border-border">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Voice Management</h3>
+            {voiceId ? (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-green-950/30 border border-green-800/30 mb-3">
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-sm text-green-400 font-medium">Voice clone active</span>
+                <span className="text-xs text-muted-foreground ml-auto font-mono">
+                  {voiceId.slice(0, 12)}...
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-950/30 border border-red-800/30 mb-3">
+                <div className="w-2 h-2 rounded-full bg-red-400" />
+                <span className="text-sm text-red-400 font-medium">No voice clone found</span>
+              </div>
+            )}
             <Button
               onClick={onRerecord}
               variant="outline"
@@ -118,10 +142,16 @@ export default function SettingsModal({
               🎙 Record New Voice Sample
             </Button>
             <button
-              onClick={() => console.log('delete voice')}
-              className="w-full text-destructive text-sm font-medium hover:opacity-80 transition-opacity"
+              onClick={async () => {
+                if (!confirm('Are you sure? This will permanently delete your voice clone.')) return
+                setIsDeleting(true)
+                await onDeleteVoice()
+                setIsDeleting(false)
+              }}
+              disabled={isDeleting}
+              className="w-full text-destructive text-sm font-medium hover:opacity-80 transition-opacity disabled:opacity-50"
             >
-              🗑 Delete My Voice
+              {isDeleting ? '⏳ Deleting...' : '🗑 Delete My Voice'}
             </button>
             <p className="text-xs text-muted-foreground">
               This will permanently remove your voice clone
@@ -143,7 +173,7 @@ export default function SettingsModal({
                   <span>🔞 Block adult (18+) content</span>
                 </label>
                 <div
-                  onClick={() => setBlockAdult(!blockAdult)}
+                  onClick={() => onFilterUpdate('blockAdult', !blockAdult)}
                   className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
                     blockAdult ? 'bg-primary' : 'bg-muted'
                   }`}
@@ -162,7 +192,7 @@ export default function SettingsModal({
                   <span>🤬 Block profanity & offensive language</span>
                 </label>
                 <div
-                  onClick={() => setBlockProfanity(!blockProfanity)}
+                  onClick={() => onFilterUpdate('blockProfanity', !blockProfanity)}
                   className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
                     blockProfanity ? 'bg-primary' : 'bg-muted'
                   }`}
@@ -181,7 +211,7 @@ export default function SettingsModal({
                   <span>🏛 Block political content</span>
                 </label>
                 <div
-                  onClick={() => setBlockPolitical(!blockPolitical)}
+                  onClick={() => onFilterUpdate('blockPolitical', !blockPolitical)}
                   className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
                     blockPolitical ? 'bg-primary' : 'bg-muted'
                   }`}

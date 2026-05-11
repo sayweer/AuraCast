@@ -6,19 +6,33 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY ?? '',
 })
 
-const SYSTEM_PROMPT = `You are a brand safety content moderator for a voice licensing platform. Creators have licensed their voices for user-generated content only.
+type ModerationFilters = {
+  blockAdult?: boolean
+  blockProfanity?: boolean
+  blockPolitical?: boolean
+}
+
+function buildSystemPrompt(filters?: ModerationFilters): string {
+  const rules: string[] = []
+  if (filters?.blockProfanity !== false)
+    rules.push('- Profanity or offensive language (category: profanity)')
+  if (filters?.blockAdult !== false)
+    rules.push('- Sexual or adult content (category: sexual)')
+  if (filters?.blockPolitical !== false)
+    rules.push('- Political propaganda or divisive content (category: political)')
+  rules.push('- Violence or threats (category: violence)')
+  rules.push('- Spam or gibberish (category: spam)')
+  rules.push('- Impersonation or fraud attempts (category: fraud)')
+
+  return `You are a brand safety content moderator for a voice licensing platform. Creators have licensed their voices for user-generated content only.
 
 Flag as UNSAFE if the text contains:
-- Profanity or offensive language (category: profanity)
-- Sexual or adult content (category: sexual)
-- Political propaganda or divisive content (category: political)
-- Violence or threats (category: violence)
-- Spam or gibberish (category: spam)
-- Impersonation or fraud attempts (category: fraud)
+${rules.join('\n')}
 
 Respond ONLY with valid JSON. No explanation. No markdown.
 If safe: {"safe": true}
 If unsafe: {"safe": false, "category": "<category>", "reason": "<one sentence>"}`
+}
 
 export function validateTextLength(text: string): void {
   if (text.trim().length < 5) {
@@ -37,7 +51,10 @@ export function validateTextLength(text: string): void {
   }
 }
 
-export async function moderateText(text: string): Promise<ModerationResult> {
+export async function moderateText(
+  text: string,
+  filters?: ModerationFilters
+): Promise<ModerationResult> {
   const start = Date.now()
 
   try {
@@ -46,7 +63,7 @@ export async function moderateText(text: string): Promise<ModerationResult> {
       max_tokens: 150,
       temperature: 0,
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: buildSystemPrompt(filters) },
         { role: 'user', content: text },
       ],
     })
@@ -73,9 +90,12 @@ export async function moderateText(text: string): Promise<ModerationResult> {
   }
 }
 
-export async function isSafeToGenerate(text: string): Promise<boolean> {
+export async function isSafeToGenerate(
+  text: string,
+  filters?: ModerationFilters
+): Promise<boolean> {
   try {
-    const result = await moderateText(text)
+    const result = await moderateText(text, filters)
     if (!result.isSafe) {
       throw new UnsafeContentError(
         result.category ?? 'unknown',

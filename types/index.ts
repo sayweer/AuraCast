@@ -10,6 +10,9 @@ export interface Creator {
   total_earned: number
   total_messages: number
   created_at: string
+  block_adult: boolean
+  block_profanity: boolean
+  block_political: boolean
 }
 
 export interface Purchase {

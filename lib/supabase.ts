@@ -139,3 +139,28 @@ export async function getCreatorStats(
   const row = data as { total_earned: number; total_messages: number }
   return { totalEarned: row.total_earned, totalMessages: row.total_messages }
 }
+
+export async function updateCreatorFilters(
+  walletAddress: string,
+  filters: { blockAdult: boolean; blockProfanity: boolean; blockPolitical: boolean }
+): Promise<void> {
+  const { error } = await supabase
+    .from('creators')
+    .update({
+      block_adult: filters.blockAdult,
+      block_profanity: filters.blockProfanity,
+      block_political: filters.blockPolitical,
+    })
+    .eq('wallet_address', walletAddress)
+
+  if (error) throw new AuraCastError('Failed to update filters', 'DB_ERROR', 500)
+}
+
+export async function deleteCreatorVoice(walletAddress: string): Promise<void> {
+  const { error } = await supabase
+    .from('creators')
+    .update({ voice_id: '', is_active: false })
+    .eq('wallet_address', walletAddress)
+
+  if (error) throw new AuraCastError('Failed to delete voice', 'DB_ERROR', 500)
+}

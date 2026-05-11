@@ -36,7 +36,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     })
 
     try {
-      await isSafeToGenerate(fanText)
+      await isSafeToGenerate(fanText, {
+        blockAdult: creator.block_adult,
+        blockProfanity: creator.block_profanity,
+        blockPolitical: creator.block_political,
+      })
     } catch (moderationError) {
       if (moderationError instanceof UnsafeContentError) {
         await updatePurchaseStatus(txSignature, 'rejected')
