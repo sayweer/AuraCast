@@ -10,7 +10,7 @@ moderates every request for brand safety.
 - Framework: Next.js 14, App Router, TypeScript strict mode
 - Blockchain: Solana devnet, @solana/web3.js, @solana/actions
 - Voice AI: ElevenLabs Instant Voice Cloning + eleven_turbo_v2
-- Moderation: Anthropic Claude Haiku (claude-haiku-4-5)
+- Moderation: Groq llama-3.1-8b-instant (via groq-sdk)
 - Database: Supabase (Postgres)
 - Styling: Tailwind CSS
 
@@ -29,7 +29,7 @@ types/index.ts → all TypeScript interfaces
 - Voice is NEVER generated before moderation passes
 - SOL payment split: 90% creator, 10% platform (PLATFORM_WALLET env)
 - ElevenLabs model is always "eleven_turbo_v2" (speed critical)
-- Claude model is always "claude-haiku-4-5" (cost + speed critical)
+- Moderation model: "llama-3.1-8b-instant" via Groq API (cost + speed critical)
 - No Anchor for hackathon — use SystemProgram.transfer directly
 - Audio stored as base64 data URL for hackathon (no S3)
 - Git Control: Do NEVER automatically run 'git commit' or 'git push'. I will handle all version control and repository updates manually.
