@@ -6,7 +6,7 @@ import type { RegisterCreatorRequest, RegisterCreatorResponse } from '@/types'
 
 export async function POST(req: NextRequest): Promise<NextResponse<RegisterCreatorResponse>> {
   const body = (await req.json()) as Partial<RegisterCreatorRequest>
-  const { walletAddress, creatorName, audioBase64, fileName, priceInLamports } = body
+  const { walletAddress, creatorName, audioBase64, fileName, priceInLamports, language } = body
 
   if (!walletAddress || !creatorName || !audioBase64 || !fileName || priceInLamports === undefined) {
     return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<RegisterCreat
 
     const audioBuffer = Buffer.from(audioBase64, 'base64')
     const voiceId = await cloneVoice(audioBuffer, fileName, creatorName)
-    const creator = await saveCreator({ walletAddress, creatorName, audioBase64, fileName, voiceId, priceInLamports })
+    const creator = await saveCreator({ walletAddress, creatorName, audioBase64, fileName, voiceId, priceInLamports, language: language ?? 'en' })
 
     return NextResponse.json({ success: true, voiceId, creatorId: creator.id }, { status: 201 })
   } catch (error) {

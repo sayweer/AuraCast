@@ -13,6 +13,7 @@ export interface Creator {
   block_adult: boolean
   block_profanity: boolean
   block_political: boolean
+  language: string
 }
 
 export interface Purchase {
@@ -76,6 +77,7 @@ export interface RegisterCreatorRequest {
   audioBase64: string
   fileName: string
   priceInLamports: number
+  language?: string
 }
 
 export interface RegisterCreatorResponse {

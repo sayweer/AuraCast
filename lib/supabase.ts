@@ -36,6 +36,7 @@ export async function saveCreator(
       creator_name: data.creatorName,
       voice_id: data.voiceId,
       price_lamports: data.priceInLamports,
+      language: data.language ?? 'en',
     })
     .select()
     .single()

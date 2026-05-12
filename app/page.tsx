@@ -34,6 +34,7 @@ export default function App() {
   const [blockAdult, setBlockAdult] = useState(true)
   const [blockProfanity, setBlockProfanity] = useState(true)
   const [blockPolitical, setBlockPolitical] = useState(true)
+  const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'tr'>('en')
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -114,6 +115,7 @@ export default function App() {
     setBlockProfanity(true)
     setBlockPolitical(true)
     setSelectedPrice(0.05)
+    setSelectedLanguage('en')
   }
 
   const handleFilterUpdate = async (
@@ -201,6 +203,7 @@ export default function App() {
           audioBase64: base64,
           fileName: `voice.${extension}`,
           priceInLamports: Math.round(selectedPrice * 1_000_000_000),
+          language: selectedLanguage,
         }),
       })
 
@@ -259,6 +262,8 @@ export default function App() {
           onLaunch={handleLaunch}
           isRegistering={isRegistering}
           registerError={registerError}
+          selectedLanguage={selectedLanguage}
+          onSelectLanguage={setSelectedLanguage}
         />
       )}
 

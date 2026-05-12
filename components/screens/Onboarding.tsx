@@ -20,6 +20,8 @@ interface OnboardingProps {
   onAudioReady: (blob: Blob, mimeType: string) => void;
   isRegistering: boolean;
   registerError: string | null;
+  selectedLanguage: 'en' | 'tr';
+  onSelectLanguage: (lang: 'en' | 'tr') => void;
 }
 
 const formatTime = (seconds: number) => {
@@ -27,6 +29,34 @@ const formatTime = (seconds: number) => {
   const secs = seconds % 60;
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
+
+const SCRIPT_EN = `Welcome. My name is recorded here to create my personal voice clone.
+
+I enjoy spending time outdoors, especially on warm sunny days when the sky is perfectly clear. There is something truly special about the way morning light falls through the trees and illuminates everything around you.
+
+When I was younger, I used to read books for hours without stopping. Stories about adventure, science, history, and the mysteries of the universe always fascinated me deeply.
+
+I believe that technology has the power to connect people in ways we never imagined before. Every single day, new ideas emerge that change how we live, how we work, and how we communicate with one another.
+
+Cooking is another thing I genuinely enjoy. The process of combining simple ingredients to create something delicious feels almost like a form of art. My favorite meals are the ones shared with people I care about.
+
+Music has always been a big part of my life. Different songs carry different memories, and sometimes a single melody can take you back to a moment you had almost forgotten.
+
+Thank you for listening. This recording will help create an accurate and natural clone of my voice.`
+
+const SCRIPT_TR = `Merhaba. Kişisel ses klonum oluşturmak için bu kaydı yapıyorum.
+
+Açık havada vakit geçirmeyi çok severim, özellikle güneşin parlak olduğu ve gökyüzünün tertemiz göründüğü sıcak günlerde. Sabah ışığının ağaçların arasından süzülüp her yanı aydınlatma biçiminde gerçekten çok özel bir şey var.
+
+Küçükken saatlerce durmadan kitap okurdum. Macera, bilim, tarih ve evrenin gizemlerine dair hikayeler her zaman derin bir şekilde ilgimi çekmiştir.
+
+Teknolojinin insanları daha önce hiç hayal edemediğimiz biçimlerde birbirine bağlama gücüne sahip olduğuna inanıyorum. Her geçen gün, yaşama, çalışma ve birbirimizle iletişim kurma şeklimizi değiştiren yeni fikirler ortaya çıkıyor.
+
+Yemek yapmak da gerçekten keyif aldığım bir şey. Basit malzemeleri bir araya getirerek lezzetli bir şey yaratma süreci neredeyse bir sanat formu gibi hissettiriyor. En sevdiğim yemekler, önem verdiğim insanlarla paylaştıklarım.
+
+Müzik her zaman hayatımın büyük bir parçası olmuştur. Farklı şarkılar farklı anılar taşır ve bazen tek bir melodi sizi neredeyse unuttuğunuz bir ana geri götürebilir.
+
+Dinlediğiniz için teşekkürler. Bu kayıt, sesimin doğru ve doğal bir klonunu oluşturmama yardımcı olacak.`
 
 const priceOptions = [0.01, 0.03, 0.05, 0.08, 0.1];
 const usdPrices: Record<number, number> = {
@@ -52,6 +82,8 @@ export default function Onboarding({
   onAudioReady,
   isRegistering,
   registerError,
+  selectedLanguage,
+  onSelectLanguage,
 }: OnboardingProps) {
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
 
@@ -106,7 +138,7 @@ export default function Onboarding({
       } catch {
         // mic permission denied
       }
-    } else if (recordingSeconds >= 30) {
+    } else if (recordingSeconds >= 90) {
       mediaRecorderRef.current?.stop()
     }
   }
@@ -144,23 +176,53 @@ export default function Onboarding({
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">Create Your Voice Identity</h2>
-              <p className="text-muted-foreground">Record yourself speaking clearly for 1–2 minutes</p>
+              <p className="text-muted-foreground">Read the full script aloud — at least 90 seconds</p>
             </div>
 
             {/* Info Box */}
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
               <p className="text-sm text-amber-100">
-                💡 1–2 minutes of clear audio gives the best results. Avoid recording more than 3 minutes.
+                💡 Read the entire script for the best voice clone quality. Minimum 90 seconds required.
               </p>
+            </div>
+
+            {/* Language Selector */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Select your language</label>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => onSelectLanguage('en')}
+                  className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${
+                    selectedLanguage === 'en'
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-transparent text-muted-foreground border-border'
+                  }`}
+                >
+                  🇬🇧 English
+                </button>
+                <button
+                  onClick={() => onSelectLanguage('tr')}
+                  className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${
+                    selectedLanguage === 'tr'
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-transparent text-muted-foreground border-border'
+                  }`}
+                >
+                  🇹🇷 Türkçe
+                </button>
+              </div>
             </div>
 
             {/* Script Box */}
             <div className="space-y-2">
               <label className="text-sm text-muted-foreground">Read this text aloud:</label>
-              <div className="bg-black/40 border border-border rounded-lg p-4 max-h-32 overflow-y-auto text-sm font-mono">
-                <p className="text-foreground">
-                  Welcome to AuraCast. My name is [your name], and this is my official voice registration. I&apos;m recording this message to create my unique voice identity on the Solana blockchain. AuraCast uses advanced AI to license my voice securely, ensuring fans can receive personalized messages while my brand stays protected at all times. Every request passes through an AI safety filter before any audio is generated. This platform gives me complete control over how my voice is used, and I can pause or revoke access at any time.
-                </p>
+              <div className="bg-black/40 border border-border rounded-lg p-4 max-h-48 overflow-y-auto text-sm font-mono">
+                <textarea
+                  readOnly
+                  value={selectedLanguage === 'tr' ? SCRIPT_TR : SCRIPT_EN}
+                  className="w-full bg-transparent text-foreground text-sm font-mono resize-none outline-none"
+                  rows={8}
+                />
               </div>
             </div>
 
