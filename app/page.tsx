@@ -51,6 +51,12 @@ export default function App() {
       try {
         const res = await fetch(`/api/creator/${publicKey.toBase58()}`)
         if (res.ok) {
+          const creator = await res.json()
+          if (!creator.is_active || !creator.voice_id) {
+            setAppState('onboarding')
+            setOnboardingStep(1)
+            return
+          }
           setAppState('dashboard')
         } else {
           setAppState('onboarding')
@@ -83,6 +89,7 @@ export default function App() {
         setBlockAdult(creator.block_adult ?? true)
         setBlockProfanity(creator.block_profanity ?? true)
         setBlockPolitical(creator.block_political ?? true)
+        setSelectedPrice(creator.price_lamports / 1_000_000_000)
       }
     }
 
@@ -237,7 +244,9 @@ export default function App() {
           walletAddress={walletAddress}
           selectedPrice={selectedPrice}
           creatorStats={creatorStats}
-          priceInSol={((creatorStats?.priceInLamports ?? Math.round(selectedPrice * 1_000_000_000)) / 1_000_000_000).toFixed(4)}
+          priceInSol={creatorStats?.priceInLamports
+            ? (creatorStats.priceInLamports / 1_000_000_000).toFixed(4)
+            : selectedPrice.toFixed(4)}
           copiedBlink={copiedBlink}
           settingsOpen={settingsOpen}
           onOpenSettings={() => setSettingsOpen(true)}
