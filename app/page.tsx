@@ -23,6 +23,7 @@ export default function App() {
   const [isRegistering, setIsRegistering] = useState(false)
   const [registerError, setRegisterError] = useState<string | null>(null)
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
+  const [audioMimeType, setAudioMimeType] = useState('audio/webm')
   const [creatorStats, setCreatorStats] = useState<{
     totalEarned: number
     totalMessages: number
@@ -104,6 +105,7 @@ export default function App() {
     setRecordingSeconds(0)
     setIsRecording(false)
     setAudioBlob(null)
+    setAudioMimeType('audio/webm')
     setRegisterError(null)
     setCreatorStats(null)
     setBlockAdult(true)
@@ -154,8 +156,9 @@ export default function App() {
     setRecordingSeconds(0)
   }
 
-  const handleAudioReady = (blob: Blob) => {
+  const handleAudioReady = (blob: Blob, mimeType: string) => {
     setAudioBlob(blob)
+    setAudioMimeType(mimeType)
     setAudioReady(true)
     setIsRecording(false)
   }
@@ -169,6 +172,10 @@ export default function App() {
       const arrayBuffer = await audioBlob.arrayBuffer()
       const base64 = Buffer.from(arrayBuffer).toString('base64')
 
+      const extension = audioMimeType.includes('mp4') ? 'mp4'
+        : audioMimeType.includes('ogg') ? 'ogg'
+        : 'webm'
+
       const res = await fetch('/api/creator/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -176,7 +183,7 @@ export default function App() {
           walletAddress: publicKey.toBase58(),
           creatorName: publicKey.toBase58().slice(0, 8),
           audioBase64: base64,
-          fileName: 'voice.webm',
+          fileName: `voice.${extension}`,
           priceInLamports: Math.round(selectedPrice * 1_000_000_000),
         }),
       })
@@ -260,6 +267,7 @@ export default function App() {
             setRecordingSeconds(0);
             setIsRecording(false);
             setAudioBlob(null);
+            setAudioMimeType('audio/webm');
             setRegisterError(null);
             setCreatorStats(null);
           }}
@@ -279,6 +287,7 @@ export default function App() {
           setRecordingSeconds(0);
           setIsRecording(false);
           setAudioBlob(null);
+          setAudioMimeType('audio/webm');
           setRegisterError(null);
           setCreatorStats(null);
           setSettingsOpen(false);

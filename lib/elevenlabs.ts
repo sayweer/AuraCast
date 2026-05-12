@@ -21,9 +21,20 @@ export async function cloneVoice(
     fileName: string,
     creatorName: string
 ): Promise<string> {
+    const mimeTypeMap: Record<string, string> = {
+        mp4: 'audio/mp4',
+        m4a: 'audio/mp4',
+        webm: 'audio/webm',
+        ogg: 'audio/ogg',
+        wav: 'audio/wav',
+        mp3: 'audio/mpeg',
+    }
+    const ext = fileName.split('.').pop() ?? 'webm'
+    const fileMimeType = mimeTypeMap[ext] ?? 'audio/webm'
+
     const form = new FormData()
     form.append('name', creatorName)
-    form.append('files', new Blob([new Uint8Array(audioBuffer)], { type: 'audio/mpeg' }), fileName)
+    form.append('files', new Blob([new Uint8Array(audioBuffer)], { type: fileMimeType }), fileName)
 
     const res = await fetch(`${BASE_URL}/voices/add`, {
         method: 'POST',

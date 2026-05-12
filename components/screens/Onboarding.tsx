@@ -17,7 +17,7 @@ interface OnboardingProps {
   onBackStep: () => void;
   onSelectPrice: (price: number) => void;
   onLaunch: () => void;
-  onAudioReady: (blob: Blob) => void;
+  onAudioReady: (blob: Blob, mimeType: string) => void;
   isRegistering: boolean;
   registerError: string | null;
 }
@@ -64,11 +64,29 @@ export default function Onboarding({
     }
   }, [isRecording, recordingSeconds])
 
+  const getSupportedMimeType = (): string => {
+    const types = [
+      'audio/mp4',
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg;codecs=opus',
+      'audio/ogg',
+    ]
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) return type
+    }
+    return ''
+  }
+
   const handleRecord = async () => {
     if (!isRecording) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        const mediaRecorder = new MediaRecorder(stream)
+        const mimeType = getSupportedMimeType()
+        const mediaRecorder = new MediaRecorder(
+          stream,
+          mimeType ? { mimeType } : undefined
+        )
         mediaRecorderRef.current = mediaRecorder
         audioChunksRef.current = []
 
@@ -77,8 +95,9 @@ export default function Onboarding({
         }
 
         mediaRecorder.onstop = () => {
-          const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-          onAudioReady(blob)
+          const effectiveType = mimeType || 'audio/webm'
+          const blob = new Blob(audioChunksRef.current, { type: effectiveType })
+          onAudioReady(blob, effectiveType)
           stream.getTracks().forEach(t => t.stop())
         }
 
