@@ -235,13 +235,13 @@ export default function Onboarding({
             </div>
 
             {/* Earnings Preview */}
-            <div className="bg-black/40 border border-border rounded-lg p-4 space-y-2">
-              <p className="text-sm text-muted-foreground">If a fan sends 300 characters (2 units):</p>
+            <div className="bg-[#200010] border border-[#C41E3A]/40 rounded-lg p-4 space-y-2">
+              <p className="text-sm text-[#F5F0F1]">If a fan sends 300 characters (2 units):</p>
               <div className="space-y-1">
-                <p className="text-lg font-semibold text-accent">
+                <p className="text-lg font-bold text-[#FF6B84]">
                   Per request: {(selectedPrice * 2 * 0.9).toFixed(4)} SOL
                 </p>
-                <p className="text-lg font-semibold text-accent">
+                <p className="text-lg font-bold text-[#FF6B84]">
                   Monthly (10 req/day): {(selectedPrice * 2 * 0.9 * 30 * 10).toFixed(2)} SOL
                 </p>
               </div>
