@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -43,6 +43,10 @@ export default function SettingsModal({
   const [isUpdating, setIsUpdating] = useState(false);
   const [priceError, setPriceError] = useState<string | null>(null);
   const [priceSuccess, setPriceSuccess] = useState(false);
+
+  useEffect(() => {
+    setNewPrice(selectedPrice);
+  }, [selectedPrice]);
 
   const handlePriceUpdate = async () => {
     if (newPrice < 0.01 || newPrice > 0.1) {

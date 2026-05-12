@@ -111,6 +111,7 @@ export default function App() {
     setBlockAdult(true)
     setBlockProfanity(true)
     setBlockPolitical(true)
+    setSelectedPrice(0.05)
   }
 
   const handleFilterUpdate = async (
