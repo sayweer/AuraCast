@@ -164,7 +164,20 @@ export default function App() {
   }
 
   const handleLaunch = async () => {
-    if (!publicKey || !audioBlob) return
+    console.log('handleLaunch called', {
+      publicKey: publicKey?.toBase58(),
+      audioBlob: audioBlob?.size,
+      audioMimeType,
+      selectedPrice,
+    })
+    if (!publicKey || !audioBlob) {
+      setRegisterError(
+        !publicKey
+          ? 'Wallet not connected'
+          : 'No audio recording found. Please go back and record your voice.'
+      )
+      return
+    }
     setIsRegistering(true)
     setRegisterError(null)
 
