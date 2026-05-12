@@ -10,6 +10,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 export default function App() {
   const { publicKey, disconnect, connected } = useWallet()
   const walletAddress = publicKey?.toBase58() ?? ''
+  const walletAddressStr = publicKey?.toBase58() ?? null
 
   const [appState, setAppState] = useState<'landing' | 'onboarding' | 'dashboard'>('landing');
   const [onboardingStep, setOnboardingStep] = useState<1 | 2>(1);
@@ -45,12 +46,12 @@ export default function App() {
   }, [isRecording]);
 
   useEffect(() => {
-    if (!connected || !publicKey || appState !== 'landing') return
+    if (!connected || !walletAddressStr || appState !== 'landing') return
 
     const checkCreator = async () => {
       setIsCheckingDB(true)
       try {
-        const res = await fetch(`/api/creator/${publicKey.toBase58()}`)
+        const res = await fetch(`/api/creator/${walletAddressStr}`)
         if (res.ok) {
           const creator = await res.json()
           if (!creator.is_active || !creator.voice_id) {
@@ -72,13 +73,14 @@ export default function App() {
     }
 
     checkCreator()
-  }, [connected, publicKey])
+  }, [connected, walletAddressStr])
 
   useEffect(() => {
-    if (appState !== 'dashboard' || !publicKey) return
+    if (appState !== 'dashboard' || !walletAddressStr) return
 
     const fetchStats = async () => {
-      const res = await fetch(`/api/creator/${publicKey.toBase58()}`)
+      console.log('fetchStats fired', { walletAddressStr, appState, timestamp: Date.now() })
+      const res = await fetch(`/api/creator/${walletAddressStr}`)
       if (res.ok) {
         const creator = await res.json()
         setCreatorStats({
@@ -95,7 +97,7 @@ export default function App() {
     }
 
     fetchStats()
-  }, [appState, publicKey])
+  }, [appState, walletAddressStr])
 
   const handleDisconnectWallet = async () => {
     await disconnect()
