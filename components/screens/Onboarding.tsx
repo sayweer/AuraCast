@@ -293,7 +293,7 @@ export default function Onboarding({
 
             {/* Info Row */}
             <div className="text-center text-sm text-muted-foreground">
-              📊 Most creators choose 1.5–2 SOL per message
+              📊 Most creators choose 0.03–0.05 SOL per 150 characters
             </div>
 
             {/* Earnings Preview */}
