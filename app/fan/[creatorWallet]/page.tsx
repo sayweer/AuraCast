@@ -108,7 +108,7 @@ export default function FanPage() {
         return
       }
 
-      setAudioUrl(`data:audio/webm;base64,${data.audioBase64}`)
+      setAudioUrl(`data:audio/mpeg;base64,${data.audioBase64}`)
     } catch (err: unknown) {
       const errMessage = err instanceof Error ? err.message : 'Payment failed'
       setError(errMessage)
@@ -159,19 +159,23 @@ export default function FanPage() {
             </div>
           )}
 
-          {/* Creator not found */}
-          {!loading && !creator && (
+          {/* Creator not found or inactive */}
+          {!loading && (!creator || !creator.is_active) && (
             <div className="flex flex-col items-center justify-center gap-4 py-24">
               <div className="text-5xl">🔍</div>
-              <h2 className="text-xl font-semibold text-foreground">Creator not found</h2>
+              <h2 className="text-xl font-semibold text-foreground">
+                {creator && !creator.is_active ? 'Creator unavailable' : 'Creator not found'}
+              </h2>
               <p className="text-muted-foreground text-sm text-center">
-                This creator hasn&apos;t registered on AuraCast yet,<br />or the wallet address is invalid.
+                {creator && !creator.is_active
+                  ? <>This creator is currently not accepting messages.<br />Please check back later.</>
+                  : <>This creator hasn&apos;t registered on AuraCast yet,<br />or the wallet address is invalid.</>}
               </p>
             </div>
           )}
 
           {/* Creator card */}
-          {!loading && creator && (
+          {!loading && creator && creator.is_active && (
             <div className="flex flex-col gap-6">
 
               {/* Creator identity card */}
@@ -366,7 +370,7 @@ export default function FanPage() {
                       />
                       <a
                         href={audioUrl}
-                        download="voice-message.webm"
+                        download="voice-message.mp3"
                         className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150"
                         style={{
                           background: 'rgba(185,28,60,0.15)',

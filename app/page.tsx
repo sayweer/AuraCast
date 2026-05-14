@@ -35,6 +35,7 @@ export default function App() {
   const [blockProfanity, setBlockProfanity] = useState(true)
   const [blockPolitical, setBlockPolitical] = useState(true)
   const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'tr'>('en')
+  const [statsLoading, setStatsLoading] = useState(false)
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -49,12 +50,16 @@ export default function App() {
   useEffect(() => {
     if (!connected || !walletAddressStr || appState !== 'landing') return
 
+    let ignore = false
+
     const checkCreator = async () => {
       setIsCheckingDB(true)
       try {
         const res = await fetch(`/api/creator/${walletAddressStr}`)
+        if (ignore) return
         if (res.ok) {
           const creator = await res.json()
+          if (ignore) return
           if (!creator.is_active || !creator.voice_id) {
             setAppState('onboarding')
             setOnboardingStep(1)
@@ -66,38 +71,51 @@ export default function App() {
           setOnboardingStep(1)
         }
       } catch {
+        if (ignore) return
         setAppState('onboarding')
         setOnboardingStep(1)
       } finally {
-        setIsCheckingDB(false)
+        if (!ignore) setIsCheckingDB(false)
       }
     }
 
     checkCreator()
+    return () => { ignore = true }
   }, [connected, walletAddressStr])
 
   useEffect(() => {
     if (appState !== 'dashboard' || !walletAddressStr) return
 
+    let ignore = false
+
     const fetchStats = async () => {
-      console.log('fetchStats fired', { walletAddressStr, appState, timestamp: Date.now() })
-      const res = await fetch(`/api/creator/${walletAddressStr}`)
-      if (res.ok) {
-        const creator = await res.json()
-        setCreatorStats({
-          totalEarned: creator.total_earned,
-          totalMessages: creator.total_messages,
-          priceInLamports: creator.price_lamports,
-          voiceId: creator.voice_id,
-        })
-        setBlockAdult(creator.block_adult ?? true)
-        setBlockProfanity(creator.block_profanity ?? true)
-        setBlockPolitical(creator.block_political ?? true)
-        setSelectedPrice(creator.price_lamports / 1_000_000_000)
+      setStatsLoading(true)
+      try {
+        const res = await fetch(`/api/creator/${walletAddressStr}`)
+        if (ignore) return
+        if (res.ok) {
+          const creator = await res.json()
+          if (ignore) return
+          setCreatorStats({
+            totalEarned: creator.total_earned,
+            totalMessages: creator.total_messages,
+            priceInLamports: creator.price_lamports,
+            voiceId: creator.voice_id,
+          })
+          setBlockAdult(creator.block_adult ?? true)
+          setBlockProfanity(creator.block_profanity ?? true)
+          setBlockPolitical(creator.block_political ?? true)
+          setSelectedPrice(creator.price_lamports / 1_000_000_000)
+        }
+      } catch {
+        // ignore — stale state remains until next reconnect
+      } finally {
+        if (!ignore) setStatsLoading(false)
       }
     }
 
     fetchStats()
+    return () => { ignore = true }
   }, [appState, walletAddressStr])
 
   const handleDisconnectWallet = async () => {
@@ -146,14 +164,22 @@ export default function App() {
 
   const handleDeleteVoice = async () => {
     if (!walletAddress) return
-    await fetch('/api/creator/delete-voice', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ walletAddress }),
-    })
-    setCreatorStats(null)
-    setAppState('onboarding')
-    setOnboardingStep(1)
+    try {
+      const res = await fetch('/api/creator/delete-voice', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress }),
+      })
+      if (!res.ok) {
+        alert('Failed to delete voice. Please try again.')
+        return
+      }
+      setCreatorStats(null)
+      setAppState('onboarding')
+      setOnboardingStep(1)
+    } catch {
+      alert('Network error. Please try again.')
+    }
   }
 
   const handleStartRecording = () => {
@@ -270,28 +296,13 @@ export default function App() {
       {appState === 'dashboard' && (
         <Dashboard
           walletAddress={walletAddress}
-          selectedPrice={selectedPrice}
           creatorStats={creatorStats}
           priceInSol={creatorStats?.priceInLamports
             ? (creatorStats.priceInLamports / 1_000_000_000).toFixed(4)
             : selectedPrice.toFixed(4)}
           copiedBlink={copiedBlink}
-          settingsOpen={settingsOpen}
           onOpenSettings={() => setSettingsOpen(true)}
-          onCloseSettings={() => setSettingsOpen(false)}
           onCopyBlink={handleCopyBlink}
-          onDisconnect={handleDisconnectWallet}
-          onRerecord={() => {
-            setAppState('onboarding');
-            setOnboardingStep(1);
-            setAudioReady(false);
-            setRecordingSeconds(0);
-            setIsRecording(false);
-            setAudioBlob(null);
-            setAudioMimeType('audio/webm');
-            setRegisterError(null);
-            setCreatorStats(null);
-          }}
         />
       )}
 
@@ -325,6 +336,7 @@ export default function App() {
         onFilterUpdate={handleFilterUpdate}
         voiceId={creatorStats?.voiceId ?? null}
         onDeleteVoice={handleDeleteVoice}
+        statsLoading={statsLoading}
       />
     </div>
   );

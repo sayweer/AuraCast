@@ -20,6 +20,7 @@ interface SettingsModalProps {
   onFilterUpdate: (key: 'blockAdult' | 'blockProfanity' | 'blockPolitical', value: boolean) => void;
   voiceId: string | null;
   onDeleteVoice: () => Promise<void>;
+  statsLoading: boolean;
 }
 
 export default function SettingsModal({
@@ -37,6 +38,7 @@ export default function SettingsModal({
   onFilterUpdate,
   voiceId,
   onDeleteVoice,
+  statsLoading,
 }: SettingsModalProps) {
   const [newPrice, setNewPrice] = useState(selectedPrice);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -176,18 +178,22 @@ export default function SettingsModal({
                 <label className="flex items-center gap-3 text-sm cursor-pointer">
                   <span>🔞 Block adult (18+) content</span>
                 </label>
-                <div
-                  onClick={() => onFilterUpdate('blockAdult', !blockAdult)}
-                  className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
-                    blockAdult ? 'bg-primary' : 'bg-muted'
-                  }`}
-                >
+                {statsLoading ? (
+                  <div className="animate-pulse w-12 h-6 rounded-full bg-muted" />
+                ) : (
                   <div
-                    className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                      blockAdult ? 'translate-x-6' : 'translate-x-1'
+                    onClick={() => onFilterUpdate('blockAdult', !blockAdult)}
+                    className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
+                      blockAdult ? 'bg-primary' : 'bg-muted'
                     }`}
-                  />
-                </div>
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                        blockAdult ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Profanity Toggle */}
@@ -195,18 +201,22 @@ export default function SettingsModal({
                 <label className="flex items-center gap-3 text-sm cursor-pointer">
                   <span>🤬 Block profanity & offensive language</span>
                 </label>
-                <div
-                  onClick={() => onFilterUpdate('blockProfanity', !blockProfanity)}
-                  className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
-                    blockProfanity ? 'bg-primary' : 'bg-muted'
-                  }`}
-                >
+                {statsLoading ? (
+                  <div className="animate-pulse w-12 h-6 rounded-full bg-muted" />
+                ) : (
                   <div
-                    className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                      blockProfanity ? 'translate-x-6' : 'translate-x-1'
+                    onClick={() => onFilterUpdate('blockProfanity', !blockProfanity)}
+                    className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
+                      blockProfanity ? 'bg-primary' : 'bg-muted'
                     }`}
-                  />
-                </div>
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                        blockProfanity ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Political Content Toggle */}
@@ -214,18 +224,22 @@ export default function SettingsModal({
                 <label className="flex items-center gap-3 text-sm cursor-pointer">
                   <span>🏛 Block political content</span>
                 </label>
-                <div
-                  onClick={() => onFilterUpdate('blockPolitical', !blockPolitical)}
-                  className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
-                    blockPolitical ? 'bg-primary' : 'bg-muted'
-                  }`}
-                >
+                {statsLoading ? (
+                  <div className="animate-pulse w-12 h-6 rounded-full bg-muted" />
+                ) : (
                   <div
-                    className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                      blockPolitical ? 'translate-x-6' : 'translate-x-1'
+                    onClick={() => onFilterUpdate('blockPolitical', !blockPolitical)}
+                    className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
+                      blockPolitical ? 'bg-primary' : 'bg-muted'
                     }`}
-                  />
-                </div>
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                        blockPolitical ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -235,19 +249,23 @@ export default function SettingsModal({
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Pricing</h3>
             <label className="text-sm text-muted-foreground">Price per 150 characters</label>
             <div className="flex gap-2 items-center">
-              <input
-                type="number"
-                min={0.01}
-                max={0.1}
-                step={0.01}
-                value={newPrice}
-                onChange={(e) => setNewPrice(parseFloat(e.target.value))}
-                className="w-20 bg-black/40 border border-border rounded-lg px-3 py-2 text-sm"
-              />
+              {statsLoading ? (
+                <div className="animate-pulse w-20 h-9 rounded-lg bg-muted" />
+              ) : (
+                <input
+                  type="number"
+                  min={0.01}
+                  max={0.1}
+                  step={0.01}
+                  value={newPrice}
+                  onChange={(e) => setNewPrice(parseFloat(e.target.value))}
+                  className="w-20 bg-black/40 border border-border rounded-lg px-3 py-2 text-sm"
+                />
+              )}
               <span className="text-sm text-muted-foreground">SOL</span>
               <Button
                 onClick={handlePriceUpdate}
-                disabled={isUpdating}
+                disabled={isUpdating || statsLoading}
                 className="bg-primary hover:bg-secondary text-primary-foreground px-3 disabled:opacity-50"
               >
                 {isUpdating ? 'Updating...' : 'Update'}

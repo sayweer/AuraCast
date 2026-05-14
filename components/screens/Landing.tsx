@@ -1,20 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import { WalletButton } from '@/components/WalletButton'
-import { useWallet } from '@solana/wallet-adapter-react'
 
-interface LandingProps {
-  onConnect?: () => void;
-}
-
-export default function Landing({ onConnect }: LandingProps) {
-  const { connected } = useWallet()
-
-  useEffect(() => {
-    if (connected) onConnect?.()
-  }, [connected, onConnect])
-
+export default function Landing() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-8">
       {/* Center Content */}

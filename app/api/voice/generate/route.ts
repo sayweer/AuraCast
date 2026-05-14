@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCreatorByWallet, savePurchase, updatePurchaseStatus } from '@/lib/supabase'
+import { getCreatorByWallet, savePurchase, updatePurchaseStatus, getPurchaseByTxSignature } from '@/lib/supabase'
 import { verifyTransaction } from '@/lib/solana'
 import { validateTextLength, isSafeToGenerate } from '@/lib/moderation'
 import { generateSpeech } from '@/lib/elevenlabs'
@@ -16,6 +16,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   try {
     validateTextLength(fanText)
+
+    const existing = await getPurchaseByTxSignature(txSignature)
+    if (existing !== null) {
+      if (existing.status === 'completed' && existing.audio_url) {
+        return NextResponse.json(
+          { success: true, audioBase64: existing.audio_url },
+          { status: 200 }
+        )
+      }
+      return NextResponse.json(
+        { success: false, error: 'Transaction already processed', code: 'DUPLICATE_TX' },
+        { status: 409 }
+      )
+    }
 
     const creator = await getCreatorByWallet(creatorWallet)
     if (creator === null) {

@@ -51,6 +51,27 @@ export async function saveCreator(
   return row as Creator
 }
 
+export async function getPurchaseByTxSignature(txSignature: string): Promise<Purchase | null> {
+  const { data, error } = await supabase
+    .from('purchases')
+    .select('*')
+    .eq('tx_signature', txSignature)
+    .maybeSingle()
+
+  if (error) dbError(`DB error: ${error.message}`)
+
+  return (data as Purchase | null) ?? null
+}
+
+export async function updateCreatorPrice(walletAddress: string, priceInLamports: number): Promise<void> {
+  const { error } = await supabase
+    .from('creators')
+    .update({ price_lamports: priceInLamports })
+    .eq('wallet_address', walletAddress)
+
+  if (error) throw new AuraCastError('Failed to update price', 'DB_ERROR', 500)
+}
+
 export async function savePurchase(data: {
   buyerWallet: string
   creatorWallet: string

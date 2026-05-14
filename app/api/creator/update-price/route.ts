@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { updateCreatorPrice } from '@/lib/supabase'
 import { getErrorResponse } from '@/lib/errors'
 
 export async function PATCH(req: NextRequest): Promise<NextResponse> {
@@ -20,22 +20,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
       )
     }
 
-    const supabase = createClient(
-      process.env.SUPABASE_URL ?? '',
-      process.env.SUPABASE_ANON_KEY ?? ''
-    )
-
-    const { error } = await supabase
-      .from('creators')
-      .update({ price_lamports: priceInLamports })
-      .eq('wallet_address', walletAddress)
-
-    if (error) {
-      return NextResponse.json(
-        { error: 'Failed to update price' },
-        { status: 500 }
-      )
-    }
+    await updateCreatorPrice(walletAddress, priceInLamports)
 
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Mic, ChevronRight, RotateCw } from 'lucide-react';
@@ -89,6 +89,7 @@ export default function Onboarding({
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
+  const [micError, setMicError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isRecording && recordingSeconds >= 180) {
@@ -113,6 +114,7 @@ export default function Onboarding({
   const handleRecord = async () => {
     if (!isRecording) {
       try {
+        setMicError(null)
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
         const mimeType = getSupportedMimeType()
         const mediaRecorder = new MediaRecorder(
@@ -135,8 +137,13 @@ export default function Onboarding({
 
         mediaRecorder.start()
         onStartRecording()
-      } catch {
-        // mic permission denied
+      } catch (err) {
+        const isPermission = err instanceof DOMException && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')
+        setMicError(
+          isPermission
+            ? 'Microphone access denied. Please enable mic permissions in your browser and try again.'
+            : 'Could not access microphone. Please check your device and try again.'
+        )
       }
     } else if (recordingSeconds >= 90) {
       mediaRecorderRef.current?.stop()
@@ -254,6 +261,9 @@ export default function Onboarding({
                   ? formatTime(recordingSeconds)
                   : 'Tap to Start Recording'}
               </p>
+              {micError && (
+                <p className="text-sm text-red-400 text-center max-w-xs">{micError}</p>
+              )}
             </div>
 
             {/* Continue Button */}

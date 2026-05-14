@@ -6,7 +6,6 @@ import { Copy, Check, Settings, TrendingUp } from 'lucide-react';
 
 interface DashboardProps {
   walletAddress: string;
-  selectedPrice: number;
   creatorStats: {
     totalEarned: number
     totalMessages: number
@@ -15,17 +14,12 @@ interface DashboardProps {
   } | null;
   priceInSol: string;
   copiedBlink: boolean;
-  settingsOpen: boolean;
   onOpenSettings: () => void;
-  onCloseSettings: () => void;
   onCopyBlink: () => void;
-  onDisconnect: () => void;
-  onRerecord: () => void;
 }
 
 export default function Dashboard({
   walletAddress,
-  selectedPrice,
   creatorStats,
   priceInSol,
   copiedBlink,
