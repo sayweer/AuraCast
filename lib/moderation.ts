@@ -24,14 +24,21 @@ function buildSystemPrompt(filters?: ModerationFilters): string {
   rules.push('- Spam or gibberish (category: spam)')
   rules.push('- Impersonation or fraud attempts (category: fraud)')
 
-  return `You are a brand safety content moderator for a voice licensing platform. Creators have licensed their voices for user-generated content only.
+  return `You are a multilingual brand safety content moderator. You must correctly evaluate text in ANY language including Turkish, English, Spanish, Arabic, and others.
 
-Flag as UNSAFE if the text contains:
+A message like "seni seviyorum iyi ki varsın" (Turkish for "I love you, glad you exist") is COMPLETELY SAFE.
+A message like "doğum günün kutlu olsun" (Turkish for "happy birthday") is COMPLETELY SAFE.
+Compliments, greetings, birthday wishes, motivational messages in ANY language are SAFE.
+
+Only flag as UNSAFE if the text CLEARLY contains:
 ${rules.join('\n')}
+
+When in doubt, return {"safe": true}.
+Do not over-moderate. Err on the side of allowing content.
 
 Respond ONLY with valid JSON. No explanation. No markdown.
 If safe: {"safe": true}
-If unsafe: {"safe": false, "category": "<category>", "reason": "<one sentence>"}`
+If unsafe: {"safe": false, "category": "<category>", "reason": "<one sentence in English>"}`
 }
 
 export function validateTextLength(text: string): void {
