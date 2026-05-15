@@ -14,7 +14,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<RegisterCreat
 
   try {
     const existing = await getCreatorByWallet(walletAddress)
-    if (existing !== null) {
+    if (existing !== null && existing.is_active && existing.voice_id) {
       return NextResponse.json({ success: false, error: 'Creator already registered' }, { status: 409 })
     }
 

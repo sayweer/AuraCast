@@ -31,13 +31,20 @@ export async function saveCreator(
 ): Promise<Creator> {
   const { data: row, error } = await supabase
     .from('creators')
-    .insert({
-      wallet_address: data.walletAddress,
-      creator_name: data.creatorName,
-      voice_id: data.voiceId,
-      price_lamports: data.priceInLamports,
-      language: data.language ?? 'en',
-    })
+    .upsert(
+      {
+        wallet_address: data.walletAddress,
+        creator_name: data.creatorName,
+        voice_id: data.voiceId,
+        price_lamports: data.priceInLamports,
+        language: data.language ?? 'en',
+        is_active: true,
+        block_adult: true,
+        block_profanity: true,
+        block_political: true,
+      },
+      { onConflict: 'wallet_address' }
+    )
     .select()
     .single()
 
