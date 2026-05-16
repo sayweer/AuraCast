@@ -4,7 +4,11 @@ CREATE TABLE IF NOT EXISTS creators (
   creator_name TEXT NOT NULL,
   voice_id TEXT NOT NULL,
   price_lamports BIGINT NOT NULL,
+  language TEXT DEFAULT 'en',
   is_active BOOLEAN DEFAULT true,
+  block_adult BOOLEAN DEFAULT true,
+  block_profanity BOOLEAN DEFAULT true,
+  block_political BOOLEAN DEFAULT true,
   total_earned BIGINT DEFAULT 0,
   total_messages INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now()

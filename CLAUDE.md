@@ -9,7 +9,7 @@ moderates every request for brand safety.
 ## Tech Stack
 - Framework: Next.js 14, App Router, TypeScript strict mode
 - Blockchain: Solana devnet, @solana/web3.js, @solana/actions
-- Voice AI: ElevenLabs Instant Voice Cloning + eleven_turbo_v2
+- Voice AI: ElevenLabs Instant Voice Cloning + eleven_turbo_v2_5 (multilingual)
 - Moderation: Groq llama-3.1-8b-instant (via groq-sdk)
 - Database: Supabase (Postgres)
 - Styling: Tailwind CSS
@@ -28,7 +28,7 @@ types/index.ts → all TypeScript interfaces
 - All API routes return NextResponse.json() with proper status codes
 - Voice is NEVER generated before moderation passes
 - SOL payment split: 90% creator, 10% platform (PLATFORM_WALLET env)
-- ElevenLabs model is always "eleven_turbo_v2" (speed critical)
+- ElevenLabs model is always "eleven_turbo_v2_5" (multilingual + speed critical)
 - Moderation model: "llama-3.1-8b-instant" via Groq API (cost + speed critical)
 - No Anchor for hackathon — use SystemProgram.transfer directly
 - Audio stored as base64 data URL for hackathon (no S3)

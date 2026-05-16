@@ -61,6 +61,7 @@ export interface VoiceSettings {
 export interface GenerateSpeechOptions {
   voiceId: string
   text: string
+  language?: string
   voiceSettings?: Partial<VoiceSettings>
 }
 

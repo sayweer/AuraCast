@@ -66,7 +66,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       throw moderationError
     }
 
-    const result = await generateSpeech({ voiceId: creator.voice_id, text: fanText })
+    const result = await generateSpeech({ voiceId: creator.voice_id, text: fanText, language: creator.language })
 
     await updatePurchaseStatus(txSignature, 'completed', result.audioBase64)
 
