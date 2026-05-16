@@ -76,7 +76,7 @@ export class CreatorNotFoundError extends AuraCastError {
   }
 }
 
-// Helper — API routes'ta kullanılacak
+// Helper — used in API routes to convert errors to safe client responses
 export function getErrorResponse(error: unknown): {
   error: string
   code: string
@@ -92,13 +92,19 @@ export function getErrorResponse(error: unknown): {
     }
   }
   if (error instanceof AuraCastError) {
+    // For 500-level errors, sanitize the message to avoid leaking internals
+    const safeMessage = error.statusCode >= 500
+      ? 'An internal error occurred'
+      : error.message
     return {
-      error: error.message,
+      error: safeMessage,
       code: error.code,
       refundNeeded: false,
       statusCode: error.statusCode
     }
   }
+  // Log unexpected errors server-side for debugging
+  console.error('[AuraCast] Unexpected error:', error)
   return {
     error: 'Unexpected error occurred',
     code: 'UNKNOWN_ERROR',

@@ -6,6 +6,10 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY ?? '',
 })
 
+if (!process.env.GROQ_API_KEY) {
+  console.warn('[Moderation] GROQ_API_KEY is not set — moderation will fail at runtime')
+}
+
 type ModerationFilters = {
   blockAdult?: boolean
   blockProfanity?: boolean
@@ -93,6 +97,8 @@ export async function moderateText(
     }
   } catch (error) {
     if (error instanceof ModerationError) throw error
+    // Log full error server-side, return sanitized message to client
+    console.error('[Moderation] Unexpected error:', error)
     throw new ModerationError('Moderation service unavailable')
   }
 }

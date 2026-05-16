@@ -36,7 +36,7 @@ export default function FanPage() {
   useEffect(() => {
     const fetchCreator = async () => {
       try {
-        const res = await fetch(`/api/creator/${creatorWallet}`)
+        const res = await fetch(`/api/creator/${creatorWallet}?public=true`)
         if (res.ok) {
           const data = await res.json()
           setCreator(data)

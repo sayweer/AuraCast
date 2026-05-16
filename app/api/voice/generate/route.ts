@@ -4,14 +4,48 @@ import { verifyTransaction } from '@/lib/solana'
 import { validateTextLength, isSafeToGenerate } from '@/lib/moderation'
 import { generateSpeech } from '@/lib/elevenlabs'
 import { getErrorResponse, UnsafeContentError } from '@/lib/errors'
+import { safeParseJson, isValidWalletAddress, isValidTxSignature, getClientIp } from '@/lib/validation'
+import { checkRateLimit } from '@/lib/rate-limit'
 import type { GenerateVoiceRequest } from '@/types'
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const body = (await req.json()) as Partial<GenerateVoiceRequest>
+  // Rate limit: max 5 requests per IP per minute
+  const ip = getClientIp(req)
+  if (!checkRateLimit(ip, 5, 60_000)) {
+    return NextResponse.json(
+      { success: false, error: 'Too many requests. Please try again later.', code: 'RATE_LIMITED' },
+      { status: 429 }
+    )
+  }
+
+  // Safe JSON parsing
+  const body = await safeParseJson<Partial<GenerateVoiceRequest>>(req)
+  if (body === null) {
+    return NextResponse.json(
+      { success: false, error: 'Invalid JSON body' },
+      { status: 400 }
+    )
+  }
+
   const { creatorWallet, fanText, txSignature, buyerWallet } = body
 
+  // Field presence checks
   if (!creatorWallet || !fanText || !txSignature || !buyerWallet) {
     return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
+  }
+
+  // Input format validation
+  if (!isValidWalletAddress(creatorWallet)) {
+    return NextResponse.json({ success: false, error: 'Invalid creator wallet address' }, { status: 400 })
+  }
+  if (!isValidWalletAddress(buyerWallet)) {
+    return NextResponse.json({ success: false, error: 'Invalid buyer wallet address' }, { status: 400 })
+  }
+  if (!isValidTxSignature(txSignature)) {
+    return NextResponse.json({ success: false, error: 'Invalid transaction signature' }, { status: 400 })
+  }
+  if (typeof fanText !== 'string' || fanText.trim().length < 5 || fanText.trim().length > 300) {
+    return NextResponse.json({ success: false, error: 'Text must be between 5 and 300 characters' }, { status: 400 })
   }
 
   try {

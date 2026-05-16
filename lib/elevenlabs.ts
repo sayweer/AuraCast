@@ -2,7 +2,14 @@ import type { GenerateSpeechOptions, GenerateSpeechResult } from '@/types'
 import { ElevenLabsError, VoiceNotFoundError } from '@/lib/errors'
 
 const BASE_URL = 'https://api.elevenlabs.io/v1'
-const apiKey = () => process.env.ELEVENLABS_API_KEY ?? ''
+
+function apiKey(): string {
+    const key = process.env.ELEVENLABS_API_KEY
+    if (!key) {
+        throw new ElevenLabsError('ElevenLabs API key is not configured', 0)
+    }
+    return key
+}
 
 interface CloneVoiceResponse {
     voice_id: string
@@ -10,10 +17,13 @@ interface CloneVoiceResponse {
 
 async function handleError(res: Response): Promise<never> {
     const text = await res.text().catch(() => res.statusText)
+    // Log the full error server-side for debugging
+    console.error(`[ElevenLabs] HTTP ${res.status}: ${text}`)
     if (res.status === 404) {
-        throw new VoiceNotFoundError(res.url)
+        throw new VoiceNotFoundError('requested voice')
     }
-    throw new ElevenLabsError(`ElevenLabs error: ${text}`, res.status)
+    // Return a sanitized error message to the client — do not expose raw API response
+    throw new ElevenLabsError('Voice service encountered an error', res.status)
 }
 
 export async function cloneVoice(

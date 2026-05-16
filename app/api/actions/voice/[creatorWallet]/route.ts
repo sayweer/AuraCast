@@ -3,6 +3,7 @@ import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.
 import { getCreatorByWallet } from '@/lib/supabase'
 import { lamportsToSol } from '@/lib/solana'
 import { getErrorResponse } from '@/lib/errors'
+import { isValidWalletAddress } from '@/lib/validation'
 import type { ActionGetResponse, ActionPostResponse } from '@/types'
 
 const CORS_HEADERS = {
@@ -61,8 +62,20 @@ export async function POST(
   { params }: { params: { creatorWallet: string } }
 ): Promise<NextResponse> {
   try {
-    const { account } = (await req.json()) as { account: string }
+    const body = await req.json().catch(() => null) as { account?: string } | null
+    const account = body?.account ?? ''
     const text = req.nextUrl.searchParams.get('text') ?? ''
+
+    if (!account || !isValidWalletAddress(account)) {
+      return NextResponse.json({ error: 'Invalid account' }, { status: 400, headers: CORS_HEADERS })
+    }
+
+    if (text.length < 5 || text.length > 300) {
+      return NextResponse.json(
+        { error: 'Text must be between 5 and 300 characters' },
+        { status: 400, headers: CORS_HEADERS }
+      )
+    }
 
     const creator = await getCreatorByWallet(params.creatorWallet)
     if (creator === null) {
@@ -75,6 +88,13 @@ export async function POST(
     )
 
     const platformWallet = process.env.PLATFORM_WALLET ?? ''
+    if (!platformWallet) {
+      console.error('[Blink] PLATFORM_WALLET env var is not set')
+      return NextResponse.json(
+        { error: 'Service misconfigured' },
+        { status: 500, headers: CORS_HEADERS }
+      )
+    }
     const platformFee = Math.floor(creator.price_lamports * 0.1)
     const creatorAmount = creator.price_lamports - platformFee
 
@@ -98,12 +118,12 @@ export async function POST(
       .serialize({ requireAllSignatures: false, verifySignatures: false })
       .toString('base64')
 
-    const body: ActionPostResponse = {
+    const responseBody: ActionPostResponse = {
       transaction: base64Tx,
       message: `Approve to get a voice message from ${creator.creator_name}!`,
     }
 
-    return NextResponse.json(body, { status: 200, headers: CORS_HEADERS })
+    return NextResponse.json(responseBody, { status: 200, headers: CORS_HEADERS })
   } catch (error) {
     const { error: message, statusCode } = getErrorResponse(error)
     return NextResponse.json({ error: message }, { status: statusCode, headers: CORS_HEADERS })

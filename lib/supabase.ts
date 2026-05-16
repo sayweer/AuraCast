@@ -8,7 +8,9 @@ const supabase = createClient(
 )
 
 function dbError(msg: string): never {
-  throw new AuraCastError(msg, 'DB_ERROR', 500)
+  // Log full error detail server-side for debugging
+  console.error(`[Supabase] ${msg}`)
+  throw new AuraCastError('A database error occurred', 'DB_ERROR', 500)
 }
 
 export async function getCreatorByWallet(walletAddress: string): Promise<Creator | null> {
