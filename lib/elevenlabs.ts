@@ -65,11 +65,12 @@ export async function generateSpeech(
 
     const body = JSON.stringify({
         text: options.text,
-        model_id: 'eleven_turbo_v2_5',
+        model_id: 'eleven_multilingual_v2',
         language_code: options.language ?? 'en',
         voice_settings: {
-            stability: options.voiceSettings?.stability ?? 0.5,
-            similarity_boost: options.voiceSettings?.similarity_boost ?? 0.8,
+            stability: options.voiceSettings?.stability ?? 0.7,
+            similarity_boost: options.voiceSettings?.similarity_boost ?? 0.85,
+            use_speaker_boost: true,
         },
     })
 
