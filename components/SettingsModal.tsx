@@ -21,6 +21,7 @@ interface SettingsModalProps {
   voiceId: string | null;
   onDeleteVoice: () => Promise<void>;
   statsLoading: boolean;
+  getSignature: () => Promise<string>;
 }
 
 export default function SettingsModal({
@@ -39,6 +40,7 @@ export default function SettingsModal({
   voiceId,
   onDeleteVoice,
   statsLoading,
+  getSignature,
 }: SettingsModalProps) {
   const [newPrice, setNewPrice] = useState(selectedPrice);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -60,11 +62,13 @@ export default function SettingsModal({
     setPriceSuccess(false);
 
     try {
+      const sig = await getSignature();
       const res = await fetch('/api/creator/update-price', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           walletAddress,
+          signature: sig,
           priceInLamports: Math.round(newPrice * 1_000_000_000),
         }),
       });

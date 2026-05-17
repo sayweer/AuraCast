@@ -1,16 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Landing from '@/components/screens/Landing';
 import Onboarding from '@/components/screens/Onboarding';
 import Dashboard from '@/components/screens/Dashboard';
 import SettingsModal from '@/components/SettingsModal';
 import { useWallet } from '@solana/wallet-adapter-react'
+import bs58 from 'bs58'
 
 export default function App() {
-  const { publicKey, disconnect, connected } = useWallet()
+  const { publicKey, disconnect, connected, signMessage } = useWallet()
   const walletAddress = publicKey?.toBase58() ?? ''
   const walletAddressStr = publicKey?.toBase58() ?? null
+
+  /** Sign AUTH_MESSAGE with Phantom and return base58-encoded signature */
+  const getSignature = useCallback(async (): Promise<string> => {
+    if (!signMessage) throw new Error('Wallet does not support message signing')
+    const message = new TextEncoder().encode('AuraCast: Verify wallet ownership')
+    const signature = await signMessage(message)
+    return bs58.encode(signature)
+  }, [signMessage])
 
   const [appState, setAppState] = useState<'landing' | 'onboarding' | 'dashboard'>('landing');
   const [onboardingStep, setOnboardingStep] = useState<1 | 2>(1);
@@ -150,10 +159,11 @@ export default function App() {
     if (key === 'blockProfanity') setBlockProfanity(value)
     if (key === 'blockPolitical') setBlockPolitical(value)
     try {
+      const sig = await getSignature()
       await fetch('/api/creator/update-filters', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress, ...newFilters }),
+        body: JSON.stringify({ walletAddress, signature: sig, ...newFilters }),
       })
     } catch {
       if (key === 'blockAdult') setBlockAdult(!value)
@@ -165,10 +175,11 @@ export default function App() {
   const handleDeleteVoice = async () => {
     if (!walletAddress) return
     try {
+      const sig = await getSignature()
       const res = await fetch('/api/creator/delete-voice', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress }),
+        body: JSON.stringify({ walletAddress, signature: sig }),
       })
       if (!res.ok) {
         alert('Failed to delete voice. Please try again.')
@@ -337,6 +348,7 @@ export default function App() {
         voiceId={creatorStats?.voiceId ?? null}
         onDeleteVoice={handleDeleteVoice}
         statsLoading={statsLoading}
+        getSignature={getSignature}
       />
     </div>
   );

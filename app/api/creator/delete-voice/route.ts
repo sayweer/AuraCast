@@ -3,9 +3,11 @@ import { getCreatorByWallet, deleteCreatorVoice } from '@/lib/supabase'
 import { deleteVoice } from '@/lib/elevenlabs'
 import { getErrorResponse } from '@/lib/errors'
 import { safeParseJson, isValidWalletAddress } from '@/lib/validation'
+import { verifyWalletSignature, AUTH_MESSAGE } from '@/lib/auth'
 
 interface DeleteVoiceBody {
   walletAddress?: string
+  signature?: string
 }
 
 export async function DELETE(req: NextRequest): Promise<NextResponse> {
@@ -15,7 +17,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { walletAddress } = body
+  const { walletAddress, signature } = body
 
   if (!walletAddress) {
     return NextResponse.json({ error: 'Missing walletAddress' }, { status: 400 })
@@ -25,10 +27,16 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
   }
 
+  // Wallet signature verification
+  if (!signature) {
+    return NextResponse.json({ error: 'Signature required' }, { status: 401 })
+  }
+
+  if (!verifyWalletSignature(walletAddress, AUTH_MESSAGE, signature)) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 403 })
+  }
+
   try {
-    // Basic ownership check: verify creator exists
-    // TODO: Implement wallet signature verification for proper auth.
-    // This is CRITICAL — without it, anyone can delete any creator's voice.
     const creator = await getCreatorByWallet(walletAddress)
     if (!creator) {
       return NextResponse.json({ error: 'Creator not found' }, { status: 404 })
