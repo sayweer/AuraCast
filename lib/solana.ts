@@ -20,15 +20,26 @@ export async function verifyTransaction(
     throw new TransactionVerificationError(txSignature)
   }
 
-  // Reject transactions older than 5 minutes to prevent replay attacks.
+  // Reject transactions that cannot be age-verified or are older than 5 minutes.
   // Solana also provides built-in replay protection: each transaction includes
   // a recentBlockhash which expires after ~2 minutes, making true replays
   // impossible at the protocol level. This check adds defense-in-depth.
-  if (tx.blockTime !== null && tx.blockTime !== undefined) {
-    const txAgeMs = Date.now() - tx.blockTime * 1000
-    if (txAgeMs > 5 * 60 * 1000) {
-      throw new TransactionVerificationError(txSignature)
-    }
+  const blockTime = tx.blockTime
+  if (!blockTime) {
+    throw new AuraCastError(
+      'Transaction age could not be verified',
+      'TX_UNVERIFIABLE',
+      400
+    )
+  }
+
+  const txAgeMs = Date.now() - blockTime * 1000
+  if (txAgeMs > 5 * 60 * 1000) {
+    throw new AuraCastError(
+      'Transaction too old',
+      'TX_TOO_OLD',
+      400
+    )
   }
 
   const accountKeys = tx.transaction.message.getAccountKeys()
