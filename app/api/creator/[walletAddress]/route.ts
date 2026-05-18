@@ -3,6 +3,20 @@ import { getCreatorByWallet } from '@/lib/supabase'
 import { getErrorResponse } from '@/lib/errors'
 import { isValidWalletAddress } from '@/lib/validation'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  Pragma: 'no-cache',
+  Expires: '0',
+} as const
+
+function jsonNoStore<T>(body: T, status: number): NextResponse {
+  return NextResponse.json(body, { status, headers: NO_STORE_HEADERS })
+}
+
 /** Public-safe fields that can be returned to fans */
 interface PublicCreatorInfo {
   creator_name: string
@@ -19,19 +33,13 @@ export async function GET(
   const { walletAddress } = params
 
   if (!isValidWalletAddress(walletAddress)) {
-    return NextResponse.json(
-      { error: 'Invalid wallet address', code: 'INVALID_WALLET' },
-      { status: 400 }
-    )
+    return jsonNoStore({ error: 'Invalid wallet address', code: 'INVALID_WALLET' }, 400)
   }
 
   try {
     const creator = await getCreatorByWallet(walletAddress)
     if (creator === null) {
-      return NextResponse.json(
-        { error: 'Creator not found', code: 'CREATOR_NOT_FOUND' },
-        { status: 404 }
-      )
+      return jsonNoStore({ error: 'Creator not found', code: 'CREATOR_NOT_FOUND' }, 404)
     }
 
     // If ?public=true, return only fan-safe fields (no filter settings, earnings, etc.)
@@ -45,15 +53,15 @@ export async function GET(
         language: creator.language,
         voice_id: creator.voice_id,
       }
-      return NextResponse.json(publicInfo, { status: 200 })
+      return jsonNoStore(publicInfo, 200)
     }
 
     // Full response for creator dashboard
     // TODO: Add wallet signature verification to protect this path.
     // Currently any caller can fetch the full creator record.
-    return NextResponse.json(creator, { status: 200 })
+    return jsonNoStore(creator, 200)
   } catch (error) {
     const { error: message, code, statusCode } = getErrorResponse(error)
-    return NextResponse.json({ error: message, code }, { status: statusCode })
+    return jsonNoStore({ error: message, code }, statusCode)
   }
 }

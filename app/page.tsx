@@ -44,7 +44,7 @@ export default function App() {
   const [blockProfanity, setBlockProfanity] = useState(true)
   const [blockPolitical, setBlockPolitical] = useState(true)
   const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'tr'>('en')
-  const [statsLoading, setStatsLoading] = useState(false)
+  const [statsLoading, setStatsLoading] = useState(true)
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -64,7 +64,9 @@ export default function App() {
     const checkCreator = async () => {
       setIsCheckingDB(true)
       try {
-        const res = await fetch(`/api/creator/${walletAddressStr}`)
+        const res = await fetch(`/api/creator/${walletAddressStr}`, {
+          cache: 'no-store',
+        })
         if (ignore) return
         if (res.ok) {
           const creator = await res.json()
@@ -100,7 +102,9 @@ export default function App() {
     const fetchStats = async () => {
       setStatsLoading(true)
       try {
-        const res = await fetch(`/api/creator/${walletAddressStr}`)
+        const res = await fetch(`/api/creator/${walletAddressStr}`, {
+          cache: 'no-store',
+        })
         if (ignore) return
         if (res.ok) {
           const creator = await res.json()
@@ -115,6 +119,21 @@ export default function App() {
           setBlockProfanity(creator.block_profanity ?? true)
           setBlockPolitical(creator.block_political ?? true)
           setSelectedPrice(creator.price_lamports / 1_000_000_000)
+          if (creator.language === 'en' || creator.language === 'tr') {
+            setSelectedLanguage(creator.language)
+          }
+
+          if (
+            creator.block_adult == null ||
+            creator.block_profanity == null ||
+            creator.block_political == null
+          ) {
+            console.warn('[fetchStats] creator row has null filter columns', {
+              block_adult: creator.block_adult,
+              block_profanity: creator.block_profanity,
+              block_political: creator.block_political,
+            })
+          }
         }
       } catch {
         // ignore — stale state remains until next reconnect
@@ -150,25 +169,43 @@ export default function App() {
     value: boolean
   ) => {
     if (!walletAddress) return
+
+    const previousValue =
+      key === 'blockAdult' ? blockAdult
+        : key === 'blockProfanity' ? blockProfanity
+        : blockPolitical
+
     const newFilters = {
       blockAdult: key === 'blockAdult' ? value : blockAdult,
       blockProfanity: key === 'blockProfanity' ? value : blockProfanity,
       blockPolitical: key === 'blockPolitical' ? value : blockPolitical,
     }
+
     if (key === 'blockAdult') setBlockAdult(value)
     if (key === 'blockProfanity') setBlockProfanity(value)
     if (key === 'blockPolitical') setBlockPolitical(value)
+
+    const rollback = () => {
+      if (key === 'blockAdult') setBlockAdult(previousValue)
+      if (key === 'blockProfanity') setBlockProfanity(previousValue)
+      if (key === 'blockPolitical') setBlockPolitical(previousValue)
+    }
+
     try {
       const sig = await getSignature()
-      await fetch('/api/creator/update-filters', {
+      const res = await fetch('/api/creator/update-filters', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ walletAddress, signature: sig, ...newFilters }),
       })
+      if (!res.ok) {
+        rollback()
+        const errBody = (await res.json().catch(() => null)) as { error?: string } | null
+        alert(errBody?.error ?? `Failed to update filter (HTTP ${res.status}).`)
+      }
     } catch {
-      if (key === 'blockAdult') setBlockAdult(!value)
-      if (key === 'blockProfanity') setBlockProfanity(!value)
-      if (key === 'blockPolitical') setBlockPolitical(!value)
+      rollback()
+      alert('Network error while updating filter. Please try again.')
     }
   }
 
