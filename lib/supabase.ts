@@ -1,5 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Creator, Purchase, PurchaseStatus, RegisterCreatorRequest } from '@/types'
+import type {
+  AnalyticsRangeDays,
+  AnalyticsResponse,
+  AnalyticsSummary,
+  AnalyticsTimeseriesPoint,
+  Creator,
+  Purchase,
+  PurchaseStatus,
+  RecentPurchaseRow,
+  RegisterCreatorRequest,
+} from '@/types'
 import { AuraCastError, CreatorNotFoundError } from '@/lib/errors'
 
 const supabase = createClient(
@@ -87,6 +97,7 @@ export async function savePurchase(data: {
   txSignature: string
   fanText: string
   amountLamports: number
+  platformFeeLamports: number
 }): Promise<Purchase> {
   const { data: row, error } = await supabase
     .from('purchases')
@@ -96,6 +107,7 @@ export async function savePurchase(data: {
       tx_signature: data.txSignature,
       fan_text: data.fanText,
       amount_lamports: data.amountLamports,
+      platform_fee_lamports: data.platformFeeLamports,
       status: 'pending',
     })
     .select()
@@ -109,10 +121,12 @@ export async function savePurchase(data: {
 export async function updatePurchaseStatus(
   txSignature: string,
   status: PurchaseStatus,
-  audioUrl?: string
+  audioUrl?: string,
+  rejectionReason?: string
 ): Promise<void> {
   const payload: Record<string, string> = { status }
   if (audioUrl !== undefined) payload.audio_url = audioUrl
+  if (rejectionReason !== undefined) payload.rejection_reason = rejectionReason
 
   const { error: updateError } = await supabase
     .from('purchases')
@@ -124,27 +138,34 @@ export async function updatePurchaseStatus(
   if (status === 'completed') {
     const { data: purchase, error: fetchError } = await supabase
       .from('purchases')
-      .select('creator_wallet, amount_lamports')
+      .select('creator_wallet, amount_lamports, platform_fee_lamports')
       .eq('tx_signature', txSignature)
       .single()
 
     if (fetchError) dbError(`DB error: ${fetchError.message}`)
 
+    const p = purchase as {
+      creator_wallet: string
+      amount_lamports: number
+      platform_fee_lamports: number
+    }
+
     const { data: creator, error: creatorFetchError } = await supabase
       .from('creators')
       .select('total_earned, total_messages')
-      .eq('wallet_address', (purchase as { creator_wallet: string; amount_lamports: number }).creator_wallet)
+      .eq('wallet_address', p.creator_wallet)
       .single()
 
     if (creatorFetchError) dbError(`DB error: ${creatorFetchError.message}`)
 
-    const p = purchase as { creator_wallet: string; amount_lamports: number }
     const c = creator as { total_earned: number; total_messages: number }
+
+    const netLamports = p.amount_lamports - p.platform_fee_lamports
 
     const { error: incError } = await supabase
       .from('creators')
       .update({
-        total_earned: c.total_earned + p.amount_lamports,
+        total_earned: c.total_earned + netLamports,
         total_messages: c.total_messages + 1,
       })
       .eq('wallet_address', p.creator_wallet)
