@@ -25,6 +25,9 @@ export interface Purchase {
   audio_url: string | null
   status: PurchaseStatus
   amount_lamports: number
+  platform_fee_lamports: number
+  play_count: number
+  rejection_reason: string | null
   created_at: string
 }
 
@@ -33,6 +36,50 @@ export type PurchaseStatus =
   | 'completed'
   | 'refunded'
   | 'rejected'
+
+// ─── Analytics ─────────────────────────────────────────
+
+export type AnalyticsRangeDays = 7 | 30 | 90
+
+export interface AnalyticsTimeseriesPoint {
+  date: string
+  gross_lamports: number
+  net_lamports: number
+  messages: number
+  rejections: number
+}
+
+export interface AnalyticsSummary {
+  range_days: AnalyticsRangeDays
+  total_gross_lamports: number
+  total_net_lamports: number
+  total_platform_fee_lamports: number
+  total_messages: number
+  total_completed: number
+  total_rejected: number
+  total_refunded: number
+  total_plays: number
+  unique_fans: number
+  avg_price_lamports: number
+  success_rate: number
+}
+
+export interface RecentPurchaseRow {
+  id: string
+  buyer_wallet: string
+  amount_lamports: number
+  platform_fee_lamports: number
+  play_count: number
+  status: PurchaseStatus
+  rejection_reason: string | null
+  created_at: string
+}
+
+export interface AnalyticsResponse {
+  summary: AnalyticsSummary
+  timeseries: AnalyticsTimeseriesPoint[]
+  recent: RecentPurchaseRow[]
+}
 
 // ─── Moderation ────────────────────────────────────────
 
@@ -100,6 +147,7 @@ export interface GenerateVoiceResponse {
   audioBase64?: string
   error?: string
   refundNeeded?: boolean
+  purchaseId?: string
 }
 
 // ─── Solana Blink (Actions Spec) ───────────────────────
