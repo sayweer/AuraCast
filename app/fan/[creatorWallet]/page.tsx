@@ -31,6 +31,8 @@ export default function FanPage() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [txSignature, setTxSignature] = useState<string | null>(null)
+  const [purchaseId, setPurchaseId] = useState<string | null>(null)
+  const [playTracked, setPlayTracked] = useState(false)
 
   // Fetch creator on mount
   useEffect(() => {
@@ -109,6 +111,8 @@ export default function FanPage() {
       }
 
       setAudioUrl(`data:audio/mpeg;base64,${data.audioBase64}`)
+      setPurchaseId(typeof data.purchaseId === 'string' ? data.purchaseId : null)
+      setPlayTracked(false)
     } catch (err: unknown) {
       const errMessage = err instanceof Error ? err.message : 'Payment failed'
       setError(errMessage)
@@ -367,6 +371,17 @@ export default function FanPage() {
                         src={audioUrl}
                         className="w-full mt-1"
                         style={{ accentColor: '#B91C3C' }}
+                        onPlay={() => {
+                          if (playTracked || !purchaseId || !publicKey) return
+                          setPlayTracked(true)
+                          fetch(`/api/voice/play/${purchaseId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ buyerWallet: publicKey.toBase58() }),
+                          }).catch(() => {
+                            /* play tracking is best-effort */
+                          })
+                        }}
                       />
                       <a
                         href={audioUrl}

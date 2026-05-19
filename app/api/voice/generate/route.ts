@@ -55,7 +55,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (existing !== null) {
       if (existing.status === 'completed' && existing.audio_url) {
         return NextResponse.json(
-          { success: true, audioBase64: existing.audio_url },
+          { success: true, audioBase64: existing.audio_url, purchaseId: existing.id },
           { status: 200 }
         )
       }
@@ -75,12 +75,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     await verifyTransaction(txSignature, creatorWallet, creator.price_lamports)
 
-    await savePurchase({
+    const platformFeeLamports = Math.floor(creator.price_lamports * 0.1)
+
+    const purchase = await savePurchase({
       buyerWallet,
       creatorWallet,
       txSignature,
       fanText,
       amountLamports: creator.price_lamports,
+      platformFeeLamports,
     })
 
     try {
@@ -91,7 +94,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       })
     } catch (moderationError) {
       if (moderationError instanceof UnsafeContentError) {
-        await updatePurchaseStatus(txSignature, 'rejected')
+        await updatePurchaseStatus(
+          txSignature,
+          'rejected',
+          undefined,
+          `${moderationError.category}: ${moderationError.reason}`
+        )
         return NextResponse.json(
           { success: false, error: 'Content violates creator brand safety policy', refundNeeded: true },
           { status: 422 }
@@ -105,7 +113,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await updatePurchaseStatus(txSignature, 'completed', result.audioBase64)
 
     return NextResponse.json(
-      { success: true, audioBase64: result.audioBase64, durationMs: result.durationMs },
+      {
+        success: true,
+        audioBase64: result.audioBase64,
+        durationMs: result.durationMs,
+        purchaseId: purchase.id,
+      },
       { status: 200 }
     )
   } catch (error) {

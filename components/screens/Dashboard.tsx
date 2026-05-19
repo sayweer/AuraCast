@@ -1,8 +1,21 @@
 'use client';
 
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Copy, Check, Settings, TrendingUp } from 'lucide-react';
+
+const Analytics = dynamic(() => import('@/components/screens/Analytics'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
+      Loading analytics…
+    </div>
+  ),
+})
+
+type DashboardTab = 'overview' | 'analytics'
 
 interface DashboardProps {
   walletAddress: string;
@@ -16,6 +29,7 @@ interface DashboardProps {
   copiedBlink: boolean;
   onOpenSettings: () => void;
   onCopyBlink: () => void;
+  getSignature: () => Promise<string>;
 }
 
 export default function Dashboard({
@@ -25,7 +39,9 @@ export default function Dashboard({
   copiedBlink,
   onOpenSettings,
   onCopyBlink,
+  getSignature,
 }: DashboardProps) {
+  const [tab, setTab] = useState<DashboardTab>('overview');
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
   const fanPageUrl = walletAddress
     ? `https://auracast-murex.vercel.app/fan/${walletAddress}`
@@ -59,8 +75,26 @@ export default function Dashboard({
         </div>
       </div>
 
+      {/* Tab Bar */}
+      <div className="border-b border-border bg-background/30">
+        <div className="max-w-6xl mx-auto px-4 flex gap-6">
+          <TabButton active={tab === 'overview'} onClick={() => setTab('overview')}>
+            Overview
+          </TabButton>
+          <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')}>
+            Analytics
+          </TabButton>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {tab === 'analytics' && (
+          <Analytics walletAddress={walletAddress} getSignature={getSignature} />
+        )}
+
+        {tab === 'overview' && (
+          <>
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Total Earned */}
@@ -147,8 +181,37 @@ export default function Dashboard({
             Share this link anywhere — fans click it, type a message, pay SOL, and instantly hear it in your voice.
           </p>
         </Card>
+          </>
+        )}
 
       </div>
     </div>
   );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={
+        'relative py-3 text-sm font-medium transition-colors ' +
+        (active
+          ? 'text-foreground'
+          : 'text-muted-foreground hover:text-foreground')
+      }
+    >
+      {children}
+      {active && (
+        <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-primary rounded-full" />
+      )}
+    </button>
+  )
 }

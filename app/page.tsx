@@ -351,6 +351,7 @@ export default function App() {
           copiedBlink={copiedBlink}
           onOpenSettings={() => setSettingsOpen(true)}
           onCopyBlink={handleCopyBlink}
+          getSignature={getSignature}
         />
       )}
 

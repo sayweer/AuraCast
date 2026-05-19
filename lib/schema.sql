@@ -24,6 +24,9 @@ CREATE TABLE IF NOT EXISTS purchases (
   status TEXT DEFAULT 'pending'
     CHECK (status IN ('pending','completed','refunded','rejected')),
   amount_lamports BIGINT NOT NULL,
+  platform_fee_lamports BIGINT NOT NULL DEFAULT 0,
+  play_count INTEGER NOT NULL DEFAULT 0,
+  rejection_reason TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -31,25 +34,12 @@ CREATE INDEX IF NOT EXISTS idx_purchases_creator_wallet
   ON purchases(creator_wallet);
 CREATE INDEX IF NOT EXISTS idx_purchases_tx_signature
   ON purchases(tx_signature);
-CREATE INDEX IF NOT EXISTS idx_creators_wallet_address
-  ON creators(wallet_address);
-
--- ─── Analytics columns ─────────────────────────────────
-ALTER TABLE purchases
-  ADD COLUMN IF NOT EXISTS platform_fee_lamports BIGINT NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS play_count INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
-
-UPDATE purchases
-  SET platform_fee_lamports = FLOOR(amount_lamports * 0.1)
-  WHERE platform_fee_lamports = 0
-    AND status IN ('completed', 'refunded');
-
 CREATE INDEX IF NOT EXISTS idx_purchases_creator_created
   ON purchases(creator_wallet, created_at DESC);
-
 CREATE INDEX IF NOT EXISTS idx_purchases_creator_status_created
   ON purchases(creator_wallet, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_creators_wallet_address
+  ON creators(wallet_address);
 
 CREATE OR REPLACE FUNCTION increment_play_count(p_id UUID)
 RETURNS void
