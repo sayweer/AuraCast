@@ -95,92 +95,92 @@ export default function Dashboard({
 
         {tab === 'overview' && (
           <>
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Total Earned */}
-          <Card className="bg-card border-border p-6 space-y-4 md:col-span-2">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm mb-2">Total Earned</p>
-                <h3 className="text-4xl font-bold">
-                  {((creatorStats?.totalEarned ?? 0) / 1e9).toFixed(2)} SOL
-                </h3>
-                <p className="text-muted-foreground text-sm mt-1">
-                  ≈ ${(((creatorStats?.totalEarned ?? 0) / 1e9) * 150).toFixed(0)} USD
-                </p>
+            {/* Stats Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Total Earned */}
+              <Card className="bg-card border-border p-6 space-y-4 md:col-span-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-muted-foreground text-sm mb-2">Total Earned</p>
+                    <h3 className="text-4xl font-bold">
+                      {((creatorStats?.totalEarned ?? 0) / 1e9).toFixed(2)} SOL
+                    </h3>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      ≈ ${(((creatorStats?.totalEarned ?? 0) / 1e9) * 150).toFixed(0)} USD
+                    </p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-primary" />
+                </div>
+              </Card>
+
+              {/* Messages Generated */}
+              <Card className="bg-card border-border p-6 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-muted-foreground text-sm mb-2">Messages Generated</p>
+                    <h3 className="text-4xl font-bold">{creatorStats?.totalMessages ?? 0}</h3>
+                    <p className="text-muted-foreground text-sm mt-1">All time requests</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Price Per 150 Chars */}
+              <Card className="bg-card border-border p-6 space-y-2 md:col-span-3 lg:col-span-1">
+                <p className="text-muted-foreground text-sm">Price Per 150 Chars</p>
+                <h3 className="text-4xl font-bold">{priceInSol} SOL</h3>
+                <p className="text-muted-foreground text-sm mt-1">Your current rate</p>
+              </Card>
+            </div>
+
+            {/* Fan Page URL Card */}
+            <Card className="bg-card border-border p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold">🔗 Your Fan Page Link</span>
+                </div>
               </div>
-              <TrendingUp className="w-8 h-8 text-primary" />
-            </div>
-          </Card>
 
-          {/* Messages Generated */}
-          <Card className="bg-card border-border p-6 space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm mb-2">Messages Generated</p>
-                <h3 className="text-4xl font-bold">{creatorStats?.totalMessages ?? 0}</h3>
-                <p className="text-muted-foreground text-sm mt-1">All time requests</p>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={fanPageUrl}
+                  readOnly
+                  placeholder="Connect wallet to get your fan page link"
+                  className="flex-1 bg-black/40 border border-border rounded-lg px-4 py-2 text-sm font-mono text-muted-foreground"
+                />
+                <Button
+                  onClick={() => {
+                    if (!fanPageUrl) return
+                    navigator.clipboard.writeText(fanPageUrl)
+                    onCopyBlink()
+                  }}
+                  size="sm"
+                  className="bg-primary hover:bg-secondary text-primary-foreground"
+                >
+                  {copiedBlink ? (
+                    <>
+                      <Check className="w-4 h-4" /> Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" /> Copy
+                    </>
+                  )}
+                </Button>
+                <a
+                  href={xShareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary transition-colors"
+                >
+                  🐦 Share on X
+                </a>
               </div>
-            </div>
-          </Card>
 
-          {/* Price Per 150 Chars */}
-          <Card className="bg-card border-border p-6 space-y-2 md:col-span-3 lg:col-span-1">
-            <p className="text-muted-foreground text-sm">Price Per 150 Chars</p>
-            <h3 className="text-4xl font-bold">{priceInSol} SOL</h3>
-            <p className="text-muted-foreground text-sm mt-1">Your current rate</p>
-          </Card>
-        </div>
-
-        {/* Fan Page URL Card */}
-        <Card className="bg-card border-border p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold">🔗 Your Fan Page Link</span>
-            </div>
-          </div>
-
-          <div className="flex gap-2 items-center">
-            <input
-              type="text"
-              value={fanPageUrl}
-              readOnly
-              placeholder="Connect wallet to get your fan page link"
-              className="flex-1 bg-black/40 border border-border rounded-lg px-4 py-2 text-sm font-mono text-muted-foreground"
-            />
-            <Button
-              onClick={() => {
-                if (!fanPageUrl) return
-                navigator.clipboard.writeText(fanPageUrl)
-                onCopyBlink()
-              }}
-              size="sm"
-              className="bg-primary hover:bg-secondary text-primary-foreground"
-            >
-              {copiedBlink ? (
-                <>
-                  <Check className="w-4 h-4" /> Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4" /> Copy
-                </>
-              )}
-            </Button>
-            <a
-              href={xShareUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary transition-colors"
-            >
-              🐦 Share on X
-            </a>
-          </div>
-
-          <p className="text-sm text-muted-foreground">
-            Share this link anywhere — fans click it, type a message, pay SOL, and instantly hear it in your voice.
-          </p>
-        </Card>
+              <p className="text-sm text-muted-foreground">
+                Share this link anywhere — fans click it, type a message, pay SOL, and instantly hear it in your voice.
+              </p>
+            </Card>
           </>
         )}
 

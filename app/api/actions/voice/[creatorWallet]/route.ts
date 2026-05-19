@@ -29,7 +29,7 @@ export async function GET(
     const priceInSol = lamportsToSol(creator.price_lamports)
 
     const body: ActionGetResponse = {
-      icon: 'https://auracast.xyz/icon.png',
+      icon: 'https://auracast-murex.vercel.app/icon.png',
       title: `Get a voice message from ${creator.creator_name}`,
       description: `Receive a personalized AI voice message from ${creator.creator_name}. Price: ${priceInSol} SOL. Protected by AI brand safety.`,
       label: 'Generate Voice Message',

@@ -150,25 +150,13 @@ export async function updatePurchaseStatus(
       platform_fee_lamports: number
     }
 
-    const { data: creator, error: creatorFetchError } = await supabase
-      .from('creators')
-      .select('total_earned, total_messages')
-      .eq('wallet_address', p.creator_wallet)
-      .single()
-
-    if (creatorFetchError) dbError(`DB error: ${creatorFetchError.message}`)
-
-    const c = creator as { total_earned: number; total_messages: number }
-
     const netLamports = p.amount_lamports - p.platform_fee_lamports
 
-    const { error: incError } = await supabase
-      .from('creators')
-      .update({
-        total_earned: c.total_earned + netLamports,
-        total_messages: c.total_messages + 1,
-      })
-      .eq('wallet_address', p.creator_wallet)
+    // Atomic increment via RPC — avoids race condition from read-modify-write
+    const { error: incError } = await supabase.rpc('increment_creator_stats', {
+      p_wallet: p.creator_wallet,
+      p_net_lamports: netLamports,
+    })
 
     if (incError) dbError(`DB error: ${incError.message}`)
   }

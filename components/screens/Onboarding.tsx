@@ -145,7 +145,7 @@ export default function Onboarding({
             : 'Could not access microphone. Please check your device and try again.'
         )
       }
-    } else if (recordingSeconds >= 90) {
+    } else {
       mediaRecorderRef.current?.stop()
     }
   }
@@ -258,9 +258,14 @@ export default function Onboarding({
                 {audioReady
                   ? 'Recording Complete ✓'
                   : isRecording
-                  ? formatTime(recordingSeconds)
+                  ? `${formatTime(recordingSeconds)} — Tap to stop`
                   : 'Tap to Start Recording'}
               </p>
+              {isRecording && recordingSeconds < 90 && (
+                <p className="text-xs text-amber-400 text-center max-w-xs">
+                  For the best voice clone, try to record at least 90 seconds.
+                </p>
+              )}
               {micError && (
                 <p className="text-sm text-red-400 text-center max-w-xs">{micError}</p>
               )}

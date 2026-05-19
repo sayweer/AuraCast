@@ -47,3 +47,14 @@ LANGUAGE sql
 AS $$
   UPDATE purchases SET play_count = play_count + 1 WHERE id = p_id;
 $$;
+
+CREATE OR REPLACE FUNCTION increment_creator_stats(p_wallet TEXT, p_net_lamports BIGINT)
+RETURNS void
+LANGUAGE sql
+AS $$
+  UPDATE creators
+  SET
+    total_earned   = total_earned   + p_net_lamports,
+    total_messages = total_messages + 1
+  WHERE wallet_address = p_wallet;
+$$;

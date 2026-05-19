@@ -42,9 +42,11 @@ export default function FanPage() {
         if (res.ok) {
           const data = await res.json()
           setCreator(data)
+        } else {
+          setError(res.status === 404 ? 'Creator not found' : 'Failed to load creator')
         }
       } catch {
-        setError('Creator not found')
+        setError('Network error — please try again')
       } finally {
         setLoading(false)
       }
@@ -52,8 +54,8 @@ export default function FanPage() {
     fetchCreator()
   }, [creatorWallet])
 
-  // Price calculation
-  const charUnits = Math.ceil(message.length / 150) || 1
+  // Price calculation — charUnits is 0 when message is empty
+  const charUnits = message.length > 0 ? Math.ceil(message.length / 150) : 0
   const totalLamports = charUnits * (creator?.price_lamports ?? 0)
   const totalSol = (totalLamports / LAMPORTS_PER_SOL).toFixed(4)
   const pricePerUnit = ((creator?.price_lamports ?? 0) / LAMPORTS_PER_SOL).toFixed(4)
@@ -289,14 +291,16 @@ export default function FanPage() {
                   >
                     <div className="flex items-center gap-2 text-sm">
                       <span className="text-muted-foreground">
-                        {charUnits} unit{charUnits !== 1 ? 's' : ''} × {pricePerUnit} SOL
+                        {charUnits > 0
+                          ? `${charUnits} unit${charUnits !== 1 ? 's' : ''} × ${pricePerUnit} SOL`
+                          : `Price: ${pricePerUnit} SOL / 150 chars`}
                       </span>
                     </div>
                     <div
                       className="font-bold text-base"
                       style={{ color: '#F26A82' }}
                     >
-                      = {totalSol} SOL
+                      {charUnits > 0 ? `= ${totalSol} SOL` : '—'}
                     </div>
                   </div>
 

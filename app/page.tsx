@@ -7,6 +7,7 @@ import Dashboard from '@/components/screens/Dashboard';
 import SettingsModal from '@/components/SettingsModal';
 import { useWallet } from '@solana/wallet-adapter-react'
 import bs58 from 'bs58'
+import { AUTH_MESSAGE } from '@/lib/auth'
 
 export default function App() {
   const { publicKey, disconnect, connected, signMessage } = useWallet()
@@ -16,7 +17,7 @@ export default function App() {
   /** Sign AUTH_MESSAGE with Phantom and return base58-encoded signature */
   const getSignature = useCallback(async (): Promise<string> => {
     if (!signMessage) throw new Error('Wallet does not support message signing')
-    const message = new TextEncoder().encode('AuraCast: Verify wallet ownership')
+    const message = new TextEncoder().encode(AUTH_MESSAGE)
     const signature = await signMessage(message)
     return bs58.encode(signature)
   }, [signMessage])
@@ -243,12 +244,6 @@ export default function App() {
   }
 
   const handleLaunch = async () => {
-    console.log('handleLaunch called', {
-      publicKey: publicKey?.toBase58(),
-      audioBlob: audioBlob?.size,
-      audioMimeType,
-      selectedPrice,
-    })
     if (!publicKey || !audioBlob) {
       setRegisterError(
         !publicKey
