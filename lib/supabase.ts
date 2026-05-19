@@ -216,3 +216,149 @@ export async function deleteCreatorVoice(walletAddress: string): Promise<void> {
 
   if (error) throw new AuraCastError('Failed to delete voice', 'DB_ERROR', 500)
 }
+
+const ANALYTICS_ROW_CAP = 5000
+
+function toUtcDateString(iso: string): string {
+  return iso.slice(0, 10)
+}
+
+function buildDateBuckets(days: AnalyticsRangeDays): string[] {
+  const buckets: string[] = []
+  const now = new Date()
+  now.setUTCHours(0, 0, 0, 0)
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 86_400_000)
+    buckets.push(d.toISOString().slice(0, 10))
+  }
+  return buckets
+}
+
+export async function getCreatorPurchasesWindow(
+  walletAddress: string,
+  days: AnalyticsRangeDays
+): Promise<Purchase[]> {
+  const since = new Date(Date.now() - days * 86_400_000).toISOString()
+
+  const { data, error } = await supabase
+    .from('purchases')
+    .select('*')
+    .eq('creator_wallet', walletAddress)
+    .gte('created_at', since)
+    .order('created_at', { ascending: false })
+    .limit(ANALYTICS_ROW_CAP)
+
+  if (error) dbError(`DB error: ${error.message}`)
+
+  return (data as Purchase[]) ?? []
+}
+
+export async function getCreatorAnalytics(
+  walletAddress: string,
+  days: AnalyticsRangeDays
+): Promise<AnalyticsResponse> {
+  const rows = await getCreatorPurchasesWindow(walletAddress, days)
+
+  const buckets = buildDateBuckets(days)
+  const tsMap = new Map<string, AnalyticsTimeseriesPoint>()
+  for (const date of buckets) {
+    tsMap.set(date, {
+      date,
+      gross_lamports: 0,
+      net_lamports: 0,
+      messages: 0,
+      rejections: 0,
+    })
+  }
+
+  let totalGross = 0
+  let totalNet = 0
+  let totalFee = 0
+  let totalCompleted = 0
+  let totalRejected = 0
+  let totalRefunded = 0
+  let totalPlays = 0
+  const uniqueFans = new Set<string>()
+  let priceSum = 0
+  let priceCount = 0
+
+  for (const row of rows) {
+    const date = toUtcDateString(row.created_at)
+    const bucket = tsMap.get(date)
+
+    if (row.status === 'completed') {
+      const net = row.amount_lamports - row.platform_fee_lamports
+      totalGross += row.amount_lamports
+      totalNet += net
+      totalFee += row.platform_fee_lamports
+      totalCompleted += 1
+      totalPlays += row.play_count
+      uniqueFans.add(row.buyer_wallet)
+      priceSum += row.amount_lamports
+      priceCount += 1
+      if (bucket) {
+        bucket.gross_lamports += row.amount_lamports
+        bucket.net_lamports += net
+        bucket.messages += 1
+      }
+    } else if (row.status === 'rejected') {
+      totalRejected += 1
+      if (bucket) bucket.rejections += 1
+    } else if (row.status === 'refunded') {
+      totalRefunded += 1
+    }
+  }
+
+  const decided = totalCompleted + totalRejected
+  const summary: AnalyticsSummary = {
+    range_days: days,
+    total_gross_lamports: totalGross,
+    total_net_lamports: totalNet,
+    total_platform_fee_lamports: totalFee,
+    total_messages: totalCompleted,
+    total_completed: totalCompleted,
+    total_rejected: totalRejected,
+    total_refunded: totalRefunded,
+    total_plays: totalPlays,
+    unique_fans: uniqueFans.size,
+    avg_price_lamports: priceCount > 0 ? Math.round(priceSum / priceCount) : 0,
+    success_rate: decided > 0 ? totalCompleted / decided : 0,
+  }
+
+  const recent: RecentPurchaseRow[] = rows.slice(0, 25).map((row) => ({
+    id: row.id,
+    buyer_wallet: row.buyer_wallet,
+    amount_lamports: row.amount_lamports,
+    platform_fee_lamports: row.platform_fee_lamports,
+    play_count: row.play_count,
+    status: row.status,
+    rejection_reason: row.rejection_reason,
+    created_at: row.created_at,
+  }))
+
+  return {
+    summary,
+    timeseries: Array.from(tsMap.values()),
+    recent,
+  }
+}
+
+export async function incrementPlayCount(purchaseId: string): Promise<void> {
+  const { error } = await supabase.rpc('increment_play_count', { p_id: purchaseId })
+  if (error) dbError(`DB error: ${error.message}`)
+}
+
+export async function getPurchaseById(purchaseId: string): Promise<Purchase | null> {
+  const { data, error } = await supabase
+    .from('purchases')
+    .select('*')
+    .eq('id', purchaseId)
+    .maybeSingle()
+
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    dbError(`DB error: ${error.message}`)
+  }
+
+  return (data as Purchase | null) ?? null
+}
