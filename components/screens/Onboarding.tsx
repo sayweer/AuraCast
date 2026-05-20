@@ -144,19 +144,20 @@ export default function Onboarding({
           sum += v * v
         }
         const rms = Math.sqrt(sum / bufferLength)
-        targetVolume = rms
+        // Boost sensitivity by a factor of 4.5 so waves react strongly to normal speech
+        targetVolume = Math.min(rms * 4.5, 1.0)
       }
 
       // Smooth the volume change to prevent sudden jittering
-      smoothVolumeRef.current = smoothVolumeRef.current * 0.85 + targetVolume * 0.15
+      smoothVolumeRef.current = smoothVolumeRef.current * 0.82 + targetVolume * 0.18
 
       // Wave speed modulates slightly with input volume
-      const speed = 0.04 + smoothVolumeRef.current * 0.12
+      const speed = 0.05 + smoothVolumeRef.current * 0.14
       phaseRef.current += speed
 
       const centerY = H / 2
-      const baseAmplitude = isRecordingRef.current ? 8 : 1.5 // Idle breathing wave amplitude
-      const voiceAmplitude = smoothVolumeRef.current * (H * 0.42) // Dynamic scale based on mic volume
+      const baseAmplitude = isRecordingRef.current ? 12 : 2.5 // More visible idle breathing wave
+      const voiceAmplitude = smoothVolumeRef.current * (H * 0.70) // Let voice drive up to 70% of canvas height
       const totalAmplitude = baseAmplitude + voiceAmplitude
 
       // Wave configurations: frequency, multiplier, gradient, alpha, and phase offset
@@ -166,30 +167,30 @@ export default function Onboarding({
           amplitudeMult: 1.0,
           colorStart: '#C41E3A', // Crimson Red
           colorEnd: '#EC4899',   // Neon Pink
-          alpha: 0.9,
+          alpha: 0.95,
           phaseOffset: 0,
         },
         {
           frequency: 3.5,
-          amplitudeMult: 0.65,
+          amplitudeMult: 0.7,
           colorStart: '#8B5CF6', // Violet
           colorEnd: '#A78BFA',   // Purple/Violet
-          alpha: 0.55,
+          alpha: 0.6,
           phaseOffset: Math.PI / 3,
         },
         {
           frequency: 5.0,
-          amplitudeMult: 0.35,
+          amplitudeMult: 0.4,
           colorStart: '#06B6D4', // Cyan
           colorEnd: '#EC4899',   // Pink
-          alpha: 0.35,
+          alpha: 0.4,
           phaseOffset: (Math.PI * 2) / 3,
         },
       ]
 
       waves.forEach((w) => {
         ctx.beginPath()
-        ctx.lineWidth = w.amplitudeMult === 1.0 ? 3.0 : 1.5
+        ctx.lineWidth = w.amplitudeMult === 1.0 ? 4.5 : 2.0 // Thicker lines for better neon presence
 
         // Create linear gradient for smooth neon color transitions
         const grad = ctx.createLinearGradient(0, 0, W, 0)
@@ -200,8 +201,8 @@ export default function Onboarding({
 
         // Apply a glowing neon shadow for the primary wave
         if (w.amplitudeMult === 1.0) {
-          ctx.shadowBlur = 10
-          ctx.shadowColor = hexToRgba(w.colorStart, 0.6)
+          ctx.shadowBlur = 15 // Increased blur for stronger glow
+          ctx.shadowColor = hexToRgba(w.colorStart, 0.7)
         } else {
           ctx.shadowBlur = 0
         }
@@ -209,8 +210,8 @@ export default function Onboarding({
         // Draw sine wave path
         for (let x = 0; x <= W; x += 2) {
           const t = x / W
-          // Quadratic sine envelope to pinch the wave ends to zero
-          const envelope = Math.pow(Math.sin(t * Math.PI), 2.5)
+          // Reduced pinch exponent to 1.8 for fuller, more pronounced waves in the center
+          const envelope = Math.pow(Math.sin(t * Math.PI), 1.8)
 
           const angle = t * w.frequency * Math.PI * 2 + phaseRef.current + w.phaseOffset
           const y = centerY + Math.sin(angle) * totalAmplitude * w.amplitudeMult * envelope
