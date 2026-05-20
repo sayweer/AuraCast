@@ -91,11 +91,212 @@ export default function Onboarding({
   const audioChunksRef = useRef<Blob[]>([])
   const [micError, setMicError] = useState<string | null>(null)
 
+  // Canvas visualizer refs
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
+  const animationFrameRef = useRef<number | null>(null)
+  const smoothVolumeRef = useRef<number>(0)
+  const phaseRef = useRef<number>(0)
+  const isRecordingRef = useRef<boolean>(isRecording)
+
+  // Update isRecordingRef so visualizer loop knows current recording state
+  useEffect(() => {
+    isRecordingRef.current = isRecording
+  }, [isRecording])
+
+  // Setup visualizer animation loop
+  useEffect(() => {
+    let active = true
+
+    const draw = () => {
+      if (!active) return
+
+      const canvas = canvasRef.current
+      if (!canvas) {
+        animationFrameRef.current = requestAnimationFrame(draw)
+        return
+      }
+
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        animationFrameRef.current = requestAnimationFrame(draw)
+        return
+      }
+
+      const W = canvas.width
+      const H = canvas.height
+
+      // Clear with transparent background
+      ctx.clearRect(0, 0, W, H)
+
+      let targetVolume = 0
+      if (isRecordingRef.current && analyserRef.current) {
+        const analyser = analyserRef.current
+        const bufferLength = analyser.frequencyBinCount
+        const dataArray = new Uint8Array(bufferLength)
+        analyser.getByteTimeDomainData(dataArray)
+
+        let sum = 0
+        for (let i = 0; i < bufferLength; i++) {
+          const v = (dataArray[i] - 128) / 128
+          sum += v * v
+        }
+        const rms = Math.sqrt(sum / bufferLength)
+        targetVolume = rms
+      }
+
+      // Smooth the volume change to prevent sudden jittering
+      smoothVolumeRef.current = smoothVolumeRef.current * 0.85 + targetVolume * 0.15
+
+      // Wave speed modulates slightly with input volume
+      const speed = 0.04 + smoothVolumeRef.current * 0.12
+      phaseRef.current += speed
+
+      const centerY = H / 2
+      const baseAmplitude = isRecordingRef.current ? 8 : 1.5 // Idle breathing wave amplitude
+      const voiceAmplitude = smoothVolumeRef.current * (H * 0.42) // Dynamic scale based on mic volume
+      const totalAmplitude = baseAmplitude + voiceAmplitude
+
+      // Wave configurations: frequency, multiplier, gradient, alpha, and phase offset
+      const waves = [
+        {
+          frequency: 2.0,
+          amplitudeMult: 1.0,
+          colorStart: '#C41E3A', // Crimson Red
+          colorEnd: '#EC4899',   // Neon Pink
+          alpha: 0.9,
+          phaseOffset: 0,
+        },
+        {
+          frequency: 3.5,
+          amplitudeMult: 0.65,
+          colorStart: '#8B5CF6', // Violet
+          colorEnd: '#A78BFA',   // Purple/Violet
+          alpha: 0.55,
+          phaseOffset: Math.PI / 3,
+        },
+        {
+          frequency: 5.0,
+          amplitudeMult: 0.35,
+          colorStart: '#06B6D4', // Cyan
+          colorEnd: '#EC4899',   // Pink
+          alpha: 0.35,
+          phaseOffset: (Math.PI * 2) / 3,
+        },
+      ]
+
+      waves.forEach((w) => {
+        ctx.beginPath()
+        ctx.lineWidth = w.amplitudeMult === 1.0 ? 3.0 : 1.5
+
+        // Create linear gradient for smooth neon color transitions
+        const grad = ctx.createLinearGradient(0, 0, W, 0)
+        grad.addColorStop(0, hexToRgba(w.colorStart, w.alpha * 0.15))
+        grad.addColorStop(0.5, hexToRgba(w.colorEnd, w.alpha))
+        grad.addColorStop(1, hexToRgba(w.colorStart, w.alpha * 0.15))
+        ctx.strokeStyle = grad
+
+        // Apply a glowing neon shadow for the primary wave
+        if (w.amplitudeMult === 1.0) {
+          ctx.shadowBlur = 10
+          ctx.shadowColor = hexToRgba(w.colorStart, 0.6)
+        } else {
+          ctx.shadowBlur = 0
+        }
+
+        // Draw sine wave path
+        for (let x = 0; x <= W; x += 2) {
+          const t = x / W
+          // Quadratic sine envelope to pinch the wave ends to zero
+          const envelope = Math.pow(Math.sin(t * Math.PI), 2.5)
+
+          const angle = t * w.frequency * Math.PI * 2 + phaseRef.current + w.phaseOffset
+          const y = centerY + Math.sin(angle) * totalAmplitude * w.amplitudeMult * envelope
+
+          if (x === 0) {
+            ctx.moveTo(x, y)
+          } else {
+            ctx.lineTo(x, y)
+          }
+        }
+        ctx.stroke()
+      })
+
+      animationFrameRef.current = requestAnimationFrame(draw)
+    }
+
+    // Helper helper to convert hex to rgba
+    const hexToRgba = (hex: string, alpha: number) => {
+      const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i
+      const fullHex = hex.replace(shorthandRegex, (_, r, g, b) => r + r + g + g + b + b)
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex)
+      return result
+        ? `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`
+        : `rgba(255, 255, 255, ${alpha})`
+    }
+
+    animationFrameRef.current = requestAnimationFrame(draw)
+
+    return () => {
+      active = false
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [])
+
+  const startVisualization = (stream: MediaStream) => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+      const audioContext = new AudioContextClass()
+      audioContextRef.current = audioContext
+
+      const analyser = audioContext.createAnalyser()
+      analyser.fftSize = 256
+      analyserRef.current = analyser
+
+      const source = audioContext.createMediaStreamSource(stream)
+      source.connect(analyser)
+      sourceRef.current = source
+    } catch (err) {
+      console.error('Failed to initialize Web Audio API for visualizer', err)
+    }
+  }
+
+  const stopVisualization = () => {
+    if (sourceRef.current) {
+      try {
+        sourceRef.current.disconnect()
+      } catch (e) {
+        console.warn('Error disconnecting audio source', e)
+      }
+      sourceRef.current = null
+    }
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      try {
+        audioContextRef.current.close()
+      } catch (e) {
+        console.warn('Error closing audio context', e)
+      }
+      audioContextRef.current = null
+    }
+    analyserRef.current = null
+  }
+
   useEffect(() => {
     if (isRecording && recordingSeconds >= 180) {
       mediaRecorderRef.current?.stop()
     }
   }, [isRecording, recordingSeconds])
+
+  // Cleanup visualizer context on unmount
+  useEffect(() => {
+    return () => {
+      stopVisualization()
+    }
+  }, [])
 
   const getSupportedMimeType = (): string => {
     const types = [
@@ -133,11 +334,15 @@ export default function Onboarding({
           const blob = new Blob(audioChunksRef.current, { type: effectiveType })
           onAudioReady(blob, effectiveType)
           stream.getTracks().forEach(t => t.stop())
+          stopVisualization()
         }
 
+        // Start Web Audio visualization
+        startVisualization(stream)
         mediaRecorder.start()
         onStartRecording()
       } catch (err) {
+        stopVisualization()
         const isPermission = err instanceof DOMException && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')
         setMicError(
           isPermission
@@ -232,6 +437,23 @@ export default function Onboarding({
                 />
               </div>
             </div>
+
+            {/* Live Waveform Visualizer */}
+            {!audioReady && (
+              <div className="w-full bg-black/40 border border-border/60 rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden h-24">
+                <canvas
+                  ref={canvasRef}
+                  className="w-full h-full block"
+                  width={640}
+                  height={160}
+                />
+                {!isRecording && (
+                  <span className="absolute bottom-2 text-[10px] text-muted-foreground tracking-widest uppercase pointer-events-none">
+                    Visualizer Ready
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Recording Button */}
             <div className="flex flex-col items-center gap-4">
