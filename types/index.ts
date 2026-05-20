@@ -73,6 +73,8 @@ export interface RecentPurchaseRow {
   status: PurchaseStatus
   rejection_reason: string | null
   created_at: string
+  fan_text?: string
+  audio_url?: string | null
 }
 
 export interface AnalyticsResponse {

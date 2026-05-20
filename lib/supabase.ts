@@ -324,6 +324,8 @@ export async function getCreatorAnalytics(
     status: row.status,
     rejection_reason: row.rejection_reason,
     created_at: row.created_at,
+    fan_text: row.fan_text,
+    audio_url: row.audio_url,
   }))
 
   return {

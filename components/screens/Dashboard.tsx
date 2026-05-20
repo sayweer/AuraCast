@@ -1,10 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Copy, Check, Settings, TrendingUp } from 'lucide-react';
+import { 
+  Copy, 
+  Check, 
+  Settings, 
+  TrendingUp,
+  Play,
+  Pause,
+  Search,
+  RefreshCw,
+  Music,
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Volume2,
+  Loader2,
+  HelpCircle
+} from 'lucide-react';
+import type { RecentPurchaseRow } from '@/types';
 
 const Analytics = dynamic(() => import('@/components/screens/Analytics'), {
   ssr: false,
@@ -42,6 +61,129 @@ export default function Dashboard({
   getSignature,
 }: DashboardProps) {
   const [tab, setTab] = useState<DashboardTab>('overview');
+  const [purchases, setPurchases] = useState<RecentPurchaseRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sig, setSig] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'rejected'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Audio Player State
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const fetchPurchases = useCallback(async (forceSignature = false) => {
+    if (!walletAddress) return;
+    setLoading(true);
+    setError(null);
+    try {
+      let activeSig = sig;
+      if (!activeSig || forceSignature) {
+        activeSig = await getSignature();
+        setSig(activeSig);
+      }
+      const res = await fetch(`/api/creator/analytics/${walletAddress}?days=30`, {
+        headers: { 'x-wallet-signature': activeSig },
+        cache: 'no-store'
+      });
+      if (!res.ok) {
+        if (res.status === 403) {
+          setSig(null); // Clear invalid cached signature
+        }
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? `Mesajlar yüklenemedi (HTTP ${res.status})`);
+      }
+      const json = await res.json();
+      setPurchases(json.recent ?? []);
+    } catch (err: any) {
+      console.error('[Dashboard] Error fetching purchases:', err);
+      setError(err.message || 'Gelen mesajlar yüklenirken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
+  }, [walletAddress, sig, getSignature]);
+
+  useEffect(() => {
+    if (tab === 'overview' && walletAddress) {
+      fetchPurchases();
+    }
+  }, [tab, walletAddress, fetchPurchases]);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
+
+  const playAudio = (purchaseId: string, base64Audio: string) => {
+    if (playingId === purchaseId) {
+      if (isPlaying) {
+        audioRef.current?.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current?.play().catch(console.error);
+        setIsPlaying(true);
+      }
+      return;
+    }
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+
+    const audioUrl = `data:audio/mpeg;base64,${base64Audio}`;
+    const newAudio = new Audio(audioUrl);
+    audioRef.current = newAudio;
+    setPlayingId(purchaseId);
+    setIsPlaying(true);
+    setCurrentTime(0);
+    setDuration(0);
+
+    newAudio.addEventListener('loadedmetadata', () => {
+      setDuration(newAudio.duration || 0);
+    });
+
+    newAudio.addEventListener('timeupdate', () => {
+      setCurrentTime(newAudio.currentTime || 0);
+    });
+
+    newAudio.addEventListener('ended', () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setPlayingId(null);
+    });
+
+    newAudio.play().catch((e) => {
+      console.error('Playback failed', e);
+      setIsPlaying(false);
+      setPlayingId(null);
+    });
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    if (audioRef.current) {
+      audioRef.current.currentTime = val;
+      setCurrentTime(val);
+    }
+  };
+
+  const filteredPurchases = purchases.filter((p) => {
+    if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+    if (searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase();
+      const matchWallet = p.buyer_wallet.toLowerCase().includes(term);
+      const matchText = p.fan_text?.toLowerCase().includes(term) ?? false;
+      return matchWallet || matchText;
+    }
+    return true;
+  });
+
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
   const fanPageUrl = walletAddress
     ? `https://auracast-murex.vercel.app/fan/${walletAddress}`
@@ -181,6 +323,107 @@ export default function Dashboard({
                 Share this link anywhere — fans click it, type a message, pay SOL, and instantly hear it in your voice.
               </p>
             </Card>
+
+            {/* Fan Messages History Section */}
+            <div className="space-y-6 pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
+                    <Music className="w-6 h-6 text-primary" />
+                    Gelen Fan Mesajları
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Fanlarınızın gönderdiği mesajlar ve üretilen ses klonları.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchPurchases(true)}
+                  disabled={loading}
+                  className="flex items-center gap-2 border-border bg-card/40 text-foreground hover:bg-white/10 transition-all"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                  Yenile
+                </Button>
+              </div>
+
+              {/* Search & Filter Bar */}
+              <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/30 backdrop-blur-md p-4 rounded-xl border border-border/80 shadow-inner">
+                {/* Filter Tabs */}
+                <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+                  <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
+                    Hepsi
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
+                    Başarılı
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'pending'} onClick={() => setStatusFilter('pending')}>
+                    Bekleyenler
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'rejected'} onClick={() => setStatusFilter('rejected')}>
+                    Reddedilenler
+                  </FilterButton>
+                </div>
+
+                {/* Search Input */}
+                <div className="relative w-full md:w-80">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Mesaj veya cüzdan adresi ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-black/40 border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Messages Container */}
+              {loading && purchases.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-4">
+                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                  <p className="text-sm font-medium">Fan mesajları yükleniyor...</p>
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center py-16 text-rose-400 space-y-4 border border-rose-500/25 bg-rose-500/5 rounded-xl backdrop-blur-sm">
+                  <AlertCircle className="w-10 h-10" />
+                  <p className="text-sm font-medium">{error}</p>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="border-rose-500/30 hover:bg-rose-500/10 text-rose-300"
+                    onClick={() => fetchPurchases(true)}
+                  >
+                    Yeniden Dene
+                  </Button>
+                </div>
+              ) : filteredPurchases.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-border/80 border-dashed rounded-xl bg-card/10 space-y-3">
+                  <Music className="w-10 h-10 opacity-30 text-primary" />
+                  <p className="text-sm font-semibold text-foreground/80">Bulunamadı</p>
+                  <p className="text-xs max-w-md text-center px-4">
+                    {purchases.length === 0 
+                      ? "Henüz hiç fan mesajı yok. Linkinizi paylaşarak ilk ses klonunun sipariş edilmesini bekleyebilirsiniz!" 
+                      : "Arama veya filtre kriterlerine uyan mesaj bulunamadı."}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredPurchases.map((p) => (
+                    <MessageCard
+                      key={p.id}
+                      purchase={p}
+                      isPlaying={playingId === p.id && isPlaying}
+                      currentTime={playingId === p.id ? currentTime : 0}
+                      duration={playingId === p.id ? duration : 0}
+                      onPlay={() => p.audio_url && playAudio(p.id, p.audio_url)}
+                      onSeek={handleSeek}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </>
         )}
 
@@ -215,3 +458,194 @@ function TabButton({
     </button>
   )
 }
+
+function formatDate(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleString('tr-TR', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function statusIcon(status: string) {
+  switch (status) {
+    case 'completed':
+      return <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+    case 'rejected':
+      return <XCircle className="w-4 h-4 text-rose-400" />
+    case 'refunded':
+      return <HelpCircle className="w-4 h-4 text-amber-400" />
+    default:
+      return <Clock className="w-4 h-4 text-sky-400 animate-pulse" />
+  }
+}
+
+function statusLabel(status: string) {
+  switch (status) {
+    case 'completed': return 'Başarılı'
+    case 'rejected': return 'Reddedildi'
+    case 'refunded': return 'İade Edildi'
+    default: return 'Bekliyor'
+  }
+}
+
+function statusClass(status: string) {
+  switch (status) {
+    case 'completed':
+      return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+    case 'rejected':
+      return 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+    case 'refunded':
+      return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+    default:
+      return 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+  }
+}
+
+function formatPlayerTime(seconds: number) {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${String(secs).padStart(2, '0')}`;
+}
+
+function FilterButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={
+        'px-4 py-1.5 rounded-lg text-xs font-semibold border transition-all whitespace-nowrap ' +
+        (active
+          ? 'bg-primary border-primary text-primary-foreground shadow-md shadow-primary/20 scale-105'
+          : 'bg-black/25 border-border text-muted-foreground hover:text-foreground hover:bg-white/5')
+      }
+    >
+      {children}
+    </button>
+  )
+}
+
+interface MessageCardProps {
+  purchase: RecentPurchaseRow
+  isPlaying: boolean
+  currentTime: number
+  duration: number
+  onPlay: () => void
+  onSeek: (e: React.ChangeEvent<HTMLInputElement>) => void
+}
+
+function MessageCard({
+  purchase,
+  isPlaying,
+  currentTime,
+  duration,
+  onPlay,
+  onSeek,
+}: MessageCardProps) {
+  const buyerTruncated = purchase.buyer_wallet.slice(0, 6) + '...' + purchase.buyer_wallet.slice(-6)
+  const amountSol = (purchase.amount_lamports / 1e9).toFixed(3)
+  
+  return (
+    <Card className="bg-gradient-to-br from-card/90 to-card/50 backdrop-blur-md border-border/80 hover:border-primary/30 transition-all duration-300 shadow-md p-5 flex flex-col justify-between space-y-4">
+      {/* Top Header Row */}
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col">
+          <span className="text-xs font-mono text-muted-foreground tracking-tight select-all">
+            👤 {buyerTruncated}
+          </span>
+          <span className="text-[10px] text-muted-foreground/60 flex items-center gap-1 mt-0.5">
+            <Calendar className="w-3.5 h-3.5" />
+            {formatDate(purchase.created_at)}
+          </span>
+        </div>
+        <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusClass(purchase.status)}`}>
+          {statusIcon(purchase.status)}
+          <span>{statusLabel(purchase.status)}</span>
+        </div>
+      </div>
+
+      {/* Message content */}
+      <div className="flex-1">
+        <p className="italic font-serif text-sm text-foreground/90 pl-3 border-l-2 border-primary/30 py-1.5 bg-black/20 rounded-r-lg pr-3 leading-relaxed">
+          "{purchase.fan_text || 'İçerik belirtilmemiş.'}"
+        </p>
+      </div>
+
+      {/* Bottom Action Footer Row */}
+      <div className="border-t border-border/40 pt-3 flex flex-col space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            Miktar: <strong className="text-foreground">{amountSol} SOL</strong>
+          </span>
+          {purchase.play_count > 0 && (
+            <span className="text-[10px] text-muted-foreground/80 flex items-center gap-1">
+              <Volume2 className="w-3.5 h-3.5 text-primary" />
+              {purchase.play_count} kez dinlendi
+            </span>
+          )}
+        </div>
+
+        {/* Audio Player Row or Status Notification */}
+        {purchase.status === 'completed' && purchase.audio_url ? (
+          <div className="flex items-center gap-3 bg-black/35 px-3 py-2 rounded-lg border border-border/50">
+            {/* Play/Pause Button */}
+            <button
+              onClick={onPlay}
+              className="w-8 h-8 flex items-center justify-center bg-primary hover:bg-secondary text-primary-foreground rounded-full transition-all shrink-0 active:scale-95 shadow-md shadow-primary/10"
+            >
+              {isPlaying ? (
+                <Pause className="w-4 h-4 fill-current" />
+              ) : (
+                <Play className="w-4 h-4 fill-current ml-0.5" />
+              )}
+            </button>
+
+            {/* Progress Slider */}
+            <div className="flex-1 flex flex-col space-y-1">
+              <input
+                type="range"
+                min={0}
+                max={duration || 100}
+                value={currentTime}
+                onChange={onSeek}
+                className="w-full accent-primary h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-[9px] text-muted-foreground/80 font-mono">
+                <span>{formatPlayerTime(currentTime)}</span>
+                <span>{formatPlayerTime(duration)}</span>
+              </div>
+            </div>
+          </div>
+        ) : purchase.status === 'rejected' ? (
+          <div className="flex items-start gap-2 bg-rose-500/5 border border-rose-500/20 px-3 py-2 rounded-lg text-rose-300/90 text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+            <div className="flex-1">
+              <span className="font-semibold block text-rose-400">Moderasyon Engeli:</span>
+              <span className="italic">{purchase.rejection_reason || 'Güvenlik filtrelerine takıldı.'}</span>
+            </div>
+          </div>
+        ) : purchase.status === 'pending' ? (
+          <div className="flex items-center gap-2 bg-sky-500/5 border border-sky-500/10 px-3 py-2 rounded-lg text-sky-300 text-xs">
+            <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin text-sky-400" />
+            <span>Ses kopyası oluşturuluyor. Lütfen bekleyin...</span>
+          </div>
+        ) : purchase.status === 'refunded' ? (
+          <div className="flex items-center gap-2 bg-amber-500/5 border border-amber-500/10 px-3 py-2 rounded-lg text-amber-300 text-xs">
+            <HelpCircle className="w-4 h-4 shrink-0 text-amber-400" />
+            <span>İade edildi. İşlem iptal edilmiştir.</span>
+          </div>
+        ) : null}
+      </div>
+    </Card>
+  )
+}
+
