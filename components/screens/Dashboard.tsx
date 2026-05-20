@@ -196,6 +196,14 @@ export default function Dashboard({
     ? `https://x.com/intent/post?text=${shareText}`
     : '#'
 
+  const shareBlinkText = encodeURIComponent(
+    `🎙 Send me a voice message directly inside X using Solana Blinks! Type your text, approve with Phantom, and hear it instantly! ⚡️👇\n\n` +
+    `${fanPageUrl}\n\n#AuraCast #SolanaBlinks #AI`
+  )
+  const xShareBlinkUrl = fanPageUrl
+    ? `https://x.com/intent/post?text=${shareBlinkText}`
+    : '#'
+
   return (
     <div className="min-h-screen pb-12">
       {/* Nav Bar */}
@@ -282,41 +290,53 @@ export default function Dashboard({
                 </div>
               </div>
 
-              <div className="flex gap-2 items-center">
+              <div className="space-y-3">
                 <input
                   type="text"
                   value={fanPageUrl}
                   readOnly
                   placeholder="Connect wallet to get your fan page link"
-                  className="flex-1 bg-black/40 border border-border rounded-lg px-4 py-2 text-sm font-mono text-muted-foreground"
+                  className="w-full bg-black/40 border border-border rounded-lg px-4 py-2.5 text-sm font-mono text-muted-foreground focus:outline-none"
                 />
-                <Button
-                  onClick={() => {
-                    if (!fanPageUrl) return
-                    navigator.clipboard.writeText(fanPageUrl)
-                    onCopyBlink()
-                  }}
-                  size="sm"
-                  className="bg-primary hover:bg-secondary text-primary-foreground"
-                >
-                  {copiedBlink ? (
-                    <>
-                      <Check className="w-4 h-4" /> Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4" /> Copy
-                    </>
-                  )}
-                </Button>
-                <a
-                  href={xShareUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary transition-colors"
-                >
-                  🐦 Share on X
-                </a>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => {
+                      if (!fanPageUrl) return
+                      navigator.clipboard.writeText(fanPageUrl)
+                      onCopyBlink()
+                    }}
+                    size="sm"
+                    className="bg-primary hover:bg-secondary text-primary-foreground font-semibold flex items-center gap-1.5"
+                  >
+                    {copiedBlink ? (
+                      <>
+                        <Check className="w-4 h-4" /> Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" /> Copy Link
+                      </>
+                    )}
+                  </Button>
+                  
+                  <a
+                    href={xShareUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#1d9bf0] text-white rounded-lg text-xs font-semibold hover:bg-[#1a8cd8] transition-colors"
+                  >
+                    🐦 Share on X
+                  </a>
+
+                  <a
+                    href={xShareBlinkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-xs font-semibold hover:from-purple-500 hover:to-pink-500 transition-colors shadow-md shadow-purple-900/10"
+                  >
+                    ⚡ Share as Blink on X
+                  </a>
+                </div>
               </div>
 
               <p className="text-sm text-muted-foreground">

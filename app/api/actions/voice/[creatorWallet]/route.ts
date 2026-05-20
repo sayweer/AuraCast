@@ -17,7 +17,7 @@ export async function OPTIONS(): Promise<NextResponse> {
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { creatorWallet: string } }
 ): Promise<NextResponse> {
   try {
@@ -26,10 +26,14 @@ export async function GET(
       return NextResponse.json({ error: 'Creator not found' }, { status: 404, headers: CORS_HEADERS })
     }
 
+    const host = req.headers.get('host') || 'auracast-murex.vercel.app'
+    const protocol = host.includes('localhost') ? 'http' : 'https'
+    const baseUrl = `${protocol}://${host}`
+
     const priceInSol = lamportsToSol(creator.price_lamports)
 
     const body: ActionGetResponse = {
-      icon: 'https://auracast-murex.vercel.app/icon.png',
+      icon: `${baseUrl}/icon.png`,
       title: `Get a voice message from ${creator.creator_name}`,
       description: `Receive a personalized AI voice message from ${creator.creator_name}. Price: ${priceInSol} SOL. Protected by AI brand safety.`,
       label: 'Generate Voice Message',
@@ -37,7 +41,7 @@ export async function GET(
         actions: [
           {
             label: 'Send Message',
-            href: `/api/actions/voice/${params.creatorWallet}?text={text}`,
+            href: `${baseUrl}/api/actions/voice/${params.creatorWallet}?text={text}`,
             parameters: [
               {
                 name: 'text',
@@ -118,9 +122,19 @@ export async function POST(
       .serialize({ requireAllSignatures: false, verifySignatures: false })
       .toString('base64')
 
+    const host = req.headers.get('host') || 'auracast-murex.vercel.app'
+    const protocol = host.includes('localhost') ? 'http' : 'https'
+    const baseUrl = `${protocol}://${host}`
+
     const responseBody: ActionPostResponse = {
       transaction: base64Tx,
       message: `Approve to get a voice message from ${creator.creator_name}!`,
+      links: {
+        next: {
+          type: 'post',
+          href: `${baseUrl}/api/actions/voice/${params.creatorWallet}/callback?text=${encodeURIComponent(text)}`,
+        }
+      }
     }
 
     return NextResponse.json(responseBody, { status: 200, headers: CORS_HEADERS })

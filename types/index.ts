@@ -179,4 +179,10 @@ export interface ActionGetResponse {
 export interface ActionPostResponse {
   transaction: string
   message: string
+  links?: {
+    next: {
+      type: 'post' | 'inline'
+      href: string
+    }
+  }
 }
