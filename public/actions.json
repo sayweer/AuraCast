@@ -1,8 +1,12 @@
 {
-    "rules": [
-        {
-            "pathPattern": "/api/actions/**",
-            "apiPath": "/api/actions/**"
-        }
-    ]
+  "rules": [
+    {
+      "pathPattern": "/fan/*",
+      "apiPath": "/api/actions/voice/*"
+    },
+    {
+      "pathPattern": "/api/actions/voice/*",
+      "apiPath": "/api/actions/voice/*"
+    }
+  ]
 }
