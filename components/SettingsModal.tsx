@@ -285,7 +285,7 @@ export default function SettingsModal({
 
           {/* Footer */}
           <div className="text-center text-xs text-muted-foreground pt-2">
-            AuraCast v1.0.0 — Built at Dev3pack Hackathon 2026
+            AuraCast v1.0.0 — License your voice. Earn while you sleep.
           </div>
         </Card>
       </div>
