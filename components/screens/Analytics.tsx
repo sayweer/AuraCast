@@ -228,7 +228,7 @@ function SummaryCards({ data }: { data: AnalyticsResponse }) {
     {
       label: 'Unique Fans',
       value: String(s.unique_fans),
-      sub: `${s.total_completed} completed messages`,
+      sub: '2+ messages in period',
     },
     {
       label: 'Success Rate',
@@ -243,7 +243,7 @@ function SummaryCards({ data }: { data: AnalyticsResponse }) {
     {
       label: 'Total Plays',
       value: String(s.total_plays),
-      sub: 'Across all messages',
+      sub: 'Times play was pressed',
     },
   ]
 

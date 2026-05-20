@@ -266,7 +266,8 @@ export async function getCreatorAnalytics(
   let totalRejected = 0
   let totalRefunded = 0
   let totalPlays = 0
-  const uniqueFans = new Set<string>()
+  // fanPurchaseCounts tracks how many completed purchases each buyer_wallet has
+  const fanPurchaseCounts = new Map<string, number>()
   let priceSum = 0
   let priceCount = 0
 
@@ -281,7 +282,7 @@ export async function getCreatorAnalytics(
       totalFee += row.platform_fee_lamports
       totalCompleted += 1
       totalPlays += row.play_count
-      uniqueFans.add(row.buyer_wallet)
+      fanPurchaseCounts.set(row.buyer_wallet, (fanPurchaseCounts.get(row.buyer_wallet) ?? 0) + 1)
       priceSum += row.amount_lamports
       priceCount += 1
       if (bucket) {
@@ -308,7 +309,8 @@ export async function getCreatorAnalytics(
     total_rejected: totalRejected,
     total_refunded: totalRefunded,
     total_plays: totalPlays,
-    unique_fans: uniqueFans.size,
+    // unique_fans: buyers who sent at least 2 completed messages in this period
+    unique_fans: Array.from(fanPurchaseCounts.values()).filter((n) => n >= 2).length,
     avg_price_lamports: priceCount > 0 ? Math.round(priceSum / priceCount) : 0,
     success_rate: decided > 0 ? totalCompleted / decided : 0,
   }
