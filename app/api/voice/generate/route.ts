@@ -11,7 +11,7 @@ import type { GenerateVoiceRequest } from '@/types'
 export async function POST(req: NextRequest): Promise<NextResponse> {
   // Rate limit: max 5 requests per IP per minute
   const ip = getClientIp(req)
-  if (!checkRateLimit(ip, 5, 60_000)) {
+  if (!await checkRateLimit(ip, 5, 60_000)) {
     return NextResponse.json(
       { success: false, error: 'Too many requests. Please try again later.', code: 'RATE_LIMITED' },
       { status: 429 }

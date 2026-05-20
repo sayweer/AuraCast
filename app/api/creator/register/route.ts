@@ -9,7 +9,7 @@ import type { RegisterCreatorRequest, RegisterCreatorResponse } from '@/types'
 export async function POST(req: NextRequest): Promise<NextResponse<RegisterCreatorResponse>> {
   // Rate limit: max 10 registration attempts per IP per hour
   const ip = getClientIp(req)
-  if (!checkRateLimit(ip, 10, 60 * 60 * 1000)) {
+  if (!await checkRateLimit(ip, 10, 60 * 60 * 1000)) {
     return NextResponse.json(
       { success: false, error: 'Too many registration attempts. Please try again later.' },
       { status: 429 }

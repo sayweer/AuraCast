@@ -19,7 +19,7 @@ export async function GET(
   { params }: { params: { walletAddress: string } }
 ): Promise<NextResponse> {
   const ip = getClientIp(req)
-  if (!checkRateLimit(`analytics:${ip}`, 30, 60_000)) {
+  if (!await checkRateLimit(`analytics:${ip}`, 30, 60_000)) {
     return NextResponse.json(
       { success: false, error: 'Too many requests', code: 'RATE_LIMITED' },
       { status: 429 }

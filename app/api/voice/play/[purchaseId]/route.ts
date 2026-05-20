@@ -11,7 +11,7 @@ export async function POST(
   { params }: { params: { purchaseId: string } }
 ): Promise<NextResponse> {
   const ip = getClientIp(req)
-  if (!checkRateLimit(`play:${ip}`, 60, 60_000)) {
+  if (!await checkRateLimit(`play:${ip}`, 60, 60_000)) {
     return NextResponse.json(
       { success: false, error: 'Too many requests', code: 'RATE_LIMITED' },
       { status: 429 }
