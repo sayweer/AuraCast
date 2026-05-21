@@ -86,7 +86,7 @@ export default function App() {
     const checkCreator = async () => {
       setIsCheckingDB(true)
       try {
-        const res = await fetch(`/api/creator/${walletAddressStr}`, {
+        const res = await fetch(`/api/creator/${walletAddressStr}?public=true`, {
           cache: 'no-store',
         })
         if (ignore) return
@@ -124,8 +124,13 @@ export default function App() {
     const fetchStats = async () => {
       setStatsLoading(true)
       try {
+        const { signature, nonce } = await getSignature()
         const res = await fetch(`/api/creator/${walletAddressStr}`, {
           cache: 'no-store',
+          headers: {
+            'x-wallet-signature': signature,
+            'x-wallet-nonce': nonce,
+          },
         })
         if (ignore) return
         if (res.ok) {
@@ -157,8 +162,8 @@ export default function App() {
             })
           }
         }
-      } catch {
-        // ignore — stale state remains until next reconnect
+      } catch (err) {
+        console.error('[fetchStats] Failed to load creator data:', err)
       } finally {
         if (!ignore) setStatsLoading(false)
       }
@@ -166,7 +171,7 @@ export default function App() {
 
     fetchStats()
     return () => { ignore = true }
-  }, [appState, walletAddressStr])
+  }, [appState, walletAddressStr, getSignature])
 
   const handleDisconnectWallet = async () => {
     await disconnect()
