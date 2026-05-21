@@ -9,8 +9,17 @@ const connection = new Connection(
 export async function verifyTransaction(
   txSignature: string,
   expectedRecipient: string,
-  expectedLamports: number
+  expectedTotalLamports: number
 ): Promise<boolean> {
+  // Read platform wallet from env — required for fee verification
+  const platformWallet = process.env.PLATFORM_WALLET
+  if (!platformWallet) {
+    throw new AuraCastError('Platform wallet not configured', 'CONFIG_ERROR', 500)
+  }
+
+  const platformFee = Math.floor(expectedTotalLamports * 0.1)
+  const creatorAmount = expectedTotalLamports - platformFee
+
   const tx = await connection.getTransaction(txSignature, {
     maxSupportedTransactionVersion: 0,
   })
@@ -46,20 +55,28 @@ export async function verifyTransaction(
   const preBalances = tx.meta?.preBalances ?? []
   const postBalances = tx.meta?.postBalances ?? []
 
-  let recipientIndex = -1
-  for (let i = 0; i < accountKeys.length; i++) {
-    const key = accountKeys.get(i)
-    if (key && key.toBase58() === expectedRecipient) {
-      recipientIndex = i
-      break
+  // Helper: find account index by wallet address
+  function findAccountIndex(wallet: string): number {
+    for (let i = 0; i < accountKeys.length; i++) {
+      const key = accountKeys.get(i)
+      if (key && key.toBase58() === wallet) return i
     }
+    return -1
   }
 
-  if (recipientIndex === -1) throw new TransactionVerificationError(txSignature)
+  // Verify creator received correct amount (±1 lamport tolerance)
+  const creatorIndex = findAccountIndex(expectedRecipient)
+  if (creatorIndex === -1) throw new TransactionVerificationError(txSignature)
 
-  const diff = postBalances[recipientIndex] - preBalances[recipientIndex]
-  const minExpected = Math.floor(expectedLamports * 0.9)
-  if (diff < minExpected) throw new TransactionVerificationError(txSignature)
+  const creatorDiff = postBalances[creatorIndex] - preBalances[creatorIndex]
+  if (creatorDiff < creatorAmount - 1) throw new TransactionVerificationError(txSignature)
+
+  // Verify platform wallet received correct fee (±1 lamport tolerance)
+  const platformIndex = findAccountIndex(platformWallet)
+  if (platformIndex === -1) throw new TransactionVerificationError(txSignature)
+
+  const platformDiff = postBalances[platformIndex] - preBalances[platformIndex]
+  if (platformDiff < platformFee - 1) throw new TransactionVerificationError(txSignature)
 
   return true
 }

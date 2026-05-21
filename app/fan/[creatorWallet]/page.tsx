@@ -32,6 +32,7 @@ export default function FanPage() {
   const [error, setError] = useState<string | null>(null)
   const [txSignature, setTxSignature] = useState<string | null>(null)
   const [purchaseId, setPurchaseId] = useState<string | null>(null)
+  const [platformWallet, setPlatformWallet] = useState<string | null>(null)
 
   // Fetch creator on mount
   useEffect(() => {
@@ -53,6 +54,23 @@ export default function FanPage() {
     fetchCreator()
   }, [creatorWallet])
 
+  // Fetch platform wallet on mount
+  useEffect(() => {
+    const fetchPlatformConfig = async () => {
+      try {
+        const res = await fetch('/api/platform-config')
+        if (res.ok) {
+          const data = await res.json()
+          setPlatformWallet(data.platformWallet)
+        }
+      } catch {
+        // Platform config fetch failure is non-blocking;
+        // payment will fail gracefully if wallet is missing
+      }
+    }
+    fetchPlatformConfig()
+  }, [])
+
   // Price calculation — charUnits is 0 when message is empty
   const charUnits = message.length > 0 ? Math.ceil(message.length / 150) : 0
   const totalLamports = charUnits * (creator?.price_lamports ?? 0)
@@ -62,6 +80,10 @@ export default function FanPage() {
   // Pay and generate
   const handlePayAndGenerate = async () => {
     if (!publicKey || !creator || !message.trim()) return
+    if (!platformWallet) {
+      setError('Platform configuration not loaded. Please refresh the page.')
+      return
+    }
     setIsPaying(true)
     setError(null)
     setAudioUrl(null)
@@ -72,13 +94,22 @@ export default function FanPage() {
         'confirmed'
       )
 
-      // Build transaction
+      // Split payment: 90% to creator, 10% platform fee
+      const platformFee = Math.floor(totalLamports * 0.1)
+      const creatorAmount = totalLamports - platformFee
+
+      // Build transaction with two transfers
       const transaction = new Transaction()
       transaction.add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
           toPubkey: new PublicKey(creatorWallet),
-          lamports: totalLamports,
+          lamports: creatorAmount,
+        }),
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: new PublicKey(platformWallet),
+          lamports: platformFee,
         })
       )
       transaction.feePayer = publicKey
