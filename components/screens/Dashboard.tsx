@@ -36,7 +36,7 @@ const Analytics = dynamic(() => import('@/components/screens/Analytics'), {
   ),
 })
 
-type DashboardTab = 'overview' | 'analytics'
+type DashboardTab = 'overview' | 'analytics' | 'messages'
 
 interface DashboardProps {
   walletAddress: string;
@@ -110,7 +110,7 @@ export default function Dashboard({
   }, [walletAddress, sig, getSignature]);
 
   useEffect(() => {
-    if (tab === 'overview' && walletAddress) {
+    if (tab === 'messages' && walletAddress) {
       fetchPurchases();
     }
   }, [tab, walletAddress, fetchPurchases]);
@@ -230,6 +230,9 @@ export default function Dashboard({
           <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')}>
             {t('dashboard.analyticsTab')}
           </TabButton>
+          <TabButton active={tab === 'messages'} onClick={() => setTab('messages')}>
+            {t('dashboard.messagesTab')}
+          </TabButton>
         </div>
       </div>
 
@@ -333,108 +336,109 @@ export default function Dashboard({
                 {t('dashboard.shareTextDesc')}
               </p>
             </Card>
+          </>
+        )}
 
-            {/* Fan Messages History Section */}
-            <div className="space-y-6 pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-                    <Music className="w-6 h-6 text-primary" />
-                    {t('dashboard.receivedMessages')}
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {t('dashboard.receivedDesc')}
-                  </p>
-                </div>
+        {tab === 'messages' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
+                  <Music className="w-6 h-6 text-primary" />
+                  {t('dashboard.receivedMessages')}
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t('dashboard.receivedDesc')}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchPurchases(true)}
+                disabled={loading}
+                className="flex items-center gap-2 border-border bg-card/40 text-foreground hover:bg-white/10 transition-all"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                {t('dashboard.refresh')}
+              </Button>
+            </div>
+
+            {/* Search & Filter Bar */}
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/30 backdrop-blur-md p-4 rounded-xl border border-border/80 shadow-inner">
+              {/* Filter Tabs */}
+              <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+                <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
+                  {t('dashboard.all')}
+                </FilterButton>
+                <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
+                  {t('dashboard.completed')}
+                </FilterButton>
+                <FilterButton active={statusFilter === 'pending'} onClick={() => setStatusFilter('pending')}>
+                  {t('dashboard.pending')}
+                </FilterButton>
+                <FilterButton active={statusFilter === 'rejected'} onClick={() => setStatusFilter('rejected')}>
+                  {t('dashboard.rejected')}
+                </FilterButton>
+              </div>
+
+              {/* Search Input */}
+              <div className="relative w-full md:w-80">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder={t('dashboard.searchPlaceholder')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-black/40 border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Messages Container */}
+            {loading && purchases.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-4">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                <p className="text-sm font-medium">{t('dashboard.loadingMessages')}</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-16 text-rose-400 space-y-4 border border-rose-500/25 bg-rose-500/5 rounded-xl backdrop-blur-sm">
+                <AlertCircle className="w-10 h-10" />
+                <p className="text-sm font-medium">{error}</p>
                 <Button
-                  variant="outline"
                   size="sm"
+                  variant="outline"
+                  className="border-rose-500/30 hover:bg-rose-500/10 text-rose-300"
                   onClick={() => fetchPurchases(true)}
-                  disabled={loading}
-                  className="flex items-center gap-2 border-border bg-card/40 text-foreground hover:bg-white/10 transition-all"
                 >
-                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                  {t('dashboard.refresh')}
+                  {t('dashboard.retry')}
                 </Button>
               </div>
-
-              {/* Search & Filter Bar */}
-              <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/30 backdrop-blur-md p-4 rounded-xl border border-border/80 shadow-inner">
-                {/* Filter Tabs */}
-                <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-                  <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
-                    {t('dashboard.all')}
-                  </FilterButton>
-                  <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
-                    {t('dashboard.completed')}
-                  </FilterButton>
-                  <FilterButton active={statusFilter === 'pending'} onClick={() => setStatusFilter('pending')}>
-                    {t('dashboard.pending')}
-                  </FilterButton>
-                  <FilterButton active={statusFilter === 'rejected'} onClick={() => setStatusFilter('rejected')}>
-                    {t('dashboard.rejected')}
-                  </FilterButton>
-                </div>
-
-                {/* Search Input */}
-                <div className="relative w-full md:w-80">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder={t('dashboard.searchPlaceholder')}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-black/40 border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
-                  />
-                </div>
+            ) : filteredPurchases.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-border/80 border-dashed rounded-xl bg-card/10 space-y-3">
+                <Music className="w-10 h-10 opacity-30 text-primary" />
+                <p className="text-sm font-semibold text-foreground/80">{t('dashboard.notFound')}</p>
+                <p className="text-xs max-w-md text-center px-4">
+                  {purchases.length === 0
+                    ? t('dashboard.emptyDesc')
+                    : t('dashboard.noMatchDesc')}
+                </p>
               </div>
-
-              {/* Messages Container */}
-              {loading && purchases.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-4">
-                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                  <p className="text-sm font-medium">{t('dashboard.loadingMessages')}</p>
-                </div>
-              ) : error ? (
-                <div className="flex flex-col items-center justify-center py-16 text-rose-400 space-y-4 border border-rose-500/25 bg-rose-500/5 rounded-xl backdrop-blur-sm">
-                  <AlertCircle className="w-10 h-10" />
-                  <p className="text-sm font-medium">{error}</p>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="border-rose-500/30 hover:bg-rose-500/10 text-rose-300"
-                    onClick={() => fetchPurchases(true)}
-                  >
-                    {t('dashboard.retry')}
-                  </Button>
-                </div>
-              ) : filteredPurchases.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-border/80 border-dashed rounded-xl bg-card/10 space-y-3">
-                  <Music className="w-10 h-10 opacity-30 text-primary" />
-                  <p className="text-sm font-semibold text-foreground/80">{t('dashboard.notFound')}</p>
-                  <p className="text-xs max-w-md text-center px-4">
-                    {purchases.length === 0 
-                      ? t('dashboard.emptyDesc') 
-                      : t('dashboard.noMatchDesc')}
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredPurchases.map((p) => (
-                    <MessageCard
-                      key={p.id}
-                      purchase={p}
-                      isPlaying={playingId === p.id && isPlaying}
-                      currentTime={playingId === p.id ? currentTime : 0}
-                      duration={playingId === p.id ? duration : 0}
-                      onPlay={() => p.audio_url && playAudio(p.id, p.audio_url)}
-                      onSeek={handleSeek}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredPurchases.map((p) => (
+                  <MessageCard
+                    key={p.id}
+                    purchase={p}
+                    isPlaying={playingId === p.id && isPlaying}
+                    currentTime={playingId === p.id ? currentTime : 0}
+                    duration={playingId === p.id ? duration : 0}
+                    onPlay={() => p.audio_url && playAudio(p.id, p.audio_url)}
+                    onSeek={handleSeek}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
       </div>

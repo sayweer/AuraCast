@@ -37,6 +37,7 @@ export const translations = {
     dashboard: {
       overviewTab: 'Overview',
       analyticsTab: 'Analytics',
+      messagesTab: 'Messages',
       totalEarned: 'Total Earned',
       messagesGenerated: 'Messages Generated',
       allTimeRequests: 'All time requests',
@@ -207,6 +208,7 @@ export const translations = {
     dashboard: {
       overviewTab: 'Genel Bakış',
       analyticsTab: 'Analitik',
+      messagesTab: 'Mesajlar',
       totalEarned: 'Toplam Kazanç',
       messagesGenerated: 'Üretilen Mesaj',
       allTimeRequests: 'Tüm zamanların istekleri',
