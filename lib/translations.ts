@@ -33,6 +33,9 @@ export const translations = {
       backButton: '← Back',
       launchButton: 'Launch My Voice 🚀',
       creatingVoice: 'Creating your voice clone...',
+      minDurationError: 'Minimum 90 seconds of recording required for quality cloning',
+      micPermissionDenied: 'Microphone access denied. Please enable mic permissions in your browser and try again.',
+      micAccessError: 'Could not access microphone. Please check your device and try again.',
     },
     dashboard: {
       overviewTab: 'Overview',
@@ -130,6 +133,7 @@ export const translations = {
       netSol: 'Net SOL',
       plays: 'Plays',
       status: 'Status',
+      noRecentActivity: 'No recent activity in this period.',
     },
     fan: {
       loadingCreator: 'Loading creator...',
@@ -213,6 +217,9 @@ export const translations = {
       backButton: '← Geri',
       launchButton: 'Sesimi Yayınla 🚀',
       creatingVoice: 'Ses klonunuz oluşturuluyor...',
+      minDurationError: 'Kaliteli klon için en az 90 saniye kayıt gerekli',
+      micPermissionDenied: 'Mikrofon izni reddedildi. Tarayıcı ayarlarından mikrofon iznini etkinleştirip tekrar deneyin.',
+      micAccessError: 'Mikrofona erişilemedi. Cihazınızı kontrol edip tekrar deneyin.',
     },
     dashboard: {
       overviewTab: 'Genel Bakış',
@@ -310,6 +317,7 @@ export const translations = {
       netSol: 'Net SOL',
       plays: 'Oynatma',
       status: 'Durum',
+      noRecentActivity: 'Bu dönemde yakın zamanda herhangi bir işlem gerçekleşmedi.',
     },
     fan: {
       loadingCreator: 'İçerik üretici yükleniyor...',

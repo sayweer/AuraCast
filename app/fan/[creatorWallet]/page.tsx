@@ -159,6 +159,7 @@ export default function FanPage() {
 
       setAudioUrl(`data:audio/mpeg;base64,${data.audioBase64}`)
       setPurchaseId(typeof data.purchaseId === 'string' ? data.purchaseId : null)
+      setTxSignature(null)
     } catch (err: unknown) {
       const errMessage = err instanceof Error ? err.message : (language === 'tr' ? 'Ödeme başarısız oldu' : 'Payment failed')
       setError(errMessage)
@@ -454,6 +455,7 @@ export default function FanPage() {
                       </div>
                       <audio
                         controls
+                        playsInline
                         src={audioUrl}
                         className="w-full mt-1"
                         style={{ accentColor: '#B91C3C' }}

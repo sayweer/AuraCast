@@ -377,7 +377,7 @@ function RecentTable({ rows }: { rows: RecentPurchaseRow[] }) {
   if (rows.length === 0) {
     return (
       <Card className="bg-card border-border p-6">
-        <p className="text-sm text-muted-foreground">{language === 'tr' ? 'Bu dönemde yakın zamanda herhangi bir işlem gerçekleşmedi.' : 'No recent activity in this period.'}</p>
+        <p className="text-sm text-muted-foreground">{t('analytics.noRecentActivity')}</p>
       </Card>
     )
   }

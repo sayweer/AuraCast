@@ -91,6 +91,9 @@ export default function Onboarding({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const [micError, setMicError] = useState<string | null>(null)
+  const [savedDuration, setSavedDuration] = useState(0)
+  const recordingSecondsRef = useRef(recordingSeconds)
+  useEffect(() => { recordingSecondsRef.current = recordingSeconds }, [recordingSeconds])
 
   // Canvas visualizer refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -332,6 +335,7 @@ export default function Onboarding({
         }
 
         mediaRecorder.onstop = () => {
+          setSavedDuration(recordingSecondsRef.current)
           const effectiveType = mimeType || 'audio/webm'
           const blob = new Blob(audioChunksRef.current, { type: effectiveType })
           onAudioReady(blob, effectiveType)
@@ -348,8 +352,8 @@ export default function Onboarding({
         const isPermission = err instanceof DOMException && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')
         setMicError(
           isPermission
-            ? 'Microphone access denied. Please enable mic permissions in your browser and try again.'
-            : 'Could not access microphone. Please check your device and try again.'
+            ? t('onboarding.micPermissionDenied')
+            : t('onboarding.micAccessError')
         )
       }
     } else {
@@ -493,6 +497,11 @@ export default function Onboarding({
                   {t('onboarding.cloneQualityWarn')}
                 </p>
               )}
+              {audioReady && savedDuration < 90 && (
+                <p className="text-sm text-red-400 text-center max-w-xs">
+                  {t('onboarding.minDurationError')}
+                </p>
+              )}
               {micError && (
                 <p className="text-sm text-red-400 text-center max-w-xs">{micError}</p>
               )}
@@ -501,7 +510,7 @@ export default function Onboarding({
             {/* Continue Button */}
             <Button
               onClick={onNextStep}
-              disabled={!audioReady}
+              disabled={!audioReady || savedDuration < 90}
               className="w-full bg-primary text-primary-foreground hover:bg-secondary disabled:bg-primary/30 disabled:text-primary/50 disabled:cursor-not-allowed"
             >
               {t('onboarding.buttonCreateVoice')} <ChevronRight className="w-4 h-4 ml-2" />
