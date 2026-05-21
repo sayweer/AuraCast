@@ -105,7 +105,16 @@ export interface ModerationResult {
 export interface VoiceSettings {
   stability: number
   similarity_boost: number
+  style?: number
 }
+
+export type Mood =
+  | 'happy'
+  | 'excited'
+  | 'calm'
+  | 'sad'
+  | 'angry'
+  | 'romantic'
 
 export interface GenerateSpeechOptions {
   voiceId: string
@@ -142,6 +151,7 @@ export interface GenerateVoiceRequest {
   fanText: string
   txSignature: string
   buyerWallet: string
+  mood?: Mood
 }
 
 export interface GenerateVoiceResponse {

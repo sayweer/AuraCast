@@ -13,6 +13,7 @@ import {
 } from '@solana/web3.js'
 import { useLanguage } from '@/components/LanguageProvider'
 import LanguageToggle from '@/components/LanguageToggle'
+import type { Mood } from '@/types'
 
 interface Creator {
   wallet_address: string
@@ -20,6 +21,15 @@ interface Creator {
   price_lamports: number
   is_active: boolean
 }
+
+const MOOD_OPTIONS: Array<{ id: Mood; emoji: string }> = [
+  { id: 'happy',    emoji: '😊' },
+  { id: 'excited',  emoji: '🎉' },
+  { id: 'calm',     emoji: '🌿' },
+  { id: 'sad',      emoji: '🥲' },
+  { id: 'angry',    emoji: '😤' },
+  { id: 'romantic', emoji: '💝' },
+]
 
 export default function FanPage() {
   const params = useParams()
@@ -30,6 +40,7 @@ export default function FanPage() {
   const [creator, setCreator] = useState<Creator | null>(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [selectedMood, setSelectedMood] = useState<Mood>('calm')
   const [isPaying, setIsPaying] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -135,6 +146,7 @@ export default function FanPage() {
           fanText: message,
           txSignature: signature,
           buyerWallet: publicKey.toBase58(),
+          mood: selectedMood,
         }),
       })
 
@@ -311,6 +323,43 @@ export default function FanPage() {
                       >
                         {message.length}/300
                       </span>
+                    </div>
+                  </div>
+
+                  {/* Mood selector */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+                      {t('fan.moodLabel')}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {MOOD_OPTIONS.map((m) => {
+                        const active = selectedMood === m.id
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => setSelectedMood(m.id)}
+                            className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
+                            style={
+                              active
+                                ? {
+                                    background: 'linear-gradient(135deg, #8B1A2F 0%, #B91C3C 100%)',
+                                    borderColor: 'rgba(185,28,60,0.6)',
+                                    color: '#ffffff',
+                                    boxShadow: '0 0 12px rgba(185,28,60,0.35)',
+                                  }
+                                : {
+                                    background: 'rgba(0,0,0,0.25)',
+                                    borderColor: 'rgba(255,255,255,0.08)',
+                                    color: 'var(--muted-foreground)',
+                                  }
+                            }
+                          >
+                            <span className="mr-1">{m.emoji}</span>
+                            {t(`fan.mood.${m.id}`)}
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
 

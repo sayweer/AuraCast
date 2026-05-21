@@ -70,6 +70,7 @@ export async function generateSpeech(
         voice_settings: {
             stability: options.voiceSettings?.stability ?? 0.7,
             similarity_boost: options.voiceSettings?.similarity_boost ?? 0.85,
+            style: options.voiceSettings?.style ?? 0,
             use_speaker_boost: true,
         },
     })

@@ -3,10 +3,13 @@ import { getCreatorByWallet, savePurchase, updatePurchaseStatus, getPurchaseByTx
 import { verifyTransaction } from '@/lib/solana'
 import { validateTextLength, isSafeToGenerate } from '@/lib/moderation'
 import { generateSpeech } from '@/lib/elevenlabs'
+import { optimizeTextForVoice, MOOD_VOICE_PRESETS } from '@/lib/text-optimizer'
 import { getErrorResponse, UnsafeContentError } from '@/lib/errors'
 import { safeParseJson, isValidWalletAddress, isValidTxSignature, getClientIp } from '@/lib/validation'
 import { checkRateLimit } from '@/lib/rate-limit'
-import type { GenerateVoiceRequest } from '@/types'
+import type { GenerateVoiceRequest, Mood } from '@/types'
+
+const VALID_MOODS: Mood[] = ['happy', 'excited', 'calm', 'sad', 'angry', 'romantic']
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   // Rate limit: max 5 requests per IP per minute
@@ -27,12 +30,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  const { creatorWallet, fanText, txSignature, buyerWallet } = body
+  const { creatorWallet, fanText, txSignature, buyerWallet, mood: rawMood } = body
 
   // Field presence checks
   if (!creatorWallet || !fanText || !txSignature || !buyerWallet) {
     return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
   }
+
+  // Mood validation — optional, defaults to 'calm'
+  const mood: Mood = rawMood && VALID_MOODS.includes(rawMood as Mood)
+    ? (rawMood as Mood)
+    : 'calm'
 
   // Input format validation
   if (!isValidWalletAddress(creatorWallet)) {
@@ -108,7 +116,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       throw moderationError
     }
 
-    const result = await generateSpeech({ voiceId: creator.voice_id, text: fanText, language: creator.language })
+    const optimizedText = await optimizeTextForVoice(fanText, mood, creator.language)
+
+    const result = await generateSpeech({
+      voiceId: creator.voice_id,
+      text: optimizedText,
+      language: creator.language,
+      voiceSettings: MOOD_VOICE_PRESETS[mood],
+    })
 
     await updatePurchaseStatus(txSignature, 'completed', result.audioBase64)
 
