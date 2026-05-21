@@ -19,6 +19,7 @@ import type {
   AnalyticsResponse,
   RecentPurchaseRow,
 } from '@/types'
+import { useLanguage } from '@/components/LanguageProvider'
 
 interface AnalyticsProps {
   walletAddress: string
@@ -35,9 +36,9 @@ function truncateWallet(w: string): string {
   return `${w.slice(0, 4)}…${w.slice(-4)}`
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, lang: string): string {
   const d = new Date(iso)
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', {
     year: '2-digit',
     month: 'short',
     day: 'numeric',
@@ -59,7 +60,17 @@ function statusBadgeClass(status: string): string {
   }
 }
 
+function statusLabel(status: string, t: any) {
+  switch (status) {
+    case 'completed': return t('messageCard.statusCompleted')
+    case 'rejected': return t('messageCard.statusRejected')
+    case 'refunded': return t('messageCard.statusRefunded')
+    default: return t('messageCard.statusPending')
+  }
+}
+
 export default function Analytics({ walletAddress, getSignature }: AnalyticsProps) {
+  const { t } = useLanguage()
   const [days, setDays] = useState<AnalyticsRangeDays>(30)
   const [data, setData] = useState<AnalyticsResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -90,7 +101,7 @@ export default function Analytics({ walletAddress, getSignature }: AnalyticsProp
         if (!res.ok) {
           if (res.status === 403) setCachedSig(null)
           const body = (await res.json().catch(() => null)) as { error?: string } | null
-          setError(body?.error ?? `Failed to load analytics (HTTP ${res.status})`)
+          setError(body?.error ?? t('dashboard.errorLoading'))
           setData(null)
           return
         }
@@ -99,7 +110,7 @@ export default function Analytics({ walletAddress, getSignature }: AnalyticsProp
         setData(json)
       } catch {
         if (!ignore) {
-          setError('Failed to load analytics. Please try again.')
+          setError(t('dashboard.errorLoading'))
           setData(null)
         }
       } finally {
@@ -111,7 +122,7 @@ export default function Analytics({ walletAddress, getSignature }: AnalyticsProp
     return () => {
       ignore = true
     }
-  }, [walletAddress, days, obtainSignature])
+  }, [walletAddress, days, obtainSignature, t])
 
   const handleExport = async () => {
     setExporting(true)
@@ -135,7 +146,7 @@ export default function Analytics({ walletAddress, getSignature }: AnalyticsProp
       a.remove()
       URL.revokeObjectURL(url)
     } catch {
-      alert('Failed to export CSV. Please try again.')
+      alert(t('settings.updateFailed'))
     } finally {
       setExporting(false)
     }
@@ -174,7 +185,7 @@ export default function Analytics({ walletAddress, getSignature }: AnalyticsProp
           ) : (
             <Download className="w-4 h-4" />
           )}
-          Export CSV
+          {exporting ? t('analytics.exporting') : t('analytics.exportCsv')}
         </Button>
       </div>
 
@@ -211,39 +222,40 @@ function SkeletonGrid() {
 }
 
 function SummaryCards({ data }: { data: AnalyticsResponse }) {
+  const { t } = useLanguage()
   const s = data.summary
   const successPct = (s.success_rate * 100).toFixed(1)
 
   const cards = [
     {
-      label: 'Gross Revenue',
+      label: t('analytics.grossRevenue'),
       value: `${lamportsToSol(s.total_gross_lamports, 4)} SOL`,
-      sub: `Fee paid: ${lamportsToSol(s.total_platform_fee_lamports, 4)} SOL`,
+      sub: `${t('analytics.feePaid')} ${lamportsToSol(s.total_platform_fee_lamports, 4)} SOL`,
     },
     {
-      label: 'Net Earned',
+      label: t('analytics.netEarned'),
       value: `${lamportsToSol(s.total_net_lamports, 4)} SOL`,
-      sub: 'After 10% platform fee',
+      sub: t('analytics.netSolAfterFee'),
     },
     {
-      label: 'Unique Fans',
+      label: t('analytics.uniqueFans'),
       value: String(s.unique_fans),
-      sub: '2+ messages in period',
+      sub: t('analytics.fansSubtext'),
     },
     {
-      label: 'Success Rate',
+      label: t('analytics.successRate'),
       value: `${successPct}%`,
-      sub: `${s.total_rejected} rejected`,
+      sub: t('analytics.rejectedSubtext', { count: s.total_rejected }),
     },
     {
-      label: 'Avg Price',
+      label: t('analytics.avgPrice'),
       value: `${lamportsToSol(s.avg_price_lamports, 4)} SOL`,
-      sub: 'Per completed message',
+      sub: t('analytics.completedSubtext'),
     },
     {
-      label: 'Total Plays',
+      label: t('analytics.totalPlays'),
       value: String(s.total_plays),
-      sub: 'Times play was pressed',
+      sub: t('analytics.playsSubtext'),
     },
   ]
 
@@ -268,14 +280,15 @@ function SummaryCards({ data }: { data: AnalyticsResponse }) {
 }
 
 function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRangeDays }) {
+  const { t, language } = useLanguage()
   if (data.summary.total_completed === 0 && data.summary.total_rejected === 0) {
     return (
       <Card className="bg-card border-border p-12">
         <div className="flex flex-col items-center justify-center text-center gap-2">
           <div className="text-3xl">📈</div>
-          <p className="font-semibold">No activity yet</p>
+          <p className="font-semibold">{t('analytics.noActivity')}</p>
           <p className="text-sm text-muted-foreground">
-            No data for the last {days} days. Share your fan link to start receiving messages.
+            {t('analytics.noActivityDesc', { days })}
           </p>
         </div>
       </Card>
@@ -285,9 +298,9 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
   return (
     <Card className="bg-card border-border p-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold">Activity over time</h3>
+        <h3 className="text-lg font-semibold">{t('analytics.activityOverTime')}</h3>
         <p className="text-xs text-muted-foreground">
-          Net SOL earned and message count per day
+          {t('analytics.activityDesc')}
         </p>
       </div>
       <div className="h-80 w-full">
@@ -322,10 +335,11 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
               }}
               labelStyle={{ color: '#F5F0F1' }}
               formatter={(value, name) => {
+                const localizedName = name === 'Net SOL' ? t('analytics.netSol') : (language === 'tr' ? 'Mesaj' : 'Messages')
                 if (name === 'Net SOL' && typeof value === 'number') {
-                  return [`${(value / 1e9).toFixed(4)} SOL`, name]
+                  return [`${(value / 1e9).toFixed(4)} SOL`, localizedName]
                 }
-                return [String(value), String(name)]
+                return [String(value), localizedName]
               }}
             />
             <Legend
@@ -336,7 +350,7 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
               yAxisId="left"
               type="monotone"
               dataKey="net_lamports"
-              name="Net SOL"
+              name={t('analytics.netSol')}
               stroke="#C41E3A"
               strokeWidth={2}
               dot={false}
@@ -345,7 +359,7 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
               yAxisId="right"
               type="monotone"
               dataKey="messages"
-              name="Messages"
+              name={language === 'tr' ? 'Mesaj' : 'Messages'}
               stroke="#a78bfa"
               strokeWidth={2}
               dot={false}
@@ -358,26 +372,27 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
 }
 
 function RecentTable({ rows }: { rows: RecentPurchaseRow[] }) {
+  const { t, language } = useLanguage()
   if (rows.length === 0) {
     return (
       <Card className="bg-card border-border p-6">
-        <p className="text-sm text-muted-foreground">No recent activity in this period.</p>
+        <p className="text-sm text-muted-foreground">{language === 'tr' ? 'Bu dönemde yakın zamanda herhangi bir işlem gerçekleşmedi.' : 'No recent activity in this period.'}</p>
       </Card>
     )
   }
 
   return (
     <Card className="bg-card border-border p-6">
-      <h3 className="text-lg font-semibold mb-4">Recent activity</h3>
+      <h3 className="text-lg font-semibold mb-4">{t('analytics.recentActivity')}</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-muted-foreground border-b border-border">
-              <th className="pb-2 pr-4 font-normal">Date</th>
-              <th className="pb-2 pr-4 font-normal">Fan</th>
-              <th className="pb-2 pr-4 font-normal text-right">Net SOL</th>
-              <th className="pb-2 pr-4 font-normal text-right">Plays</th>
-              <th className="pb-2 font-normal">Status</th>
+              <th className="pb-2 pr-4 font-normal">{t('analytics.date')}</th>
+              <th className="pb-2 pr-4 font-normal">{t('analytics.fan')}</th>
+              <th className="pb-2 pr-4 font-normal text-right">{t('analytics.netSol')}</th>
+              <th className="pb-2 pr-4 font-normal text-right">{t('analytics.plays')}</th>
+              <th className="pb-2 font-normal">{t('analytics.status')}</th>
             </tr>
           </thead>
           <tbody>
@@ -386,7 +401,7 @@ function RecentTable({ rows }: { rows: RecentPurchaseRow[] }) {
               return (
                 <tr key={r.id} className="border-b border-border/30 last:border-0">
                   <td className="py-3 pr-4 text-muted-foreground whitespace-nowrap">
-                    {formatDate(r.created_at)}
+                    {formatDate(r.created_at, language)}
                   </td>
                   <td className="py-3 pr-4 font-mono text-xs">
                     {truncateWallet(r.buyer_wallet)}
@@ -405,7 +420,7 @@ function RecentTable({ rows }: { rows: RecentPurchaseRow[] }) {
                       }
                       title={r.rejection_reason ?? undefined}
                     >
-                      {r.status}
+                      {statusLabel(r.status, t)}
                     </span>
                   </td>
                 </tr>

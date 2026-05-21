@@ -24,6 +24,8 @@ import {
   HelpCircle
 } from 'lucide-react';
 import type { RecentPurchaseRow } from '@/types';
+import { useLanguage } from '@/components/LanguageProvider';
+import LanguageToggle from '@/components/LanguageToggle';
 
 const Analytics = dynamic(() => import('@/components/screens/Analytics'), {
   ssr: false,
@@ -60,6 +62,7 @@ export default function Dashboard({
   onCopyLink,
   getSignature,
 }: DashboardProps) {
+  const { t, language } = useLanguage();
   const [tab, setTab] = useState<DashboardTab>('overview');
   const [purchases, setPurchases] = useState<RecentPurchaseRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -94,13 +97,13 @@ export default function Dashboard({
           setSig(null); // Clear invalid cached signature
         }
         const body = await res.json().catch(() => null);
-        throw new Error(body?.error ?? `Mesajlar yüklenemedi (HTTP ${res.status})`);
+        throw new Error(body?.error ?? (language === 'tr' ? `Mesajlar yüklenemedi (HTTP ${res.status})` : `Failed to load messages (HTTP ${res.status})`));
       }
       const json = await res.json();
       setPurchases(json.recent ?? []);
     } catch (err: any) {
       console.error('[Dashboard] Error fetching purchases:', err);
-      setError(err.message || 'Gelen mesajlar yüklenirken bir hata oluştu.');
+      setError(err.message || t('dashboard.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -189,7 +192,7 @@ export default function Dashboard({
     ? `https://auracast-murex.vercel.app/fan/${walletAddress}`
     : ''
   const shareText = encodeURIComponent(
-    `🎙 Send me a personalized AI voice message on AuraCast! Type your text, pay with SOL, and hear it instantly in my voice 🔥\n\n` +
+    t('dashboard.shareTweetText') +
     `${fanPageUrl}\n\n#AuraCast #AI`
   )
   const xShareUrl = fanPageUrl
@@ -207,6 +210,7 @@ export default function Dashboard({
               <div className="w-3 h-3 rounded-full bg-accent"></div>
               <span>{truncatedAddress}</span>
             </div>
+            <LanguageToggle />
             <button
               onClick={onOpenSettings}
               className="p-2 hover:bg-primary/10 rounded-lg transition-colors"
@@ -221,10 +225,10 @@ export default function Dashboard({
       <div className="border-b border-border bg-background/30">
         <div className="max-w-6xl mx-auto px-4 flex gap-6">
           <TabButton active={tab === 'overview'} onClick={() => setTab('overview')}>
-            Overview
+            {t('dashboard.overviewTab')}
           </TabButton>
           <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')}>
-            Analytics
+            {t('dashboard.analyticsTab')}
           </TabButton>
         </div>
       </div>
@@ -243,7 +247,7 @@ export default function Dashboard({
               <Card className="bg-card border-border p-6 space-y-4 md:col-span-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-muted-foreground text-sm mb-2">Total Earned</p>
+                    <p className="text-muted-foreground text-sm mb-2">{t('dashboard.totalEarned')}</p>
                     <h3 className="text-4xl font-bold">
                       {((creatorStats?.totalEarned ?? 0) / 1e9).toFixed(2)} SOL
                     </h3>
@@ -259,18 +263,18 @@ export default function Dashboard({
               <Card className="bg-card border-border p-6 space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-muted-foreground text-sm mb-2">Messages Generated</p>
+                    <p className="text-muted-foreground text-sm mb-2">{t('dashboard.messagesGenerated')}</p>
                     <h3 className="text-4xl font-bold">{creatorStats?.totalMessages ?? 0}</h3>
-                    <p className="text-muted-foreground text-sm mt-1">All time requests</p>
+                    <p className="text-muted-foreground text-sm mt-1">{t('dashboard.allTimeRequests')}</p>
                   </div>
                 </div>
               </Card>
 
               {/* Price Per 150 Chars */}
               <Card className="bg-card border-border p-6 space-y-2 md:col-span-3 lg:col-span-1">
-                <p className="text-muted-foreground text-sm">Price Per 150 Chars</p>
+                <p className="text-muted-foreground text-sm">{t('dashboard.pricePer150')}</p>
                 <h3 className="text-4xl font-bold">{priceInSol} SOL</h3>
-                <p className="text-muted-foreground text-sm mt-1">Your current rate</p>
+                <p className="text-muted-foreground text-sm mt-1">{t('dashboard.currentRate')}</p>
               </Card>
             </div>
 
@@ -278,7 +282,7 @@ export default function Dashboard({
             <Card className="bg-card border-border p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold">🔗 Your Fan Page Link</span>
+                  <span className="text-lg font-bold">{t('dashboard.fanPageLink')}</span>
                 </div>
               </div>
 
@@ -287,7 +291,7 @@ export default function Dashboard({
                   type="text"
                   value={fanPageUrl}
                   readOnly
-                  placeholder="Connect wallet to get your fan page link"
+                  placeholder={language === 'tr' ? 'Cüzdanınızı bağlayarak fan sayfası linkinizi alın' : 'Connect wallet to get your fan page link'}
                   className="w-full bg-black/40 border border-border rounded-lg px-4 py-2.5 text-sm font-mono text-muted-foreground focus:outline-none"
                 />
                 <div className="flex flex-wrap gap-2">
@@ -302,11 +306,11 @@ export default function Dashboard({
                   >
                     {copiedLink ? (
                       <>
-                        <Check className="w-4 h-4" /> Copied!
+                        <Check className="w-4 h-4" /> {t('dashboard.copied')}
                       </>
                     ) : (
                       <>
-                        <Copy className="w-4 h-4" /> Copy Link
+                        <Copy className="w-4 h-4" /> {t('dashboard.copyLink')}
                       </>
                     )}
                   </Button>
@@ -320,13 +324,13 @@ export default function Dashboard({
                     <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                     </svg>
-                    Share
+                    {t('dashboard.share')}
                   </a>
                 </div>
               </div>
 
               <p className="text-sm text-muted-foreground">
-                Share this link anywhere — fans click it, type a message, pay SOL, and instantly hear it in your voice.
+                {t('dashboard.shareTextDesc')}
               </p>
             </Card>
 
@@ -336,10 +340,10 @@ export default function Dashboard({
                 <div>
                   <h2 className="text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
                     <Music className="w-6 h-6 text-primary" />
-                    Gelen Fan Mesajları
+                    {t('dashboard.receivedMessages')}
                   </h2>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Fanlarınızın gönderdiği mesajlar ve üretilen ses klonları.
+                    {t('dashboard.receivedDesc')}
                   </p>
                 </div>
                 <Button
@@ -350,7 +354,7 @@ export default function Dashboard({
                   className="flex items-center gap-2 border-border bg-card/40 text-foreground hover:bg-white/10 transition-all"
                 >
                   <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                  Yenile
+                  {t('dashboard.refresh')}
                 </Button>
               </div>
 
@@ -359,16 +363,16 @@ export default function Dashboard({
                 {/* Filter Tabs */}
                 <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-none">
                   <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
-                    Hepsi
+                    {t('dashboard.all')}
                   </FilterButton>
                   <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
-                    Başarılı
+                    {t('dashboard.completed')}
                   </FilterButton>
                   <FilterButton active={statusFilter === 'pending'} onClick={() => setStatusFilter('pending')}>
-                    Bekleyenler
+                    {t('dashboard.pending')}
                   </FilterButton>
                   <FilterButton active={statusFilter === 'rejected'} onClick={() => setStatusFilter('rejected')}>
-                    Reddedilenler
+                    {t('dashboard.rejected')}
                   </FilterButton>
                 </div>
 
@@ -377,7 +381,7 @@ export default function Dashboard({
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   <input
                     type="text"
-                    placeholder="Mesaj veya cüzdan adresi ara..."
+                    placeholder={t('dashboard.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full bg-black/40 border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
@@ -389,7 +393,7 @@ export default function Dashboard({
               {loading && purchases.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-4">
                   <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                  <p className="text-sm font-medium">Fan mesajları yükleniyor...</p>
+                  <p className="text-sm font-medium">{t('dashboard.loadingMessages')}</p>
                 </div>
               ) : error ? (
                 <div className="flex flex-col items-center justify-center py-16 text-rose-400 space-y-4 border border-rose-500/25 bg-rose-500/5 rounded-xl backdrop-blur-sm">
@@ -401,17 +405,17 @@ export default function Dashboard({
                     className="border-rose-500/30 hover:bg-rose-500/10 text-rose-300"
                     onClick={() => fetchPurchases(true)}
                   >
-                    Yeniden Dene
+                    {t('dashboard.retry')}
                   </Button>
                 </div>
               ) : filteredPurchases.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-border/80 border-dashed rounded-xl bg-card/10 space-y-3">
                   <Music className="w-10 h-10 opacity-30 text-primary" />
-                  <p className="text-sm font-semibold text-foreground/80">Bulunamadı</p>
+                  <p className="text-sm font-semibold text-foreground/80">{t('dashboard.notFound')}</p>
                   <p className="text-xs max-w-md text-center px-4">
                     {purchases.length === 0 
-                      ? "Henüz hiç fan mesajı yok. Linkinizi paylaşarak ilk ses klonunun sipariş edilmesini bekleyebilirsiniz!" 
-                      : "Arama veya filtre kriterlerine uyan mesaj bulunamadı."}
+                      ? t('dashboard.emptyDesc') 
+                      : t('dashboard.noMatchDesc')}
                   </p>
                 </div>
               ) : (
@@ -465,9 +469,9 @@ function TabButton({
   )
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, lang: string): string {
   const d = new Date(iso)
-  return d.toLocaleString('tr-TR', {
+  return d.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -488,12 +492,12 @@ function statusIcon(status: string) {
   }
 }
 
-function statusLabel(status: string) {
+function statusLabel(status: string, t: any) {
   switch (status) {
-    case 'completed': return 'Başarılı'
-    case 'rejected': return 'Reddedildi'
-    case 'refunded': return 'İade Edildi'
-    default: return 'Bekliyor'
+    case 'completed': return t('messageCard.statusCompleted')
+    case 'rejected': return t('messageCard.statusRejected')
+    case 'refunded': return t('messageCard.statusRefunded')
+    default: return t('messageCard.statusPending')
   }
 }
 
@@ -557,6 +561,7 @@ function MessageCard({
   onPlay,
   onSeek,
 }: MessageCardProps) {
+  const { t, language } = useLanguage()
   const buyerTruncated = purchase.buyer_wallet.slice(0, 6) + '...' + purchase.buyer_wallet.slice(-6)
   const amountSol = (purchase.amount_lamports / 1e9).toFixed(3)
   
@@ -566,23 +571,23 @@ function MessageCard({
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
           <span className="text-xs font-mono text-muted-foreground tracking-tight select-all">
-            👤 {buyerTruncated}
+            {t('messageCard.buyer')} {buyerTruncated}
           </span>
           <span className="text-[10px] text-muted-foreground/60 flex items-center gap-1 mt-0.5">
             <Calendar className="w-3.5 h-3.5" />
-            {formatDate(purchase.created_at)}
+            {formatDate(purchase.created_at, language)}
           </span>
         </div>
         <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusClass(purchase.status)}`}>
           {statusIcon(purchase.status)}
-          <span>{statusLabel(purchase.status)}</span>
+          <span>{statusLabel(purchase.status, t)}</span>
         </div>
       </div>
 
       {/* Message content */}
       <div className="flex-1">
         <p className="italic font-serif text-sm text-foreground/90 pl-3 border-l-2 border-primary/30 py-1.5 bg-black/20 rounded-r-lg pr-3 leading-relaxed">
-          "{purchase.fan_text || 'İçerik belirtilmemiş.'}"
+          "{purchase.fan_text || (language === 'tr' ? 'Metin yok' : 'No text')}"
         </p>
       </div>
 
@@ -590,12 +595,12 @@ function MessageCard({
       <div className="border-t border-border/40 pt-3 flex flex-col space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground flex items-center gap-1">
-            Miktar: <strong className="text-foreground">{amountSol} SOL</strong>
+            {t('messageCard.amount')} <strong className="text-foreground">{amountSol} SOL</strong>
           </span>
           {purchase.play_count > 0 && (
             <span className="text-[10px] text-muted-foreground/80 flex items-center gap-1">
               <Volume2 className="w-3.5 h-3.5 text-primary" />
-              {purchase.play_count} kez dinlendi
+              {t('dashboard.timesPlayed', { count: purchase.play_count })}
             </span>
           )}
         </div>
@@ -635,19 +640,19 @@ function MessageCard({
           <div className="flex items-start gap-2 bg-rose-500/5 border border-rose-500/20 px-3 py-2 rounded-lg text-rose-300/90 text-xs">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
             <div className="flex-1">
-              <span className="font-semibold block text-rose-400">Moderasyon Engeli:</span>
-              <span className="italic">{purchase.rejection_reason || 'Güvenlik filtrelerine takıldı.'}</span>
+              <span className="font-semibold block text-rose-400">{t('messageCard.moderationBlocked')}</span>
+              <span className="italic">{purchase.rejection_reason || (language === 'tr' ? 'Güvenlik filtrelerine takıldı.' : 'Blocked by safety filters.')}</span>
             </div>
           </div>
         ) : purchase.status === 'pending' ? (
           <div className="flex items-center gap-2 bg-sky-500/5 border border-sky-500/10 px-3 py-2 rounded-lg text-sky-300 text-xs">
             <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin text-sky-400" />
-            <span>Ses kopyası oluşturuluyor. Lütfen bekleyin...</span>
+            <span>{t('messageCard.generatingVoiceDesc')}</span>
           </div>
         ) : purchase.status === 'refunded' ? (
           <div className="flex items-center gap-2 bg-amber-500/5 border border-amber-500/10 px-3 py-2 rounded-lg text-amber-300 text-xs">
             <HelpCircle className="w-4 h-4 shrink-0 text-amber-400" />
-            <span>İade edildi. İşlem iptal edilmiştir.</span>
+            <span>{t('messageCard.refundedDesc')}</span>
           </div>
         ) : null}
       </div>

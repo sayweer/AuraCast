@@ -1,10 +1,17 @@
 'use client';
 
 import { WalletButton } from '@/components/WalletButton'
+import { useLanguage } from '@/components/LanguageProvider'
+import LanguageToggle from '@/components/LanguageToggle'
 
 export default function Landing() {
+  const { t } = useLanguage()
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-8">
+      {/* Floating Language Toggle */}
+      <LanguageToggle className="absolute top-6 right-6" />
+
       {/* Center Content */}
       <div className="flex flex-col items-center justify-center gap-8 max-w-2xl">
         {/* Mic Emoji */}
@@ -16,7 +23,7 @@ export default function Landing() {
             AuraCast
           </h1>
           <p className="text-lg text-muted-foreground italic">
-            License your voice. Earn while you sleep.
+            {t('landing.slogan')}
           </p>
         </div>
 
@@ -27,7 +34,7 @@ export default function Landing() {
 
         {/* Bottom Text */}
         <div className="mt-8 text-center text-muted-foreground text-xs">
-          Join 2,400+ creators already licensing their voice
+          {t('landing.joinedCreators')}
         </div>
       </div>
     </div>

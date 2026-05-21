@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import { WalletProviderDynamic } from '@/components/WalletProviderDynamic'
+import { LanguageProvider } from '@/components/LanguageProvider'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -29,7 +30,9 @@ export default function RootLayout({
     <html lang="en" className={`dark ${geistSans.variable} ${geistMono.variable}`}>
       <body className="font-sans antialiased">
         <WalletProviderDynamic>
-          {children}
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
         </WalletProviderDynamic>
       </body>
     </html>

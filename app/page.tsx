@@ -8,9 +8,11 @@ import SettingsModal from '@/components/SettingsModal';
 import { useWallet } from '@solana/wallet-adapter-react'
 import bs58 from 'bs58'
 import { AUTH_MESSAGE } from '@/lib/auth'
+import { useLanguage } from '@/components/LanguageProvider'
 
 export default function App() {
   const { publicKey, disconnect, connected, signMessage } = useWallet()
+  const { t, language, setLanguage } = useLanguage()
   const walletAddress = publicKey?.toBase58() ?? ''
   const walletAddressStr = publicKey?.toBase58() ?? null
 
@@ -46,6 +48,11 @@ export default function App() {
   const [blockPolitical, setBlockPolitical] = useState(true)
   const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'tr'>('en')
   const [statsLoading, setStatsLoading] = useState(true)
+
+  // Sync selectedLanguage with general language
+  useEffect(() => {
+    setSelectedLanguage(language)
+  }, [language])
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -303,8 +310,8 @@ export default function App() {
   if (isCheckingDB) {
     return (
       <div className="app-container min-h-screen w-full bg-background text-foreground flex flex-col items-center justify-center gap-3">
-        <div className="text-lg font-semibold">🎙 Checking your voice profile...</div>
-        <div className="text-sm text-muted-foreground">Connecting to Solana...</div>
+        <div className="text-lg font-semibold">{t('dashboard.checkingProfile')}</div>
+        <div className="text-sm text-muted-foreground">{t('dashboard.connectingSolana')}</div>
       </div>
     )
   }

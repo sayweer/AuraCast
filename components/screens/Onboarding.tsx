@@ -1,9 +1,9 @@
-'use client';
-
 import { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Mic, ChevronRight, RotateCw } from 'lucide-react';
+import { useLanguage } from '@/components/LanguageProvider';
+import LanguageToggle from '@/components/LanguageToggle';
 
 interface OnboardingProps {
   step: 1 | 2;
@@ -85,6 +85,7 @@ export default function Onboarding({
   selectedLanguage,
   onSelectLanguage,
 }: OnboardingProps) {
+  const { t } = useLanguage()
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -362,9 +363,12 @@ export default function Onboarding({
       <div className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-primary">🎙 AuraCast</h1>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="w-3 h-3 rounded-full bg-accent"></div>
-            <span>{truncatedAddress}</span>
+          <div className="flex items-center gap-3">
+            <LanguageToggle />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="w-3 h-3 rounded-full bg-accent"></div>
+              <span>{truncatedAddress}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -379,7 +383,7 @@ export default function Onboarding({
           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step === 2 ? 'bg-primary text-primary-foreground' : 'bg-border text-muted-foreground'}`}>
             2
           </div>
-          <span className="text-sm text-muted-foreground ml-4">Step {step} of 2</span>
+          <span className="text-sm text-muted-foreground ml-4">{t('onboarding.stepLabel', { step })}</span>
         </div>
       </div>
 
@@ -388,20 +392,20 @@ export default function Onboarding({
         {step === 1 ? (
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Create Your Voice Identity</h2>
-              <p className="text-muted-foreground">Read the full script aloud — at least 90 seconds</p>
+              <h2 className="text-2xl font-bold">{t('onboarding.title')}</h2>
+              <p className="text-muted-foreground">{t('onboarding.subtitle')}</p>
             </div>
 
             {/* Info Box */}
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
               <p className="text-sm text-amber-100">
-                💡 Read the entire script for the best voice clone quality. Minimum 90 seconds required.
+                {t('onboarding.infoBox')}
               </p>
             </div>
 
             {/* Language Selector */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Select your language</label>
+              <label className="text-sm font-medium text-foreground">{t('onboarding.selectLanguage')}</label>
               <div className="flex gap-3">
                 <button
                   onClick={() => onSelectLanguage('en')}
@@ -428,7 +432,7 @@ export default function Onboarding({
 
             {/* Script Box */}
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground">Read this text aloud:</label>
+              <label className="text-sm text-muted-foreground">{t('onboarding.readAloud')}</label>
               <div className="bg-black/40 border border-border rounded-lg p-4 max-h-48 overflow-y-auto text-sm font-mono">
                 <textarea
                   readOnly
@@ -450,7 +454,7 @@ export default function Onboarding({
                 />
                 {!isRecording && (
                   <span className="absolute bottom-2 text-[10px] text-muted-foreground tracking-widest uppercase pointer-events-none">
-                    Visualizer Ready
+                    {t('onboarding.visualizerReady')}
                   </span>
                 )}
               </div>
@@ -479,14 +483,14 @@ export default function Onboarding({
               </button>
               <p className="text-sm text-muted-foreground">
                 {audioReady
-                  ? 'Recording Complete ✓'
+                  ? t('onboarding.recordingComplete')
                   : isRecording
-                  ? `${formatTime(recordingSeconds)} — Tap to stop`
-                  : 'Tap to Start Recording'}
+                  ? `${formatTime(recordingSeconds)} — ${t('onboarding.tapToStop')}`
+                  : t('onboarding.tapToStart')}
               </p>
               {isRecording && recordingSeconds < 90 && (
                 <p className="text-xs text-amber-400 text-center max-w-xs">
-                  For the best voice clone, try to record at least 90 seconds.
+                  {t('onboarding.cloneQualityWarn')}
                 </p>
               )}
               {micError && (
@@ -500,14 +504,14 @@ export default function Onboarding({
               disabled={!audioReady}
               className="w-full bg-primary text-primary-foreground hover:bg-secondary disabled:bg-primary/30 disabled:text-primary/50 disabled:cursor-not-allowed"
             >
-              Create My Voice Clone <ChevronRight className="w-4 h-4 ml-2" />
+              {t('onboarding.buttonCreateVoice')} <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           </Card>
         ) : (
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Set Your Voice Price</h2>
-              <p className="text-muted-foreground">How much SOL per 150 characters?</p>
+              <h2 className="text-2xl font-bold">{t('onboarding.priceTitle')}</h2>
+              <p className="text-muted-foreground">{t('onboarding.priceSubtitle')}</p>
             </div>
 
             {/* Price Options */}
@@ -523,7 +527,7 @@ export default function Onboarding({
                   }`}
                 >
                   <div className="font-semibold">{price}</div>
-                  <div className="text-xs text-muted-foreground mt-1">SOL / 150 chars</div>
+                  <div className="text-xs text-muted-foreground mt-1">{t('onboarding.charsPerUnit')}</div>
                   <div className="text-xs text-muted-foreground">${usdPrices[price]}</div>
                 </button>
               ))}
@@ -531,21 +535,21 @@ export default function Onboarding({
 
             {/* Info Row */}
             <div className="text-center text-sm text-muted-foreground">
-              📊 Most creators choose 0.03–0.05 SOL per 150 characters
+              {t('onboarding.mostCreators')}
             </div>
 
             {/* Earnings Preview */}
             <div className="bg-[#200010] border border-[#C41E3A]/40 rounded-lg p-4 space-y-2">
-              <p className="text-sm text-[#F5F0F1]">If a fan sends 300 characters (2 units):</p>
+              <p className="text-sm text-[#F5F0F1]">{t('onboarding.earningsPreview')}</p>
               <div className="space-y-1">
                 <p className="text-lg font-bold text-[#FF6B84]">
-                  Per request: {(selectedPrice * 2 * 0.9).toFixed(4)} SOL
+                  {t('onboarding.perRequest')} {(selectedPrice * 2 * 0.9).toFixed(4)} SOL
                 </p>
                 <p className="text-lg font-bold text-[#FF6B84]">
-                  Monthly (10 req/day): {(selectedPrice * 2 * 0.9 * 30 * 10).toFixed(2)} SOL
+                  {t('onboarding.monthlyEstimate')} {(selectedPrice * 2 * 0.9 * 30 * 10).toFixed(2)} SOL
                 </p>
               </div>
-              <p className="text-xs text-muted-foreground">(after 10% platform fee)</p>
+              <p className="text-xs text-muted-foreground">{t('onboarding.platformFeeNote')}</p>
             </div>
 
             {/* Action Buttons */}
@@ -555,7 +559,7 @@ export default function Onboarding({
                 variant="outline"
                 className="flex-1 border-border hover:bg-primary/10"
               >
-                ← Back
+                {t('onboarding.backButton')}
               </Button>
               <Button
                 onClick={onLaunch}
@@ -565,10 +569,10 @@ export default function Onboarding({
                 {isRegistering ? (
                   <>
                     <RotateCw className="w-4 h-4 mr-2 animate-spin" />
-                    Creating your voice clone...
+                    {t('onboarding.creatingVoice')}
                   </>
                 ) : (
-                  'Launch My Voice 🚀'
+                  t('onboarding.launchButton')
                 )}
               </Button>
             </div>

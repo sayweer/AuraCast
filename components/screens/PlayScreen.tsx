@@ -17,13 +17,16 @@ import {
   AlertCircle
 } from 'lucide-react';
 import type { Purchase } from '@/types';
+import { useLanguage } from '@/components/LanguageProvider';
+import LanguageToggle from '@/components/LanguageToggle';
 
 interface PlayScreenProps {
-  purchase: Purchase;
-  creatorName: string;
+  purchase: Purchase | null;
+  creatorName?: string;
 }
 
 export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
+  const { t, language } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -35,6 +38,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
 
   // Canvas waveform visualizer animation
   useEffect(() => {
+    if (!purchase) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -90,7 +94,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [isPlaying]);
+  }, [isPlaying, purchase]);
 
   // Clean up audio on unmount
   useEffect(() => {
@@ -100,6 +104,27 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
       }
     };
   }, []);
+
+  if (!purchase) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center bg-background text-foreground px-4 overflow-hidden">
+        {/* Background Neon Blobs */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[100px] pointer-events-none" />
+        
+        <LanguageToggle className="absolute top-6 right-6" />
+        <div className="text-center space-y-4 max-w-md relative z-10">
+          <h1 className="text-3xl font-extrabold text-rose-500">{t('play.clipNotFound')}</h1>
+          <p className="text-muted-foreground text-sm">
+            {t('play.clipNotFoundDesc')}
+          </p>
+          <Link href="/" className="inline-block bg-primary text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-secondary transition-colors">
+            {t('play.backToHome')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const handlePlayToggle = () => {
     if (!purchase.audio_url) return;
@@ -154,15 +179,19 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
 
   const statusLabel = (status: string) => {
     switch (status) {
-      case 'completed': return 'Başarılı';
-      case 'rejected': return 'Reddedildi (Marka Güvenliği)';
-      case 'refunded': return 'İade Edildi';
-      default: return 'Hazırlanıyor';
+      case 'completed': return t('play.statusSuccess');
+      case 'rejected': return t('play.statusRejectedWithSafety');
+      case 'refunded': return t('play.statusRefunded');
+      default: return t('play.statusPending');
     }
   };
 
+  const finalCreatorName = creatorName || t('play.creatorDefault');
+
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 py-16 overflow-hidden bg-background">
+      <LanguageToggle className="absolute top-6 right-6" />
+
       {/* Background Neon Blobs */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[100px] pointer-events-none" />
@@ -172,7 +201,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
         {/* Back Link */}
         <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
-          AuraCast Ana Sayfasına Dön
+          {t('play.backToHome')}
         </Link>
 
         {/* Main Card */}
@@ -181,9 +210,9 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
           {/* Header */}
           <div className="flex items-start justify-between border-b border-border/50 pb-4">
             <div className="space-y-1">
-              <h1 className="text-xl font-bold text-foreground">AuraCast Ses Klonu</h1>
+              <h1 className="text-xl font-bold text-foreground">{t('play.voiceClone')}</h1>
               <p className="text-xs text-muted-foreground">
-                Yaratıcı: <strong className="text-foreground">{creatorName}</strong>
+                {t('play.creator')} <strong className="text-foreground">{finalCreatorName}</strong>
               </p>
             </div>
             <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border flex items-center gap-1.5 ${
@@ -210,7 +239,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
 
           {/* Fan Text Message */}
           <div className="space-y-2">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Seslendirilen Metin:</span>
+            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{t('play.textSpoken')}</span>
             <p className="italic font-serif text-sm text-foreground/90 pl-3.5 border-l-2 border-primary/30 py-2 bg-black/25 rounded-r-lg leading-relaxed">
               "{purchase.fan_text}"
             </p>
@@ -248,14 +277,14 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
             <div className="flex items-start gap-2.5 p-3.5 bg-rose-500/5 border border-rose-500/20 rounded-lg text-rose-300/90 text-xs">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
               <div>
-                <span className="font-bold block text-rose-400 mb-0.5">Moderasyon Engeli:</span>
-                <span className="italic">{purchase.rejection_reason || 'Marka güvenliği filtrelerine takıldı.'}</span>
+                <span className="font-bold block text-rose-400 mb-0.5">{t('play.statusRejectedReason')}</span>
+                <span className="italic">{purchase.rejection_reason || t('play.statusRejectedDesc')}</span>
               </div>
             </div>
           ) : purchase.status === 'pending' ? (
             <div className="flex items-center gap-3 p-3.5 bg-sky-500/5 border border-sky-500/10 rounded-lg text-sky-300 text-xs">
               <Clock className="w-4 h-4 text-sky-400 animate-pulse shrink-0" />
-              <span>Yapay zeka ses kopyası şu an oluşturuluyor. Lütfen birkaç saniye bekleyip sayfayı yenileyin...</span>
+              <span>{t('play.statusPendingDesc')}</span>
             </div>
           ) : null}
 
@@ -263,9 +292,9 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
           <div className="flex justify-between text-[10px] text-muted-foreground border-t border-border/40 pt-4 px-1">
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
-              {new Date(purchase.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {new Date(purchase.created_at).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
             </span>
-            <span>Ödenen: <strong>{amountSol} SOL</strong></span>
+            <span>{t('play.paid')} <strong>{amountSol} SOL</strong></span>
           </div>
 
         </Card>
@@ -273,10 +302,10 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
         {/* CTA Card */}
         <Card className="bg-card/40 border border-border/60 p-5 text-center space-y-3.5">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Rent your own AI voice clone on AuraCast! Clone your voice in 5 minutes and start earning while you sleep.
+            {t('play.ctaDesc')}
           </p>
           <Link href="/" className="inline-block w-full bg-primary hover:bg-secondary text-primary-foreground text-xs font-semibold py-2.5 rounded-lg transition-colors">
-            Kendi Sesini Lisansla
+            {t('play.ctaButton')}
           </Link>
         </Card>
 

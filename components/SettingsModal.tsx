@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useLanguage } from '@/components/LanguageProvider';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -42,6 +43,7 @@ export default function SettingsModal({
   statsLoading,
   getSignature,
 }: SettingsModalProps) {
+  const { t } = useLanguage();
   const [newPrice, setNewPrice] = useState(selectedPrice);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -54,7 +56,7 @@ export default function SettingsModal({
 
   const handlePriceUpdate = async () => {
     if (newPrice < 0.01 || newPrice > 0.1) {
-      setPriceError('Price must be between 0.01 and 0.1 SOL');
+      setPriceError(t('settings.priceRangeError'));
       return;
     }
     setIsUpdating(true);
@@ -79,10 +81,10 @@ export default function SettingsModal({
         onPriceUpdateSuccess(Math.round(newPrice * 1_000_000_000));
         setTimeout(() => setPriceSuccess(false), 3000);
       } else {
-        setPriceError('Update failed. Try again.');
+        setPriceError(t('settings.updateFailed'));
       }
     } catch {
-      setPriceError('Network error. Try again.');
+      setPriceError(t('settings.networkError'));
     } finally {
       setIsUpdating(false);
     }
@@ -103,7 +105,7 @@ export default function SettingsModal({
         <Card className="bg-card border-border w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">⚙️ Settings</h2>
+            <h2 className="text-xl font-bold">{t('settings.title')}</h2>
             <button
               onClick={onClose}
               className="p-1 hover:bg-primary/10 rounded-lg transition-colors"
@@ -114,7 +116,7 @@ export default function SettingsModal({
 
           {/* Account Section */}
           <div className="space-y-3 pb-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Account</h3>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('settings.account')}</h3>
             <Button
               onClick={() => {
                 onDisconnect();
@@ -123,17 +125,17 @@ export default function SettingsModal({
               variant="outline"
               className="w-full border-destructive text-destructive hover:bg-destructive/10"
             >
-              🔴 Disconnect Wallet
+              {t('settings.disconnectWallet')}
             </Button>
           </div>
 
           {/* Voice Management Section */}
           <div className="space-y-3 pb-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Voice Management</h3>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('settings.voiceManagement')}</h3>
             {voiceId ? (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-green-950/30 border border-green-800/30 mb-3">
                 <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-sm text-green-400 font-medium">Voice clone active</span>
+                <span className="text-sm text-green-400 font-medium">{t('settings.voiceCloneActive')}</span>
                 <span className="text-xs text-muted-foreground ml-auto font-mono">
                   {voiceId.slice(0, 12)}...
                 </span>
@@ -141,7 +143,7 @@ export default function SettingsModal({
             ) : (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-red-950/30 border border-red-800/30 mb-3">
                 <div className="w-2 h-2 rounded-full bg-red-400" />
-                <span className="text-sm text-red-400 font-medium">No voice clone found</span>
+                <span className="text-sm text-red-400 font-medium">{t('settings.noVoiceClone')}</span>
               </div>
             )}
             <Button
@@ -149,11 +151,11 @@ export default function SettingsModal({
               variant="outline"
               className="w-full border-primary text-primary hover:bg-primary/10"
             >
-              🎙 Record New Voice Sample
+              {t('settings.recordNewSample')}
             </Button>
             <button
               onClick={async () => {
-                if (!confirm('Are you sure? This will permanently delete your voice clone.')) return
+                if (!confirm(t('settings.deleteConfirm'))) return
                 setIsDeleting(true)
                 await onDeleteVoice()
                 setIsDeleting(false)
@@ -161,18 +163,18 @@ export default function SettingsModal({
               disabled={isDeleting}
               className="w-full text-destructive text-sm font-medium hover:opacity-80 transition-opacity disabled:opacity-50"
             >
-              {isDeleting ? '⏳ Deleting...' : '🗑 Delete My Voice'}
+              {isDeleting ? t('settings.deleting') : t('settings.deleteVoice')}
             </button>
             <p className="text-xs text-muted-foreground">
-              This will permanently remove your voice clone
+              {t('settings.permanentRemoveWarn')}
             </p>
           </div>
 
           {/* Brand Safety Filters Section */}
           <div className="space-y-4 pb-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Brand Safety Filters</h3>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('settings.brandSafety')}</h3>
             <p className="text-sm text-muted-foreground">
-              Content your voice will refuse to generate:
+              {t('settings.brandSafetyDesc')}
             </p>
 
             {/* Toggle Rows */}
@@ -180,7 +182,7 @@ export default function SettingsModal({
               {/* Adult Content Toggle */}
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-3 text-sm cursor-pointer">
-                  <span>🔞 Block adult (18+) content</span>
+                  <span>{t('settings.blockAdult')}</span>
                 </label>
                 {statsLoading ? (
                   <div className="animate-pulse w-12 h-6 rounded-full bg-muted" />
@@ -203,7 +205,7 @@ export default function SettingsModal({
               {/* Profanity Toggle */}
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-3 text-sm cursor-pointer">
-                  <span>🤬 Block profanity & offensive language</span>
+                  <span>{t('settings.blockProfanity')}</span>
                 </label>
                 {statsLoading ? (
                   <div className="animate-pulse w-12 h-6 rounded-full bg-muted" />
@@ -226,7 +228,7 @@ export default function SettingsModal({
               {/* Political Content Toggle */}
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-3 text-sm cursor-pointer">
-                  <span>🏛 Block political content</span>
+                  <span>{t('settings.blockPolitical')}</span>
                 </label>
                 {statsLoading ? (
                   <div className="animate-pulse w-12 h-6 rounded-full bg-muted" />
@@ -250,8 +252,8 @@ export default function SettingsModal({
 
           {/* Pricing Section */}
           <div className="space-y-3 pb-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Pricing</h3>
-            <label className="text-sm text-muted-foreground">Price per 150 characters</label>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('settings.pricing')}</h3>
+            <label className="text-sm text-muted-foreground">{t('settings.pricePer150')}</label>
             <div className="flex gap-2 items-center">
               {statsLoading ? (
                 <div className="animate-pulse w-20 h-9 rounded-lg bg-muted" />
@@ -272,20 +274,20 @@ export default function SettingsModal({
                 disabled={isUpdating || statsLoading}
                 className="bg-primary hover:bg-secondary text-primary-foreground px-3 disabled:opacity-50"
               >
-                {isUpdating ? 'Updating...' : 'Update'}
+                {isUpdating ? t('settings.updating') : t('settings.update')}
               </Button>
             </div>
             {priceError && (
               <p className="text-xs text-red-400">{priceError}</p>
             )}
             {priceSuccess && (
-              <p className="text-xs text-green-400">✓ Price updated successfully!</p>
+              <p className="text-xs text-green-400">{t('settings.updateSuccess')}</p>
             )}
           </div>
 
           {/* Footer */}
           <div className="text-center text-xs text-muted-foreground pt-2">
-            AuraCast v1.0.0 — License your voice. Earn while you sleep.
+            {t('settings.versionText')}
           </div>
         </Card>
       </div>

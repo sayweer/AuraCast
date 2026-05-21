@@ -11,6 +11,8 @@ import {
   SystemProgram,
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
+import { useLanguage } from '@/components/LanguageProvider'
+import LanguageToggle from '@/components/LanguageToggle'
 
 interface Creator {
   wallet_address: string
@@ -23,6 +25,7 @@ export default function FanPage() {
   const params = useParams()
   const creatorWallet = params.creatorWallet as string
   const { publicKey, sendTransaction, connected } = useWallet()
+  const { t, language } = useLanguage()
 
   const [creator, setCreator] = useState<Creator | null>(null)
   const [loading, setLoading] = useState(true)
@@ -43,16 +46,16 @@ export default function FanPage() {
           const data = await res.json()
           setCreator(data)
         } else {
-          setError(res.status === 404 ? 'Creator not found' : 'Failed to load creator')
+          setError(res.status === 404 ? t('fan.creatorNotFound') : (language === 'tr' ? 'Yaratıcı yüklenemedi' : 'Failed to load creator'))
         }
       } catch {
-        setError('Network error — please try again')
+        setError(language === 'tr' ? 'Ağ hatası — lütfen tekrar deneyin' : 'Network error — please try again')
       } finally {
         setLoading(false)
       }
     }
     fetchCreator()
-  }, [creatorWallet])
+  }, [creatorWallet, t, language])
 
   // Fetch platform wallet on mount
   useEffect(() => {
@@ -81,7 +84,7 @@ export default function FanPage() {
   const handlePayAndGenerate = async () => {
     if (!publicKey || !creator || !message.trim()) return
     if (!platformWallet) {
-      setError('Platform configuration not loaded. Please refresh the page.')
+      setError(t('fan.configNotLoaded'))
       return
     }
     setIsPaying(true)
@@ -138,14 +141,14 @@ export default function FanPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error ?? 'Generation failed')
+        setError(data.error ?? (language === 'tr' ? 'Ses üretimi başarısız oldu' : 'Generation failed'))
         return
       }
 
       setAudioUrl(`data:audio/mpeg;base64,${data.audioBase64}`)
       setPurchaseId(typeof data.purchaseId === 'string' ? data.purchaseId : null)
     } catch (err: unknown) {
-      const errMessage = err instanceof Error ? err.message : 'Payment failed'
+      const errMessage = err instanceof Error ? err.message : (language === 'tr' ? 'Ödeme başarısız oldu' : 'Payment failed')
       setError(errMessage)
     } finally {
       setIsPaying(false)
@@ -164,7 +167,7 @@ export default function FanPage() {
       />
 
       {/* Header */}
-      <header className="relative z-10 flex items-center px-6 py-5 border-b border-border/40">
+      <header className="relative z-10 flex items-center justify-between px-6 py-5 border-b border-border/40">
         <a href="/" className="flex items-center gap-2 group">
           <span className="text-2xl">🎙</span>
           <span
@@ -178,6 +181,7 @@ export default function FanPage() {
             AuraCast
           </span>
         </a>
+        <LanguageToggle />
       </header>
 
       {/* Main content */}
@@ -190,7 +194,7 @@ export default function FanPage() {
               <div
                 className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin"
               />
-              <p className="text-muted-foreground text-sm">Loading creator...</p>
+              <p className="text-muted-foreground text-sm">{t('fan.loadingCreator')}</p>
             </div>
           )}
 
@@ -199,12 +203,12 @@ export default function FanPage() {
             <div className="flex flex-col items-center justify-center gap-4 py-24">
               <div className="text-5xl">🔍</div>
               <h2 className="text-xl font-semibold text-foreground">
-                {creator && !creator.is_active ? 'Creator unavailable' : 'Creator not found'}
+                {creator && !creator.is_active ? t('fan.creatorUnavailable') : t('fan.creatorNotFound')}
               </h2>
               <p className="text-muted-foreground text-sm text-center">
                 {creator && !creator.is_active
-                  ? <>This creator is currently not accepting messages.<br />Please check back later.</>
-                  : <>This creator hasn&apos;t registered on AuraCast yet,<br />or the wallet address is invalid.</>}
+                  ? t('fan.creatorUnavailableDesc')
+                  : t('fan.creatorNotFoundDesc')}
               </p>
             </div>
           )}
@@ -236,7 +240,7 @@ export default function FanPage() {
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
-                      Send a voice message to
+                      {t('fan.sendVoiceTo')}
                     </p>
                     <h1 className="text-2xl font-bold tracking-tight text-foreground">
                       {creator.creator_name ?? creatorWallet.slice(0, 8)}
@@ -256,7 +260,7 @@ export default function FanPage() {
                   <span
                     className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"
                   />
-                  Price: {pricePerUnit} SOL per 150 characters
+                  {t('fan.pricePer150Chars', { price: pricePerUnit })}
                 </div>
               </div>
 
@@ -271,9 +275,9 @@ export default function FanPage() {
                 >
                   <div className="text-4xl">👛</div>
                   <div className="flex flex-col gap-1">
-                    <p className="font-semibold text-foreground">Connect your wallet to send a message</p>
+                    <p className="font-semibold text-foreground">{t('fan.connectWalletPrompt')}</p>
                     <p className="text-xs text-muted-foreground">
-                      You&apos;ll pay in SOL and receive a personalised AI voice clip in return
+                      {t('fan.receiveAiVoiceClip')}
                     </p>
                   </div>
                   <WalletButton />
@@ -296,7 +300,7 @@ export default function FanPage() {
                       id="fan-message"
                       value={message}
                       onChange={(e) => setMessage(e.target.value.slice(0, 300))}
-                      placeholder="Type your message here..."
+                      placeholder={t('fan.typeMessagePlaceholder')}
                       rows={4}
                       className="w-full resize-none rounded-xl px-4 pt-4 pb-2 text-sm text-foreground placeholder:text-muted-foreground bg-transparent outline-none focus:outline-none"
                     />
@@ -321,8 +325,8 @@ export default function FanPage() {
                     <div className="flex items-center gap-2 text-sm">
                       <span className="text-muted-foreground">
                         {charUnits > 0
-                          ? `${charUnits} unit${charUnits !== 1 ? 's' : ''} × ${pricePerUnit} SOL`
-                          : `Price: ${pricePerUnit} SOL / 150 chars`}
+                          ? t('fan.priceUnitLabel', { units: charUnits, plural: charUnits !== 1 ? 's' : '', price: pricePerUnit })
+                          : t('fan.priceLabel', { price: pricePerUnit })}
                       </span>
                     </div>
                     <div
@@ -352,11 +356,11 @@ export default function FanPage() {
                     {isPaying ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                        Processing payment...
+                        {t('fan.processingPayment')}
                       </>
                     ) : (
                       <>
-                        Pay {totalSol} SOL &amp; Generate Voice 🎙
+                        {t('fan.payAndGenerate', { price: totalSol })}
                       </>
                     )}
                   </button>
@@ -379,7 +383,7 @@ export default function FanPage() {
                   {/* Transaction confirmation */}
                   {txSignature && !audioUrl && isPaying && (
                     <p className="text-xs text-muted-foreground text-center">
-                      ✅ Transaction confirmed — generating your voice message…
+                      {t('fan.txConfirmed')}
                     </p>
                   )}
 
@@ -396,7 +400,7 @@ export default function FanPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-xl">🎉</span>
                         <p className="font-semibold text-foreground text-sm">
-                          Your voice message is ready!
+                          {t('fan.voiceReady')}
                         </p>
                       </div>
                       <audio
@@ -425,7 +429,7 @@ export default function FanPage() {
                           color: '#F26A82',
                         }}
                       >
-                        ⬇ Download Audio
+                        {t('fan.downloadAudio')}
                       </a>
                     </div>
                   )}
@@ -440,7 +444,7 @@ export default function FanPage() {
       {/* Footer */}
       <footer className="relative z-10 py-6 text-center">
         <p className="text-xs text-muted-foreground">
-          🛡 Protected by Claude AI brand safety
+          {t('fan.protectedSafety')}
         </p>
       </footer>
     </div>
