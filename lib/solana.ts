@@ -9,7 +9,8 @@ const connection = new Connection(
 export async function verifyTransaction(
   txSignature: string,
   expectedRecipient: string,
-  expectedTotalLamports: number
+  expectedTotalLamports: number,
+  expectedBuyer: string
 ): Promise<boolean> {
   // Read platform wallet from env — required for fee verification
   const platformWallet = process.env.PLATFORM_WALLET
@@ -77,6 +78,19 @@ export async function verifyTransaction(
 
   const platformDiff = postBalances[platformIndex] - preBalances[platformIndex]
   if (platformDiff < platformFee - 1) throw new TransactionVerificationError(txSignature)
+
+  // Verify the buyer is the actual payer of this transaction.
+  // Prevents an attacker from replaying someone else's past on-chain TX
+  // with a forged buyerWallet in the request body. The buyer's balance
+  // must have decreased by at least the full amount transferred (the TX
+  // fee may also be deducted, so buyerDiff is typically slightly more negative).
+  const buyerIndex = findAccountIndex(expectedBuyer)
+  if (buyerIndex === -1) throw new TransactionVerificationError(txSignature)
+
+  const buyerDiff = postBalances[buyerIndex] - preBalances[buyerIndex]
+  if (buyerDiff > -(expectedTotalLamports - 1)) {
+    throw new TransactionVerificationError(txSignature)
+  }
 
   return true
 }

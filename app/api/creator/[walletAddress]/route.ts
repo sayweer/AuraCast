@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCreatorByWallet } from '@/lib/supabase'
 import { getErrorResponse } from '@/lib/errors'
 import { isValidWalletAddress } from '@/lib/validation'
+import { verifyWalletAuth } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -56,9 +57,14 @@ export async function GET(
       return jsonNoStore(publicInfo, 200)
     }
 
-    // Full response for creator dashboard
-    // TODO: Add wallet signature verification to protect this path.
-    // Currently any caller can fetch the full creator record.
+    // Full response for creator dashboard — requires wallet signature
+    const signature = req.headers.get('x-wallet-signature')
+    const nonce = req.headers.get('x-wallet-nonce')
+    const authorized = await verifyWalletAuth(walletAddress, signature, nonce)
+    if (!authorized) {
+      return jsonNoStore({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, 401)
+    }
+
     return jsonNoStore(creator, 200)
   } catch (error) {
     const { error: message, code, statusCode } = getErrorResponse(error)

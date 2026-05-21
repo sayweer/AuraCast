@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCreatorAnalytics } from '@/lib/supabase'
-import { verifyWalletSignature, AUTH_MESSAGE } from '@/lib/auth'
+import { verifyWalletAuth } from '@/lib/auth'
 import { isValidWalletAddress, getClientIp } from '@/lib/validation'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { getErrorResponse } from '@/lib/errors'
@@ -35,17 +35,12 @@ export async function GET(
   }
 
   const signature = req.headers.get('x-wallet-signature')
-  if (!signature) {
+  const nonce = req.headers.get('x-wallet-nonce')
+  const authorized = await verifyWalletAuth(walletAddress, signature, nonce)
+  if (!authorized) {
     return NextResponse.json(
-      { success: false, error: 'Missing signature' },
+      { success: false, error: 'Unauthorized' },
       { status: 401 }
-    )
-  }
-
-  if (!verifyWalletSignature(walletAddress, AUTH_MESSAGE, signature)) {
-    return NextResponse.json(
-      { success: false, error: 'Invalid signature' },
-      { status: 403 }
     )
   }
 

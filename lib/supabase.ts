@@ -99,6 +99,10 @@ export async function savePurchase(data: {
   amountLamports: number
   platformFeeLamports: number
 }): Promise<Purchase> {
+  // Insert; if the tx_signature already exists (unique constraint, Postgres 23505),
+  // fetch and return the existing row instead. This makes the operation idempotent
+  // and prevents the TOCTOU race where two concurrent requests both pass the
+  // `getPurchaseByTxSignature → null` check and try to insert.
   const { data: row, error } = await supabase
     .from('purchases')
     .insert({
@@ -113,7 +117,14 @@ export async function savePurchase(data: {
     .select()
     .single()
 
-  if (error) dbError(`DB error: ${error.message}`)
+  if (error) {
+    // Postgres unique_violation
+    if (error.code === '23505') {
+      const existing = await getPurchaseByTxSignature(data.txSignature)
+      if (existing) return existing
+    }
+    dbError(`DB error: ${error.message}`)
+  }
 
   return row as Purchase
 }

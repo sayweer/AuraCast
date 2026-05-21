@@ -7,7 +7,6 @@ import Dashboard from '@/components/screens/Dashboard';
 import SettingsModal from '@/components/SettingsModal';
 import { useWallet } from '@solana/wallet-adapter-react'
 import bs58 from 'bs58'
-import { AUTH_MESSAGE } from '@/lib/auth'
 import { useLanguage } from '@/components/LanguageProvider'
 
 export default function App() {
@@ -16,13 +15,28 @@ export default function App() {
   const walletAddress = publicKey?.toBase58() ?? ''
   const walletAddressStr = publicKey?.toBase58() ?? null
 
-  /** Sign AUTH_MESSAGE with Phantom and return base58-encoded signature */
-  const getSignature = useCallback(async (): Promise<string> => {
+  /**
+   * Request a fresh nonce from the server, sign it with Phantom, and return
+   * the base58-encoded signature plus the nonce. The caller must send both in
+   * the `x-wallet-signature` and `x-wallet-nonce` request headers.
+   * Nonces are single-use and expire after 5 minutes (replay-resistant).
+   */
+  const getSignature = useCallback(async (): Promise<{ signature: string; nonce: string }> => {
     if (!signMessage) throw new Error('Wallet does not support message signing')
-    const message = new TextEncoder().encode(AUTH_MESSAGE)
-    const signature = await signMessage(message)
-    return bs58.encode(signature)
-  }, [signMessage])
+    if (!walletAddressStr) throw new Error('No wallet connected')
+
+    const nonceRes = await fetch('/api/auth/nonce', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ walletAddress: walletAddressStr }),
+    })
+    if (!nonceRes.ok) throw new Error('Failed to obtain auth nonce')
+    const { nonce, message } = (await nonceRes.json()) as { nonce: string; message: string }
+
+    const messageBytes = new TextEncoder().encode(message)
+    const signatureBytes = await signMessage(messageBytes)
+    return { signature: bs58.encode(signatureBytes), nonce }
+  }, [signMessage, walletAddressStr])
 
   const [appState, setAppState] = useState<'landing' | 'onboarding' | 'dashboard'>('landing');
   const [onboardingStep, setOnboardingStep] = useState<1 | 2>(1);
@@ -200,11 +214,15 @@ export default function App() {
     }
 
     try {
-      const sig = await getSignature()
+      const { signature, nonce } = await getSignature()
       const res = await fetch('/api/creator/update-filters', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress, signature: sig, ...newFilters }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-signature': signature,
+          'x-wallet-nonce': nonce,
+        },
+        body: JSON.stringify({ walletAddress, ...newFilters }),
       })
       if (!res.ok) {
         rollback()
@@ -220,11 +238,15 @@ export default function App() {
   const handleDeleteVoice = async () => {
     if (!walletAddress) return
     try {
-      const sig = await getSignature()
+      const { signature, nonce } = await getSignature()
       const res = await fetch('/api/creator/delete-voice', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress, signature: sig }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-signature': signature,
+          'x-wallet-nonce': nonce,
+        },
+        body: JSON.stringify({ walletAddress }),
       })
       if (!res.ok) {
         alert('Failed to delete voice. Please try again.')

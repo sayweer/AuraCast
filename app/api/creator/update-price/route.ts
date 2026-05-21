@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCreatorByWallet, updateCreatorPrice } from '@/lib/supabase'
 import { getErrorResponse } from '@/lib/errors'
 import { safeParseJson, isValidWalletAddress, isValidPrice } from '@/lib/validation'
-import { verifyWalletSignature, AUTH_MESSAGE } from '@/lib/auth'
+import { verifyWalletAuth } from '@/lib/auth'
 
 interface UpdatePriceBody {
   walletAddress?: string
-  signature?: string
   priceInLamports?: number
 }
 
@@ -17,7 +16,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { walletAddress, signature, priceInLamports } = body
+  const { walletAddress, priceInLamports } = body
 
   if (!walletAddress || priceInLamports === undefined) {
     return NextResponse.json(
@@ -37,13 +36,12 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  // Wallet signature verification
-  if (!signature) {
-    return NextResponse.json({ error: 'Signature required' }, { status: 401 })
-  }
-
-  if (!verifyWalletSignature(walletAddress, AUTH_MESSAGE, signature)) {
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 403 })
+  // Wallet signature verification (single-use nonce)
+  const signature = req.headers.get('x-wallet-signature')
+  const nonce = req.headers.get('x-wallet-nonce')
+  const authorized = await verifyWalletAuth(walletAddress, signature, nonce)
+  if (!authorized) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {

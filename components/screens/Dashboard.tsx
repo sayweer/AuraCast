@@ -50,7 +50,7 @@ interface DashboardProps {
   copiedLink: boolean;
   onOpenSettings: () => void;
   onCopyLink: () => void;
-  getSignature: () => Promise<string>;
+  getSignature: () => Promise<{ signature: string; nonce: string }>;
 }
 
 export default function Dashboard({
@@ -67,7 +67,6 @@ export default function Dashboard({
   const [purchases, setPurchases] = useState<RecentPurchaseRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sig, setSig] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'rejected'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -77,25 +76,39 @@ export default function Dashboard({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Track listeners attached to the current audio element so we can detach them
+  // before swapping in a new one — otherwise each replayed message leaks 3
+  // listener references + the underlying Audio object.
+  const audioListenersRef = useRef<{
+    loadedmetadata: () => void
+    timeupdate: () => void
+    ended: () => void
+  } | null>(null);
 
-  const fetchPurchases = useCallback(async (forceSignature = false) => {
+  const detachAudioListeners = () => {
+    const audio = audioRef.current;
+    const listeners = audioListenersRef.current;
+    if (!audio || !listeners) return;
+    audio.removeEventListener('loadedmetadata', listeners.loadedmetadata);
+    audio.removeEventListener('timeupdate', listeners.timeupdate);
+    audio.removeEventListener('ended', listeners.ended);
+    audioListenersRef.current = null;
+  };
+
+  const fetchPurchases = useCallback(async () => {
     if (!walletAddress) return;
     setLoading(true);
     setError(null);
     try {
-      let activeSig = sig;
-      if (!activeSig || forceSignature) {
-        activeSig = await getSignature();
-        setSig(activeSig);
-      }
+      const { signature, nonce } = await getSignature();
       const res = await fetch(`/api/creator/analytics/${walletAddress}?days=30`, {
-        headers: { 'x-wallet-signature': activeSig },
+        headers: {
+          'x-wallet-signature': signature,
+          'x-wallet-nonce': nonce,
+        },
         cache: 'no-store'
       });
       if (!res.ok) {
-        if (res.status === 403) {
-          setSig(null); // Clear invalid cached signature
-        }
         const body = await res.json().catch(() => null);
         throw new Error(body?.error ?? (language === 'tr' ? `Mesajlar yüklenemedi (HTTP ${res.status})` : `Failed to load messages (HTTP ${res.status})`));
       }
@@ -107,7 +120,7 @@ export default function Dashboard({
     } finally {
       setLoading(false);
     }
-  }, [walletAddress, sig, getSignature]);
+  }, [walletAddress, getSignature, language, t]);
 
   useEffect(() => {
     if (tab === 'messages' && walletAddress) {
@@ -117,8 +130,10 @@ export default function Dashboard({
 
   useEffect(() => {
     return () => {
+      detachAudioListeners();
       if (audioRef.current) {
         audioRef.current.pause();
+        audioRef.current = null;
       }
     };
   }, []);
@@ -135,6 +150,8 @@ export default function Dashboard({
       return;
     }
 
+    // Tear down previous audio + its listeners before creating a new one
+    detachAudioListeners();
     if (audioRef.current) {
       audioRef.current.pause();
     }
@@ -147,19 +164,26 @@ export default function Dashboard({
     setCurrentTime(0);
     setDuration(0);
 
-    newAudio.addEventListener('loadedmetadata', () => {
+    const onLoadedMetadata = () => {
       setDuration(newAudio.duration || 0);
-    });
-
-    newAudio.addEventListener('timeupdate', () => {
+    };
+    const onTimeUpdate = () => {
       setCurrentTime(newAudio.currentTime || 0);
-    });
-
-    newAudio.addEventListener('ended', () => {
+    };
+    const onEnded = () => {
       setIsPlaying(false);
       setCurrentTime(0);
       setPlayingId(null);
-    });
+    };
+
+    newAudio.addEventListener('loadedmetadata', onLoadedMetadata);
+    newAudio.addEventListener('timeupdate', onTimeUpdate);
+    newAudio.addEventListener('ended', onEnded);
+    audioListenersRef.current = {
+      loadedmetadata: onLoadedMetadata,
+      timeupdate: onTimeUpdate,
+      ended: onEnded,
+    };
 
     newAudio.play().catch((e) => {
       console.error('Playback failed', e);
@@ -354,7 +378,7 @@ export default function Dashboard({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => fetchPurchases(true)}
+                onClick={() => fetchPurchases()}
                 disabled={loading}
                 className="flex items-center gap-2 border-border bg-card/40 text-foreground hover:bg-white/10 transition-all"
               >
@@ -408,7 +432,7 @@ export default function Dashboard({
                   size="sm"
                   variant="outline"
                   className="border-rose-500/30 hover:bg-rose-500/10 text-rose-300"
-                  onClick={() => fetchPurchases(true)}
+                  onClick={() => fetchPurchases()}
                 >
                   {t('dashboard.retry')}
                 </Button>

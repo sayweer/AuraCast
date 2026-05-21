@@ -81,7 +81,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ success: false, error: 'Creator is not active' }, { status: 403 })
     }
 
-    await verifyTransaction(txSignature, creatorWallet, creator.price_lamports)
+    await verifyTransaction(txSignature, creatorWallet, creator.price_lamports, buyerWallet)
 
     const platformFeeLamports = Math.floor(creator.price_lamports * 0.1)
 
@@ -94,48 +94,66 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       platformFeeLamports,
     })
 
+    // From this point on, the purchase row exists in 'pending' state.
+    // If anything below throws, the outer catch marks it 'rejected' so it
+    // never stays stuck and the dashboard / refund logic can act on it.
     try {
-      await isSafeToGenerate(fanText, {
-        blockAdult: creator.block_adult,
-        blockProfanity: creator.block_profanity,
-        blockPolitical: creator.block_political,
+      try {
+        await isSafeToGenerate(fanText, {
+          blockAdult: creator.block_adult,
+          blockProfanity: creator.block_profanity,
+          blockPolitical: creator.block_political,
+        })
+      } catch (moderationError) {
+        if (moderationError instanceof UnsafeContentError) {
+          await updatePurchaseStatus(
+            txSignature,
+            'rejected',
+            undefined,
+            `${moderationError.category}: ${moderationError.reason}`
+          )
+          return NextResponse.json(
+            { success: false, error: 'Content violates creator brand safety policy', refundNeeded: true },
+            { status: 422 }
+          )
+        }
+        throw moderationError
+      }
+
+      const optimizedText = await optimizeTextForVoice(fanText, mood, creator.language)
+
+      const result = await generateSpeech({
+        voiceId: creator.voice_id,
+        text: optimizedText,
+        language: creator.language,
+        voiceSettings: MOOD_VOICE_PRESETS[mood],
       })
-    } catch (moderationError) {
-      if (moderationError instanceof UnsafeContentError) {
+
+      await updatePurchaseStatus(txSignature, 'completed', result.audioBase64)
+
+      return NextResponse.json(
+        {
+          success: true,
+          audioBase64: result.audioBase64,
+          durationMs: result.durationMs,
+          purchaseId: purchase.id,
+        },
+        { status: 200 }
+      )
+    } catch (postSaveError) {
+      // Reconcile stuck 'pending' state — voice generation failed mid-flight
+      try {
         await updatePurchaseStatus(
           txSignature,
           'rejected',
           undefined,
-          `${moderationError.category}: ${moderationError.reason}`
+          'voice_generation_failed'
         )
-        return NextResponse.json(
-          { success: false, error: 'Content violates creator brand safety policy', refundNeeded: true },
-          { status: 422 }
-        )
+      } catch (reconcileErr) {
+        console.error('[VoiceGenerate] Failed to reconcile pending purchase:', reconcileErr)
       }
-      throw moderationError
+      throw postSaveError
     }
-
-    const optimizedText = await optimizeTextForVoice(fanText, mood, creator.language)
-
-    const result = await generateSpeech({
-      voiceId: creator.voice_id,
-      text: optimizedText,
-      language: creator.language,
-      voiceSettings: MOOD_VOICE_PRESETS[mood],
-    })
-
-    await updatePurchaseStatus(txSignature, 'completed', result.audioBase64)
-
-    return NextResponse.json(
-      {
-        success: true,
-        audioBase64: result.audioBase64,
-        durationMs: result.durationMs,
-        purchaseId: purchase.id,
-      },
-      { status: 200 }
-    )
   } catch (error) {
     const { error: message, code, statusCode, refundNeeded } = getErrorResponse(error)
     return NextResponse.json({ success: false, error: message, code, refundNeeded }, { status: statusCode })

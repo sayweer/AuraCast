@@ -22,7 +22,7 @@ interface SettingsModalProps {
   voiceId: string | null;
   onDeleteVoice: () => Promise<void>;
   statsLoading: boolean;
-  getSignature: () => Promise<string>;
+  getSignature: () => Promise<{ signature: string; nonce: string }>;
 }
 
 export default function SettingsModal({
@@ -64,13 +64,16 @@ export default function SettingsModal({
     setPriceSuccess(false);
 
     try {
-      const sig = await getSignature();
+      const { signature, nonce } = await getSignature();
       const res = await fetch('/api/creator/update-price', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-signature': signature,
+          'x-wallet-nonce': nonce,
+        },
         body: JSON.stringify({
           walletAddress,
-          signature: sig,
           priceInLamports: Math.round(newPrice * 1_000_000_000),
         }),
       });

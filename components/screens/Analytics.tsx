@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   CartesianGrid,
   Legend,
@@ -23,7 +23,7 @@ import { useLanguage } from '@/components/LanguageProvider'
 
 interface AnalyticsProps {
   walletAddress: string
-  getSignature: () => Promise<string>
+  getSignature: () => Promise<{ signature: string; nonce: string }>
 }
 
 const RANGES: AnalyticsRangeDays[] = [7, 30, 90]
@@ -76,14 +76,6 @@ export default function Analytics({ walletAddress, getSignature }: AnalyticsProp
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
-  const [cachedSig, setCachedSig] = useState<string | null>(null)
-
-  const obtainSignature = useCallback(async (): Promise<string> => {
-    if (cachedSig) return cachedSig
-    const sig = await getSignature()
-    setCachedSig(sig)
-    return sig
-  }, [cachedSig, getSignature])
 
   useEffect(() => {
     let ignore = false
@@ -92,14 +84,19 @@ export default function Analytics({ walletAddress, getSignature }: AnalyticsProp
       setLoading(true)
       setError(null)
       try {
-        const sig = await obtainSignature()
+        const { signature, nonce } = await getSignature()
         const res = await fetch(
           `/api/creator/analytics/${walletAddress}?days=${days}`,
-          { headers: { 'x-wallet-signature': sig }, cache: 'no-store' }
+          {
+            headers: {
+              'x-wallet-signature': signature,
+              'x-wallet-nonce': nonce,
+            },
+            cache: 'no-store',
+          }
         )
         if (ignore) return
         if (!res.ok) {
-          if (res.status === 403) setCachedSig(null)
           const body = (await res.json().catch(() => null)) as { error?: string } | null
           setError(body?.error ?? t('dashboard.errorLoading'))
           setData(null)
@@ -122,18 +119,22 @@ export default function Analytics({ walletAddress, getSignature }: AnalyticsProp
     return () => {
       ignore = true
     }
-  }, [walletAddress, days, obtainSignature, t])
+  }, [walletAddress, days, getSignature, t])
 
   const handleExport = async () => {
     setExporting(true)
     try {
-      const sig = await obtainSignature()
+      const { signature, nonce } = await getSignature()
       const res = await fetch(
         `/api/creator/analytics/${walletAddress}/export?days=${days}`,
-        { headers: { 'x-wallet-signature': sig } }
+        {
+          headers: {
+            'x-wallet-signature': signature,
+            'x-wallet-nonce': nonce,
+          },
+        }
       )
       if (!res.ok) {
-        if (res.status === 403) setCachedSig(null)
         throw new Error(`Export failed (HTTP ${res.status})`)
       }
       const blob = await res.blob()
