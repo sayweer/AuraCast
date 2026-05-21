@@ -10,12 +10,12 @@ if (!process.env.GROQ_API_KEY) {
 }
 
 export const MOOD_VOICE_PRESETS: Record<Mood, Required<VoiceSettings>> = {
-  happy:    { stability: 0.40, similarity_boost: 0.85, style: 0.50 },
-  excited:  { stability: 0.30, similarity_boost: 0.85, style: 0.70 },
-  calm:     { stability: 0.85, similarity_boost: 0.85, style: 0.15 },
-  sad:      { stability: 0.70, similarity_boost: 0.85, style: 0.30 },
-  angry:    { stability: 0.35, similarity_boost: 0.85, style: 0.60 },
-  romantic: { stability: 0.65, similarity_boost: 0.90, style: 0.40 },
+  happy:    { stability: 0.35, similarity_boost: 0.75, style: 0.55 },
+  excited:  { stability: 0.25, similarity_boost: 0.70, style: 0.75 },
+  calm:     { stability: 0.75, similarity_boost: 0.80, style: 0.20 },
+  sad:      { stability: 0.60, similarity_boost: 0.78, style: 0.40 },
+  angry:    { stability: 0.30, similarity_boost: 0.72, style: 0.70 },
+  romantic: { stability: 0.55, similarity_boost: 0.82, style: 0.50 },
 }
 
 const MOOD_STYLE_HINTS: Record<Mood, string> = {
@@ -27,20 +27,35 @@ const MOOD_STYLE_HINTS: Record<Mood, string> = {
   romantic: 'warm and tender — add soft commas, gentle pauses, and natural breathing rhythm',
 }
 
+const MOOD_AUDIO_TAGS: Record<Mood, string> = {
+  happy:    '[cheerful]',
+  excited:  '[excited]',
+  calm:     '[calm]',
+  sad:      '[sad]',
+  angry:    '[firm]',
+  romantic: '[warm]',
+}
+
 function buildSystemPrompt(mood: Mood, language: string): string {
   const hint = MOOD_STYLE_HINTS[mood]
-  return `You are a text-to-speech (TTS) text optimizer. The user will send you raw text. Your job: rewrite the SAME text in the SAME language (${language || 'auto-detect'}) with better punctuation, pauses, and emphasis so a TTS engine reads it with a "${mood}" mood — ${hint}.
+  const tag = MOOD_AUDIO_TAGS[mood]
+  return `You are a text-to-speech (TTS) text optimizer for the ElevenLabs eleven_v3 model. The user will send you raw text. Your job: rewrite the SAME text in the SAME language (${language || 'auto-detect'}) with better punctuation, pauses, and a leading audio tag so the TTS engine reads it with a "${mood}" mood — ${hint}.
+
+ELEVEN_V3 AUDIO TAGS:
+The eleven_v3 model interprets bracketed tags like ${tag}, [pause], [short pause], [sigh], [laughs softly] as performance instructions — they are NOT spoken aloud, they shape the delivery.
 
 STRICT RULES:
-- Do NOT change words, meaning, or language.
+- Start the output with this exact audio tag followed by a single space: ${tag}
+- You MAY add [pause] or [short pause] tags between sentences for natural pacing (do not overuse — max one per 1-2 sentences).
+- Do NOT change words, meaning, or language of the user's text.
 - Do NOT add new content, opinions, names, or facts.
 - Do NOT translate.
 - Do NOT add markdown, quotes, or explanations.
-- ONLY adjust punctuation (commas, periods, exclamation marks, question marks, ellipses "...").
+- ONLY adjust punctuation (commas, periods, exclamation marks, question marks, ellipses "...") and add the allowed audio tags.
 - You may split run-on sentences into shorter ones for better pacing.
 - Keep the text length within 1.5× of the original.
 
-Respond with ONLY the optimized text. Nothing else.`
+Respond with ONLY the optimized text starting with ${tag}. Nothing else.`
 }
 
 export async function optimizeTextForVoice(
@@ -57,7 +72,7 @@ export async function optimizeTextForVoice(
 
   try {
     const response = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
+      model: 'openai/gpt-oss-120b',
       max_tokens: 400,
       temperature: 0.3,
       messages: [

@@ -70,7 +70,7 @@ export async function moderateText(
 
   try {
     const response = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
+      model: 'openai/gpt-oss-20b',
       max_tokens: 150,
       temperature: 0,
       messages: [

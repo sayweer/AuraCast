@@ -277,92 +277,95 @@ export default function FanPage() {
                 </div>
               </div>
 
-              {/* Wallet prompt */}
-              {!connected && (
+              {/* Message form — textarea + mood always visible (composing does not require wallet) */}
+              <div className="flex flex-col gap-4">
+
+                {/* Textarea */}
                 <div
-                  className="rounded-2xl border border-border/60 p-8 flex flex-col items-center gap-5 text-center"
+                  className="rounded-2xl border border-border/60 p-1 flex flex-col gap-0"
                   style={{
                     background: 'rgba(139,26,47,0.07)',
                     backdropFilter: 'blur(8px)',
                   }}
                 >
-                  <div className="text-4xl">👛</div>
-                  <div className="flex flex-col gap-1">
-                    <p className="font-semibold text-foreground">{t('fan.connectWalletPrompt')}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t('fan.receiveAiVoiceClip')}
-                    </p>
+                  <textarea
+                    id="fan-message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value.slice(0, 300))}
+                    placeholder={t('fan.typeMessagePlaceholder')}
+                    rows={4}
+                    className="w-full resize-none rounded-xl px-4 pt-4 pb-2 text-sm text-foreground placeholder:text-muted-foreground bg-transparent outline-none focus:outline-none"
+                  />
+                  <div className="flex justify-end px-4 pb-3">
+                    <span
+                      className="text-xs"
+                      style={{ color: message.length >= 270 ? '#ef4444' : 'var(--muted-foreground)' }}
+                    >
+                      {message.length}/300
+                    </span>
                   </div>
-                  <WalletButton />
                 </div>
-              )}
 
-              {/* Message form */}
-              {connected && (
-                <div className="flex flex-col gap-4">
+                {/* Mood selector */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+                    {t('fan.moodLabel')}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {MOOD_OPTIONS.map((m) => {
+                      const active = selectedMood === m.id
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setSelectedMood(m.id)}
+                          className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
+                          style={
+                            active
+                              ? {
+                                  background: 'linear-gradient(135deg, #8B1A2F 0%, #B91C3C 100%)',
+                                  borderColor: 'rgba(185,28,60,0.6)',
+                                  color: '#ffffff',
+                                  boxShadow: '0 0 12px rgba(185,28,60,0.35)',
+                                }
+                              : {
+                                  background: 'rgba(0,0,0,0.25)',
+                                  borderColor: 'rgba(255,255,255,0.08)',
+                                  color: 'var(--muted-foreground)',
+                                }
+                          }
+                        >
+                          <span className="mr-1">{m.emoji}</span>
+                          {t(`fan.mood.${m.id}`)}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
 
-                  {/* Textarea */}
+                {/* Wallet prompt — shown when not connected */}
+                {!connected && (
                   <div
-                    className="rounded-2xl border border-border/60 p-1 flex flex-col gap-0"
+                    className="rounded-2xl border border-border/60 p-8 flex flex-col items-center gap-5 text-center"
                     style={{
                       background: 'rgba(139,26,47,0.07)',
                       backdropFilter: 'blur(8px)',
                     }}
                   >
-                    <textarea
-                      id="fan-message"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value.slice(0, 300))}
-                      placeholder={t('fan.typeMessagePlaceholder')}
-                      rows={4}
-                      className="w-full resize-none rounded-xl px-4 pt-4 pb-2 text-sm text-foreground placeholder:text-muted-foreground bg-transparent outline-none focus:outline-none"
-                    />
-                    <div className="flex justify-end px-4 pb-3">
-                      <span
-                        className="text-xs"
-                        style={{ color: message.length >= 270 ? '#ef4444' : 'var(--muted-foreground)' }}
-                      >
-                        {message.length}/300
-                      </span>
+                    <div className="text-4xl">👛</div>
+                    <div className="flex flex-col gap-1">
+                      <p className="font-semibold text-foreground">{t('fan.connectWalletPrompt')}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t('fan.receiveAiVoiceClip')}
+                      </p>
                     </div>
+                    <WalletButton />
                   </div>
+                )}
 
-                  {/* Mood selector */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-                      {t('fan.moodLabel')}
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {MOOD_OPTIONS.map((m) => {
-                        const active = selectedMood === m.id
-                        return (
-                          <button
-                            key={m.id}
-                            type="button"
-                            onClick={() => setSelectedMood(m.id)}
-                            className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
-                            style={
-                              active
-                                ? {
-                                    background: 'linear-gradient(135deg, #8B1A2F 0%, #B91C3C 100%)',
-                                    borderColor: 'rgba(185,28,60,0.6)',
-                                    color: '#ffffff',
-                                    boxShadow: '0 0 12px rgba(185,28,60,0.35)',
-                                  }
-                                : {
-                                    background: 'rgba(0,0,0,0.25)',
-                                    borderColor: 'rgba(255,255,255,0.08)',
-                                    color: 'var(--muted-foreground)',
-                                  }
-                            }
-                          >
-                            <span className="mr-1">{m.emoji}</span>
-                            {t(`fan.mood.${m.id}`)}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
+                {/* Pay flow — only when wallet connected */}
+                {connected && (
+                  <>
 
                   {/* Price preview */}
                   <div
@@ -484,8 +487,9 @@ export default function FanPage() {
                       </a>
                     </div>
                   )}
-                </div>
-              )}
+                  </>
+                )}
+              </div>
 
             </div>
           )}
