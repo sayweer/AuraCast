@@ -273,7 +273,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
         {/* CTA Card */}
         <Card className="bg-card/40 border border-border/60 p-5 text-center space-y-3.5">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Siz de kendi sesinizi Solana Blinks ile kiralamak ister misiniz? 5 dakikada sesinizi klonlayın ve uyurken kazanmaya başlayın.
+            Rent your own AI voice clone on AuraCast! Clone your voice in 5 minutes and start earning while you sleep.
           </p>
           <Link href="/" className="inline-block w-full bg-primary hover:bg-secondary text-primary-foreground text-xs font-semibold py-2.5 rounded-lg transition-colors">
             Kendi Sesini Lisansla

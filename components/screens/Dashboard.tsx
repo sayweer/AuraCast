@@ -45,9 +45,9 @@ interface DashboardProps {
     voiceId: string
   } | null;
   priceInSol: string;
-  copiedBlink: boolean;
+  copiedLink: boolean;
   onOpenSettings: () => void;
-  onCopyBlink: () => void;
+  onCopyLink: () => void;
   getSignature: () => Promise<string>;
 }
 
@@ -55,9 +55,9 @@ export default function Dashboard({
   walletAddress,
   creatorStats,
   priceInSol,
-  copiedBlink,
+  copiedLink,
   onOpenSettings,
-  onCopyBlink,
+  onCopyLink,
   getSignature,
 }: DashboardProps) {
   const [tab, setTab] = useState<DashboardTab>('overview');
@@ -189,19 +189,11 @@ export default function Dashboard({
     ? `https://auracast-murex.vercel.app/fan/${walletAddress}`
     : ''
   const shareText = encodeURIComponent(
-    `🎙 Send me a personalized voice message on AuraCast!\n\n` +
-    `${fanPageUrl}\n\n#AuraCast #Solana #AI`
+    `🎙 Send me a personalized AI voice message on AuraCast! Type your text, pay with SOL, and hear it instantly in my voice 🔥\n\n` +
+    `${fanPageUrl}\n\n#AuraCast #AI`
   )
   const xShareUrl = fanPageUrl
     ? `https://x.com/intent/post?text=${shareText}`
-    : '#'
-
-  const shareBlinkText = encodeURIComponent(
-    `🎙 Send me a voice message directly inside X using Solana Blinks! Type your text, approve with Phantom, and hear it instantly! ⚡️👇\n\n` +
-    `${fanPageUrl}\n\n#AuraCast #SolanaBlinks #AI`
-  )
-  const xShareBlinkUrl = fanPageUrl
-    ? `https://x.com/intent/post?text=${shareBlinkText}`
     : '#'
 
   return (
@@ -303,12 +295,12 @@ export default function Dashboard({
                     onClick={() => {
                       if (!fanPageUrl) return
                       navigator.clipboard.writeText(fanPageUrl)
-                      onCopyBlink()
+                      onCopyLink()
                     }}
                     size="sm"
                     className="bg-primary hover:bg-secondary text-primary-foreground font-semibold flex items-center gap-1.5"
                   >
-                    {copiedBlink ? (
+                    {copiedLink ? (
                       <>
                         <Check className="w-4 h-4" /> Copied!
                       </>
@@ -323,18 +315,12 @@ export default function Dashboard({
                     href={xShareUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#1d9bf0] text-white rounded-lg text-xs font-semibold hover:bg-[#1a8cd8] transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg text-xs font-semibold hover:bg-neutral-800 transition-colors border border-white/10"
                   >
-                    🐦 Share on X
-                  </a>
-
-                  <a
-                    href={xShareBlinkUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-xs font-semibold hover:from-purple-500 hover:to-pink-500 transition-colors shadow-md shadow-purple-900/10"
-                  >
-                    ⚡ Share as Blink on X
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                    Share
                   </a>
                 </div>
               </div>

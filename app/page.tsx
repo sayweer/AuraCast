@@ -29,7 +29,7 @@ export default function App() {
   const [audioReady, setAudioReady] = useState(false);
   const [selectedPrice, setSelectedPrice] = useState(0.05);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [copiedBlink, setCopiedBlink] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [isCheckingDB, setIsCheckingDB] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
   const [registerError, setRegisterError] = useState<string | null>(null)
@@ -295,9 +295,9 @@ export default function App() {
     }
   }
 
-  const handleCopyBlink = () => {
-    setCopiedBlink(true);
-    setTimeout(() => setCopiedBlink(false), 2000);
+  const handleCopyLink = () => {
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   if (isCheckingDB) {
@@ -343,9 +343,9 @@ export default function App() {
           priceInSol={creatorStats?.priceInLamports
             ? (creatorStats.priceInLamports / 1_000_000_000).toFixed(4)
             : selectedPrice.toFixed(4)}
-          copiedBlink={copiedBlink}
+          copiedLink={copiedLink}
           onOpenSettings={() => setSettingsOpen(true)}
-          onCopyBlink={handleCopyBlink}
+          onCopyLink={handleCopyLink}
           getSignature={getSignature}
         />
       )}

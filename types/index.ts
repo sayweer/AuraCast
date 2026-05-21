@@ -152,37 +152,4 @@ export interface GenerateVoiceResponse {
   purchaseId?: string
 }
 
-// ─── Solana Blink (Actions Spec) ───────────────────────
 
-export interface ActionParameter {
-  name: string
-  label: string
-  required: boolean
-}
-
-export interface ActionLink {
-  label: string
-  href: string
-  parameters?: ActionParameter[]
-}
-
-export interface ActionGetResponse {
-  icon: string
-  title: string
-  description: string
-  label: string
-  links: {
-    actions: ActionLink[]
-  }
-}
-
-export interface ActionPostResponse {
-  transaction: string
-  message: string
-  links?: {
-    next: {
-      type: 'post' | 'inline'
-      href: string
-    }
-  }
-}
