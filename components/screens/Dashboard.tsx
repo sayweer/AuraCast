@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { 
-  Copy, 
-  Check, 
-  Settings, 
+import {
+  Copy,
+  Check,
+  Settings,
   TrendingUp,
   Play,
   Pause,
@@ -343,7 +343,7 @@ export default function Dashboard({
                       </>
                     )}
                   </Button>
-                  
+
                   <a
                     href={xShareUrl}
                     target="_blank"
@@ -594,7 +594,7 @@ function MessageCard({
   const { t, language } = useLanguage()
   const buyerTruncated = purchase.buyer_wallet.slice(0, 6) + '...' + purchase.buyer_wallet.slice(-6)
   const amountSol = (purchase.amount_lamports / 1e9).toFixed(3)
-  
+
   return (
     <Card className="bg-gradient-to-br from-card/90 to-card/50 backdrop-blur-md border-border/80 hover:border-primary/30 transition-all duration-300 shadow-md p-5 flex flex-col justify-between space-y-4">
       {/* Top Header Row */}
