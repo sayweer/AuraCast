@@ -1,7 +1,7 @@
 import { Redis } from '@upstash/redis'
 
-const redisUrl = process.env.UPSTASH_REDIS_REST_URL
-const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
 
 let client: Redis | null = null
 
@@ -12,7 +12,7 @@ if (redisUrl && redisToken) {
     console.error('[Redis] Failed to initialize Upstash client:', e)
   }
 } else {
-  console.warn('[Redis] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN missing — auth nonce will fail-secure')
+  console.warn('[Redis] Redis environment variables missing — auth nonce will fail-secure')
 }
 
 export const redis = client
