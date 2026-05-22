@@ -31,6 +31,22 @@ const MOOD_OPTIONS: Array<{ id: Mood; emoji: string }> = [
   { id: 'romantic', emoji: '💝' },
 ]
 
+const base64ToBlobUrl = (base64: string, contentType = 'audio/mpeg') => {
+  try {
+    const byteCharacters = atob(base64)
+    const byteNumbers = new Array(byteCharacters.length)
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i)
+    }
+    const byteArray = new Uint8Array(byteNumbers)
+    const blob = new Blob([byteArray], { type: contentType })
+    return URL.createObjectURL(blob)
+  } catch (e) {
+    console.error('Failed to convert base64 to blob url', e)
+    return `data:${contentType};base64,${base64}`
+  }
+}
+
 export default function FanPage() {
   const params = useParams()
   const creatorWallet = params.creatorWallet as string
@@ -47,6 +63,15 @@ export default function FanPage() {
   const [txSignature, setTxSignature] = useState<string | null>(null)
   const [purchaseId, setPurchaseId] = useState<string | null>(null)
   const [platformWallet, setPlatformWallet] = useState<string | null>(null)
+
+  // Cleanup object URL to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (audioUrl && audioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(audioUrl)
+      }
+    }
+  }, [audioUrl])
 
   // Fetch creator on mount
   useEffect(() => {
@@ -157,7 +182,8 @@ export default function FanPage() {
         return
       }
 
-      setAudioUrl(`data:audio/mpeg;base64,${data.audioBase64}`)
+      const blobUrl = base64ToBlobUrl(data.audioBase64)
+      setAudioUrl(blobUrl)
       setPurchaseId(typeof data.purchaseId === 'string' ? data.purchaseId : null)
       setTxSignature(null)
     } catch (err: unknown) {

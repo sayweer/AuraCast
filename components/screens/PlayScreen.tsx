@@ -31,8 +31,33 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
   const audioInstance = useRef<HTMLAudioElement | null>(null);
+
+  // Convert base64 audio to Blob URL for mobile download compatibility
+  useEffect(() => {
+    if (purchase && purchase.audio_url) {
+      try {
+        const byteCharacters = atob(purchase.audio_url);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'audio/mpeg' });
+        const url = URL.createObjectURL(blob);
+        setDownloadUrl(url);
+
+        return () => {
+          URL.revokeObjectURL(url);
+        };
+      } catch (e) {
+        console.error('Failed to convert base64 to blob url', e);
+        setDownloadUrl(`data:audio/mpeg;base64,${purchase.audio_url}`);
+      }
+    }
+  }, [purchase]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameId = useRef<number | null>(null);
 
@@ -130,9 +155,8 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
     if (!purchase.audio_url) return;
 
     if (!audioInstance.current) {
-      // Audio url is base64 block
-      const audioUrl = `data:audio/mpeg;base64,${purchase.audio_url}`;
-      const newAudio = new Audio(audioUrl);
+      const audioSrc = downloadUrl || `data:audio/mpeg;base64,${purchase.audio_url}`;
+      const newAudio = new Audio(audioSrc);
       audioInstance.current = newAudio;
 
       newAudio.addEventListener('loadedmetadata', () => {
@@ -247,31 +271,48 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
 
           {/* Audio Player Controls */}
           {purchase.status === 'completed' && purchase.audio_url ? (
-            <div className="flex items-center gap-4 bg-black/40 px-4 py-3 rounded-lg border border-border/60">
-              <button
-                onClick={handlePlayToggle}
-                className="w-10 h-10 flex items-center justify-center bg-primary hover:bg-secondary text-primary-foreground rounded-full transition-all shrink-0 active:scale-95 shadow-md shadow-primary/20"
-              >
-                {isPlaying ? (
-                  <Pause className="w-5 h-5 fill-current" />
-                ) : (
-                  <Play className="w-5 h-5 fill-current ml-0.5" />
-                )}
-              </button>
-              <div className="flex-1 flex flex-col space-y-1">
-                <input
-                  type="range"
-                  min={0}
-                  max={duration || 100}
-                  value={currentTime}
-                  onChange={handleSeek}
-                  className="w-full accent-primary h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] text-muted-foreground/80 font-mono">
-                  <span>{formatPlayerTime(currentTime)}</span>
-                  <span>{formatPlayerTime(duration)}</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-4 bg-black/40 px-4 py-3 rounded-lg border border-border/60">
+                <button
+                  onClick={handlePlayToggle}
+                  className="w-10 h-10 flex items-center justify-center bg-primary hover:bg-secondary text-primary-foreground rounded-full transition-all shrink-0 active:scale-95 shadow-md shadow-primary/20"
+                >
+                  {isPlaying ? (
+                    <Pause className="w-5 h-5 fill-current" />
+                  ) : (
+                    <Play className="w-5 h-5 fill-current ml-0.5" />
+                  )}
+                </button>
+                <div className="flex-1 flex flex-col space-y-1">
+                  <input
+                    type="range"
+                    min={0}
+                    max={duration || 100}
+                    value={currentTime}
+                    onChange={handleSeek}
+                    className="w-full accent-primary h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground/80 font-mono">
+                    <span>{formatPlayerTime(currentTime)}</span>
+                    <span>{formatPlayerTime(duration)}</span>
+                  </div>
                 </div>
               </div>
+
+              {downloadUrl && (
+                <a
+                  href={downloadUrl}
+                  download={`voice-message-${purchase.id.slice(0, 8)}.mp3`}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-150 border"
+                  style={{
+                    background: 'rgba(185,28,60,0.15)',
+                    borderColor: 'rgba(185,28,60,0.35)',
+                    color: '#F26A82',
+                  }}
+                >
+                  {t('fan.downloadAudio')}
+                </a>
+              )}
             </div>
           ) : purchase.status === 'rejected' ? (
             <div className="flex items-start gap-2.5 p-3.5 bg-rose-500/5 border border-rose-500/20 rounded-lg text-rose-300/90 text-xs">
