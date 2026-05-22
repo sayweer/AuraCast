@@ -39,10 +39,10 @@ const MOOD_AUDIO_TAGS: Record<Mood, string> = {
 function buildSystemPrompt(mood: Mood, language: string): string {
   const hint = MOOD_STYLE_HINTS[mood]
   const tag = MOOD_AUDIO_TAGS[mood]
-  return `You are a text-to-speech (TTS) text optimizer for the ElevenLabs eleven_v3 model. The user will send you raw text. Your job: rewrite the SAME text in the SAME language (${language || 'auto-detect'}) with better punctuation, pauses, and a leading audio tag so the TTS engine reads it with a "${mood}" mood — ${hint}.
+  return `You are a text-to-speech (TTS) text optimizer for the ElevenLabs eleven_multilingual_v2 model. The user will send you raw text. Your job: rewrite the SAME text in the SAME language (${language || 'auto-detect'}) with better punctuation, pauses, and a leading audio tag so the TTS engine reads it with a "${mood}" mood — ${hint}.
 
-ELEVEN_V3 AUDIO TAGS:
-The eleven_v3 model interprets bracketed tags like ${tag}, [pause], [short pause], [sigh], [laughs softly] as performance instructions — they are NOT spoken aloud, they shape the delivery.
+ELEVEN_MULTILINGUAL_V2 AUDIO TAGS:
+The eleven_multilingual_v2 model interprets bracketed tags like ${tag}, [pause], [short pause], [sigh], [laughs softly] as performance instructions — they are NOT spoken aloud, they shape the delivery.
 
 STRICT RULES:
 - Start the output with this exact audio tag followed by a single space: ${tag}
@@ -72,7 +72,7 @@ export async function optimizeTextForVoice(
 
   try {
     const response = await groq.chat.completions.create({
-      model: 'openai/gpt-oss-120b',
+      model: 'llama-3.1-8b-instant',
       max_tokens: 400,
       temperature: 0.3,
       messages: [

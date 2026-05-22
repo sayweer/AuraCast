@@ -22,7 +22,7 @@ interface SettingsModalProps {
   voiceId: string | null;
   onDeleteVoice: () => Promise<void>;
   statsLoading: boolean;
-  getSignature: () => Promise<{ signature: string; nonce: string }>;
+  getAuthHeaders: (walletAddr: string, forceRefresh?: boolean) => Promise<Record<string, string>>;
 }
 
 export default function SettingsModal({
@@ -41,7 +41,7 @@ export default function SettingsModal({
   voiceId,
   onDeleteVoice,
   statsLoading,
-  getSignature,
+  getAuthHeaders,
 }: SettingsModalProps) {
   const { t } = useLanguage();
   const [newPrice, setNewPrice] = useState(selectedPrice);
@@ -63,34 +63,42 @@ export default function SettingsModal({
     setPriceError(null);
     setPriceSuccess(false);
 
-    try {
-      const { signature, nonce } = await getSignature();
-      const res = await fetch('/api/creator/update-price', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-signature': signature,
-          'x-wallet-nonce': nonce,
-        },
-        body: JSON.stringify({
-          walletAddress,
-          priceInLamports: Math.round(newPrice * 1_000_000_000),
-        }),
-      });
+    const performUpdate = async (retry = true) => {
+      try {
+        const headers = await getAuthHeaders(walletAddress);
+        const res = await fetch('/api/creator/update-price', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...headers,
+          },
+          body: JSON.stringify({
+            walletAddress,
+            priceInLamports: Math.round(newPrice * 1_000_000_000),
+          }),
+        });
 
-      if (res.ok) {
-        setPriceSuccess(true);
-        onPriceUpdate(newPrice);
-        onPriceUpdateSuccess(Math.round(newPrice * 1_000_000_000));
-        setTimeout(() => setPriceSuccess(false), 3000);
-      } else {
-        setPriceError(t('settings.updateFailed'));
+        if (res.status === 401 && retry) {
+          sessionStorage.removeItem(`auracast_session_${walletAddress}`);
+          await performUpdate(false);
+          return;
+        }
+
+        if (res.ok) {
+          setPriceSuccess(true);
+          onPriceUpdate(newPrice);
+          onPriceUpdateSuccess(Math.round(newPrice * 1_000_000_000));
+          setTimeout(() => setPriceSuccess(false), 3000);
+        } else {
+          setPriceError(t('settings.updateFailed'));
+        }
+      } catch {
+        setPriceError(t('settings.networkError'));
+      } finally {
+        setIsUpdating(false);
       }
-    } catch {
-      setPriceError(t('settings.networkError'));
-    } finally {
-      setIsUpdating(false);
-    }
+    };
+    performUpdate();
   };
 
   if (!isOpen) return null;

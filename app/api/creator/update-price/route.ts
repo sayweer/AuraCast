@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCreatorByWallet, updateCreatorPrice } from '@/lib/supabase'
 import { getErrorResponse } from '@/lib/errors'
 import { safeParseJson, isValidWalletAddress, isValidPrice } from '@/lib/validation'
-import { verifyWalletAuth } from '@/lib/auth'
+import { verifyWalletAuthOrSession } from '@/lib/auth'
 
 interface UpdatePriceBody {
   walletAddress?: string
@@ -36,10 +36,8 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  // Wallet signature verification (single-use nonce)
-  const signature = req.headers.get('x-wallet-signature')
-  const nonce = req.headers.get('x-wallet-nonce')
-  const authorized = await verifyWalletAuth(walletAddress, signature, nonce)
+  // Wallet signature verification (single-use nonce/session token)
+  const authorized = await verifyWalletAuthOrSession(walletAddress, req.headers)
   if (!authorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

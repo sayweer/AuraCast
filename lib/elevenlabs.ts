@@ -65,7 +65,7 @@ export async function generateSpeech(
 
     const body = JSON.stringify({
         text: options.text,
-        model_id: 'eleven_v3',
+        model_id: 'eleven_multilingual_v2',
         language_code: options.language ?? 'en',
         voice_settings: {
             stability: options.voiceSettings?.stability ?? 0.7,

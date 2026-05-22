@@ -50,7 +50,7 @@ interface DashboardProps {
   copiedLink: boolean;
   onOpenSettings: () => void;
   onCopyLink: () => void;
-  getSignature: () => Promise<{ signature: string; nonce: string }>;
+  getAuthHeaders: (walletAddr: string, forceRefresh?: boolean) => Promise<Record<string, string>>;
 }
 
 export default function Dashboard({
@@ -60,7 +60,7 @@ export default function Dashboard({
   copiedLink,
   onOpenSettings,
   onCopyLink,
-  getSignature,
+  getAuthHeaders,
 }: DashboardProps) {
   const { t, language } = useLanguage();
   const [tab, setTab] = useState<DashboardTab>('overview');
@@ -95,19 +95,21 @@ export default function Dashboard({
     audioListenersRef.current = null;
   };
 
-  const fetchPurchases = useCallback(async () => {
+  const fetchPurchases = useCallback(async (retry = true) => {
     if (!walletAddress) return;
     setLoading(true);
     setError(null);
     try {
-      const { signature, nonce } = await getSignature();
+      const headers = await getAuthHeaders(walletAddress);
       const res = await fetch(`/api/creator/analytics/${walletAddress}?days=30`, {
-        headers: {
-          'x-wallet-signature': signature,
-          'x-wallet-nonce': nonce,
-        },
+        headers,
         cache: 'no-store'
       });
+      if (res.status === 401 && retry) {
+        sessionStorage.removeItem(`auracast_session_${walletAddress}`);
+        await fetchPurchases(false);
+        return;
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(body?.error ?? (language === 'tr' ? `Mesajlar yüklenemedi (HTTP ${res.status})` : `Failed to load messages (HTTP ${res.status})`));
@@ -120,7 +122,7 @@ export default function Dashboard({
     } finally {
       setLoading(false);
     }
-  }, [walletAddress, getSignature, language, t]);
+  }, [walletAddress, getAuthHeaders, language, t]);
 
   useEffect(() => {
     if (tab === 'messages' && walletAddress) {
@@ -263,7 +265,7 @@ export default function Dashboard({
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {tab === 'analytics' && (
-          <Analytics walletAddress={walletAddress} getSignature={getSignature} />
+          <Analytics walletAddress={walletAddress} getAuthHeaders={getAuthHeaders} />
         )}
 
         {tab === 'overview' && (

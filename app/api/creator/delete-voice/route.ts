@@ -3,7 +3,7 @@ import { getCreatorByWallet, deleteCreatorVoice } from '@/lib/supabase'
 import { deleteVoice } from '@/lib/elevenlabs'
 import { getErrorResponse } from '@/lib/errors'
 import { safeParseJson, isValidWalletAddress } from '@/lib/validation'
-import { verifyWalletAuth } from '@/lib/auth'
+import { verifyWalletAuthOrSession } from '@/lib/auth'
 
 interface DeleteVoiceBody {
   walletAddress?: string
@@ -26,10 +26,8 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
   }
 
-  // Wallet signature verification (single-use nonce)
-  const signature = req.headers.get('x-wallet-signature')
-  const nonce = req.headers.get('x-wallet-nonce')
-  const authorized = await verifyWalletAuth(walletAddress, signature, nonce)
+  // Wallet signature verification (single-use nonce/session token)
+  const authorized = await verifyWalletAuthOrSession(walletAddress, req.headers)
   if (!authorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

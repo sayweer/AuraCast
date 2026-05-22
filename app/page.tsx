@@ -15,12 +15,6 @@ export default function App() {
   const walletAddress = publicKey?.toBase58() ?? ''
   const walletAddressStr = publicKey?.toBase58() ?? null
 
-  /**
-   * Request a fresh nonce from the server, sign it with Phantom, and return
-   * the base58-encoded signature plus the nonce. The caller must send both in
-   * the `x-wallet-signature` and `x-wallet-nonce` request headers.
-   * Nonces are single-use and expire after 5 minutes (replay-resistant).
-   */
   const getSignature = useCallback(async (): Promise<{ signature: string; nonce: string }> => {
     if (!signMessage) throw new Error('Wallet does not support message signing')
     if (!walletAddressStr) throw new Error('No wallet connected')
@@ -37,6 +31,36 @@ export default function App() {
     const signatureBytes = await signMessage(messageBytes)
     return { signature: bs58.encode(signatureBytes), nonce }
   }, [signMessage, walletAddressStr])
+
+  const getAuthHeaders = useCallback(async (walletAddr: string, forceRefresh = false): Promise<Record<string, string>> => {
+    if (!walletAddr) throw new Error('No wallet address provided')
+    const tokenKey = `auracast_session_${walletAddr}`
+    let token = forceRefresh ? null : sessionStorage.getItem(tokenKey)
+
+    if (!token) {
+      const { signature, nonce } = await getSignature()
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress: walletAddr, signature, nonce }),
+      })
+      if (!loginRes.ok) {
+        const body = await loginRes.json().catch(() => null)
+        throw new Error(body?.error ?? 'Failed to log in via signature')
+      }
+      const data = await loginRes.json()
+      token = data.token
+      if (token) {
+        sessionStorage.setItem(tokenKey, token)
+      } else {
+        throw new Error('No token returned from login')
+      }
+    }
+
+    return {
+      'Authorization': `Bearer ${token}`
+    }
+  }, [getSignature])
 
   const [appState, setAppState] = useState<'landing' | 'onboarding' | 'dashboard'>('landing');
   const [onboardingStep, setOnboardingStep] = useState<1 | 2>(1);
@@ -121,18 +145,20 @@ export default function App() {
 
     let ignore = false
 
-    const fetchStats = async () => {
+    const fetchStats = async (retry = true) => {
       setStatsLoading(true)
       try {
-        const { signature, nonce } = await getSignature()
+        const headers = await getAuthHeaders(walletAddressStr)
         const res = await fetch(`/api/creator/${walletAddressStr}`, {
           cache: 'no-store',
-          headers: {
-            'x-wallet-signature': signature,
-            'x-wallet-nonce': nonce,
-          },
+          headers,
         })
         if (ignore) return
+        if (res.status === 401 && retry) {
+          sessionStorage.removeItem(`auracast_session_${walletAddressStr}`)
+          await fetchStats(false)
+          return
+        }
         if (res.ok) {
           const creator = await res.json()
           if (ignore) return
@@ -171,7 +197,7 @@ export default function App() {
 
     fetchStats()
     return () => { ignore = true }
-  }, [appState, walletAddressStr, getSignature])
+  }, [appState, walletAddressStr, getAuthHeaders])
 
   const handleDisconnectWallet = async () => {
     await disconnect()
@@ -218,51 +244,65 @@ export default function App() {
       if (key === 'blockPolitical') setBlockPolitical(previousValue)
     }
 
-    try {
-      const { signature, nonce } = await getSignature()
-      const res = await fetch('/api/creator/update-filters', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-signature': signature,
-          'x-wallet-nonce': nonce,
-        },
-        body: JSON.stringify({ walletAddress, ...newFilters }),
-      })
-      if (!res.ok) {
+    const performUpdate = async (retry = true) => {
+      try {
+        const headers = await getAuthHeaders(walletAddress)
+        const res = await fetch('/api/creator/update-filters', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...headers,
+          },
+          body: JSON.stringify({ walletAddress, ...newFilters }),
+        })
+        if (res.status === 401 && retry) {
+          sessionStorage.removeItem(`auracast_session_${walletAddress}`)
+          await performUpdate(false)
+          return
+        }
+        if (!res.ok) {
+          rollback()
+          const errBody = (await res.json().catch(() => null)) as { error?: string } | null
+          alert(errBody?.error ?? `Failed to update filter (HTTP ${res.status}).`)
+        }
+      } catch {
         rollback()
-        const errBody = (await res.json().catch(() => null)) as { error?: string } | null
-        alert(errBody?.error ?? `Failed to update filter (HTTP ${res.status}).`)
+        alert('Network error while updating filter. Please try again.')
       }
-    } catch {
-      rollback()
-      alert('Network error while updating filter. Please try again.')
     }
+    performUpdate()
   }
 
   const handleDeleteVoice = async () => {
     if (!walletAddress) return
-    try {
-      const { signature, nonce } = await getSignature()
-      const res = await fetch('/api/creator/delete-voice', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-signature': signature,
-          'x-wallet-nonce': nonce,
-        },
-        body: JSON.stringify({ walletAddress }),
-      })
-      if (!res.ok) {
-        alert('Failed to delete voice. Please try again.')
-        return
+    const performDelete = async (retry = true) => {
+      try {
+        const headers = await getAuthHeaders(walletAddress)
+        const res = await fetch('/api/creator/delete-voice', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            ...headers,
+          },
+          body: JSON.stringify({ walletAddress }),
+        })
+        if (res.status === 401 && retry) {
+          sessionStorage.removeItem(`auracast_session_${walletAddress}`)
+          await performDelete(false)
+          return
+        }
+        if (!res.ok) {
+          alert('Failed to delete voice. Please try again.')
+          return
+        }
+        setCreatorStats(null)
+        setAppState('onboarding')
+        setOnboardingStep(1)
+      } catch {
+        alert('Network error. Please try again.')
       }
-      setCreatorStats(null)
-      setAppState('onboarding')
-      setOnboardingStep(1)
-    } catch {
-      alert('Network error. Please try again.')
     }
+    performDelete()
   }
 
   const handleStartRecording = () => {
@@ -380,7 +420,7 @@ export default function App() {
           copiedLink={copiedLink}
           onOpenSettings={() => setSettingsOpen(true)}
           onCopyLink={handleCopyLink}
-          getSignature={getSignature}
+          getAuthHeaders={getAuthHeaders}
         />
       )}
 
@@ -415,7 +455,7 @@ export default function App() {
         voiceId={creatorStats?.voiceId ?? null}
         onDeleteVoice={handleDeleteVoice}
         statsLoading={statsLoading}
-        getSignature={getSignature}
+        getAuthHeaders={getAuthHeaders}
       />
     </div>
   );

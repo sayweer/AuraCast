@@ -114,3 +114,60 @@ export async function verifyWalletAuth(
   const message = buildAuthMessage(walletAddress, nonce)
   return verifyWalletSignature(walletAddress, message, signature)
 }
+
+const SESSION_TTL_SECONDS = 24 * 60 * 60 // 1 day session duration
+
+export function generateSessionToken(walletAddress: string): string {
+  const expiresAt = Date.now() + SESSION_TTL_SECONDS * 1000
+  const payloadObj = { walletAddress, expiresAt }
+  const payloadBase64 = Buffer.from(JSON.stringify(payloadObj)).toString('base64')
+  const payloadBase64Url = payloadBase64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  const signature = generateHmac(payloadBase64Url)
+  return `${payloadBase64Url}.${signature}`
+}
+
+export function verifySessionToken(token: string, expectedWallet: string): boolean {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 2) return false
+    const [payloadBase64Url, signature] = parts
+    const expectedSig = generateHmac(payloadBase64Url)
+    if (signature !== expectedSig) return false
+
+    let base64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/')
+    while (base64.length % 4) {
+      base64 += '='
+    }
+
+    const payloadJson = Buffer.from(base64, 'base64').toString('utf8')
+    const payload = JSON.parse(payloadJson) as { walletAddress: string; expiresAt: number }
+
+    if (payload.walletAddress.toLowerCase() !== expectedWallet.toLowerCase()) return false
+    if (Date.now() > payload.expiresAt) return false
+
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function verifyWalletAuthOrSession(
+  walletAddress: string,
+  headers: Headers
+): Promise<boolean> {
+  const authHeader = headers.get('authorization')
+  let sessionToken = headers.get('x-session-token')
+  if (!sessionToken && authHeader?.startsWith('Bearer ')) {
+    sessionToken = authHeader.substring(7)
+  }
+
+  if (sessionToken) {
+    if (verifySessionToken(sessionToken, walletAddress)) {
+      return true
+    }
+  }
+
+  const signature = headers.get('x-wallet-signature')
+  const nonce = headers.get('x-wallet-nonce')
+  return verifyWalletAuth(walletAddress, signature, nonce)
+}

@@ -23,7 +23,7 @@ import { useLanguage } from '@/components/LanguageProvider'
 
 interface AnalyticsProps {
   walletAddress: string
-  getSignature: () => Promise<{ signature: string; nonce: string }>
+  getAuthHeaders: (walletAddr: string, forceRefresh?: boolean) => Promise<Record<string, string>>
 }
 
 const RANGES: AnalyticsRangeDays[] = [7, 30, 90]
@@ -69,7 +69,7 @@ function statusLabel(status: string, t: any) {
   }
 }
 
-export default function Analytics({ walletAddress, getSignature }: AnalyticsProps) {
+export default function Analytics({ walletAddress, getAuthHeaders }: AnalyticsProps) {
   const { t } = useLanguage()
   const [days, setDays] = useState<AnalyticsRangeDays>(30)
   const [data, setData] = useState<AnalyticsResponse | null>(null)
@@ -80,22 +80,24 @@ export default function Analytics({ walletAddress, getSignature }: AnalyticsProp
   useEffect(() => {
     let ignore = false
 
-    const run = async () => {
+    const run = async (retry = true) => {
       setLoading(true)
       setError(null)
       try {
-        const { signature, nonce } = await getSignature()
+        const headers = await getAuthHeaders(walletAddress)
         const res = await fetch(
           `/api/creator/analytics/${walletAddress}?days=${days}`,
           {
-            headers: {
-              'x-wallet-signature': signature,
-              'x-wallet-nonce': nonce,
-            },
+            headers,
             cache: 'no-store',
           }
         )
         if (ignore) return
+        if (res.status === 401 && retry) {
+          sessionStorage.removeItem(`auracast_session_${walletAddress}`)
+          await run(false)
+          return
+        }
         if (!res.ok) {
           const body = (await res.json().catch(() => null)) as { error?: string } | null
           setError(body?.error ?? t('dashboard.errorLoading'))
@@ -119,38 +121,43 @@ export default function Analytics({ walletAddress, getSignature }: AnalyticsProp
     return () => {
       ignore = true
     }
-  }, [walletAddress, days, getSignature, t])
+  }, [walletAddress, days, getAuthHeaders, t])
 
   const handleExport = async () => {
     setExporting(true)
-    try {
-      const { signature, nonce } = await getSignature()
-      const res = await fetch(
-        `/api/creator/analytics/${walletAddress}/export?days=${days}`,
-        {
-          headers: {
-            'x-wallet-signature': signature,
-            'x-wallet-nonce': nonce,
-          },
+    const performExport = async (retry = true) => {
+      try {
+        const headers = await getAuthHeaders(walletAddress)
+        const res = await fetch(
+          `/api/creator/analytics/${walletAddress}/export?days=${days}`,
+          {
+            headers,
+          }
+        )
+        if (res.status === 401 && retry) {
+          sessionStorage.removeItem(`auracast_session_${walletAddress}`)
+          await performExport(false)
+          return
         }
-      )
-      if (!res.ok) {
-        throw new Error(`Export failed (HTTP ${res.status})`)
+        if (!res.ok) {
+          throw new Error(`Export failed (HTTP ${res.status})`)
+        }
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `auracast-${days}d.csv`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(url)
+      } catch {
+        alert(t('settings.updateFailed'))
+      } finally {
+        setExporting(false)
       }
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `auracast-${days}d.csv`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
-    } catch {
-      alert(t('settings.updateFailed'))
-    } finally {
-      setExporting(false)
     }
+    performExport()
   }
 
   return (
