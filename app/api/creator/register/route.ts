@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCreatorByWallet, saveCreator } from '@/lib/supabase'
-import { cloneVoice } from '@/lib/elevenlabs'
+import { cloneVoice, deleteVoice, verifyClonedVoice } from '@/lib/elevenlabs'
 import { getErrorResponse } from '@/lib/errors'
 import { safeParseJson, isValidWalletAddress, isValidPrice, getClientIp } from '@/lib/validation'
 import { checkRateLimit } from '@/lib/rate-limit'
@@ -57,6 +57,17 @@ export async function POST(req: NextRequest): Promise<NextResponse<RegisterCreat
 
     const audioBuffer = Buffer.from(audioBase64, 'base64')
     const voiceId = await cloneVoice(audioBuffer, fileName, creatorName)
+
+    try {
+      await verifyClonedVoice(voiceId, creatorName)
+    } catch (verifyError) {
+      // Roll back the orphaned ElevenLabs voice so a stale/wrong clone is not left behind.
+      await deleteVoice(voiceId).catch((cleanupErr) => {
+        console.error('[CreatorRegister] Orphan voice cleanup failed:', cleanupErr, { voiceId })
+      })
+      throw verifyError
+    }
+
     const creator = await saveCreator({ walletAddress, creatorName, audioBase64, fileName, voiceId, priceInLamports, language: language ?? 'en' })
 
     return NextResponse.json({ success: true, voiceId, creatorId: creator.id }, { status: 201 })

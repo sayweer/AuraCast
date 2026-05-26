@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCreatorByWallet, savePurchase, updatePurchaseStatus, getPurchaseByTxSignature } from '@/lib/supabase'
 import { verifyTransaction } from '@/lib/solana'
 import { validateTextLength, isSafeToGenerate } from '@/lib/moderation'
-import { generateSpeech } from '@/lib/elevenlabs'
+import { generateSpeech, getTtsModel } from '@/lib/elevenlabs'
 import { optimizeTextForVoice, MOOD_VOICE_PRESETS } from '@/lib/text-optimizer'
 import { getErrorResponse, UnsafeContentError } from '@/lib/errors'
 import { safeParseJson, isValidWalletAddress, isValidTxSignature, getClientIp } from '@/lib/validation'
@@ -120,7 +120,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         throw moderationError
       }
 
-      const optimizedText = await optimizeTextForVoice(fanText, mood, creator.language)
+      const targetModel = getTtsModel()
+      const optimizedText = await optimizeTextForVoice(fanText, mood, creator.language, targetModel)
 
       const result = await generateSpeech({
         voiceId: creator.voice_id,
@@ -128,6 +129,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         language: creator.language,
         voiceSettings: MOOD_VOICE_PRESETS[mood],
       })
+
+      if (result.modelUsed !== targetModel) {
+        console.warn('[VoiceGenerate] TTS fell back to alternate model', {
+          requested: targetModel,
+          used: result.modelUsed,
+          voiceId: creator.voice_id,
+        })
+      } else {
+        console.log('[VoiceGenerate] TTS completed', {
+          modelUsed: result.modelUsed,
+          durationMs: result.durationMs,
+        })
+      }
 
       await updatePurchaseStatus(txSignature, 'completed', result.audioBase64)
 

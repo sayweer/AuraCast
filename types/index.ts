@@ -126,6 +126,7 @@ export interface GenerateSpeechOptions {
 export interface GenerateSpeechResult {
   audioBase64: string
   durationMs: number
+  modelUsed: string
 }
 
 // ─── API Requests / Responses ──────────────────────────
