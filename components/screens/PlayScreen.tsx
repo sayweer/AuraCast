@@ -19,6 +19,7 @@ import {
 import type { Purchase } from '@/types';
 import { useLanguage } from '@/components/LanguageProvider';
 import LanguageToggle from '@/components/LanguageToggle';
+import { downloadAudio } from '@/lib/audio-download';
 
 interface PlayScreenProps {
   purchase: Purchase | null;
@@ -32,8 +33,31 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [downloadHint, setDownloadHint] = useState<string | null>(null);
 
   const audioInstance = useRef<HTMLAudioElement | null>(null);
+
+  const handleDownload = async () => {
+    if (!purchase?.audio_url) return;
+    setDownloadHint(null);
+    const result = await downloadAudio({
+      base64: purchase.audio_url,
+      filename: `voice-message-${purchase.id.slice(0, 8)}.mp3`,
+    });
+    if (result === 'opened-new-tab') {
+      setDownloadHint(
+        language === 'tr'
+          ? 'Sesi yeni sekmede açtık. Dosyaya uzun basıp "Ses dosyasını kaydet" deyin.'
+          : 'Opened the audio in a new tab. Long-press the file and choose "Save audio".'
+      );
+    } else if (result === 'failed') {
+      setDownloadHint(
+        language === 'tr'
+          ? 'İndirme başarısız oldu. Ses oynatıcısından doğrudan dinleyebilirsiniz.'
+          : 'Download failed. You can still play the audio above.'
+      );
+    }
+  };
 
   // Convert base64 audio to Blob URL for mobile download compatibility
   useEffect(() => {
@@ -300,9 +324,9 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
               </div>
 
               {downloadUrl && (
-                <a
-                  href={downloadUrl}
-                  download={`voice-message-${purchase.id.slice(0, 8)}.mp3`}
+                <button
+                  type="button"
+                  onClick={handleDownload}
                   className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-150 border"
                   style={{
                     background: 'rgba(185,28,60,0.15)',
@@ -311,7 +335,12 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
                   }}
                 >
                   {t('fan.downloadAudio')}
-                </a>
+                </button>
+              )}
+              {downloadHint && (
+                <p className="text-xs text-muted-foreground leading-snug">
+                  {downloadHint}
+                </p>
               )}
             </div>
           ) : purchase.status === 'rejected' ? (

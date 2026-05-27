@@ -13,6 +13,7 @@ import {
 } from '@solana/web3.js'
 import { useLanguage } from '@/components/LanguageProvider'
 import LanguageToggle from '@/components/LanguageToggle'
+import { downloadAudio } from '@/lib/audio-download'
 import type { Mood } from '@/types'
 
 interface Creator {
@@ -59,6 +60,8 @@ export default function FanPage() {
   const [selectedMood, setSelectedMood] = useState<Mood>('calm')
   const [isPaying, setIsPaying] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [audioBase64Raw, setAudioBase64Raw] = useState<string | null>(null)
+  const [downloadHint, setDownloadHint] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [txSignature, setTxSignature] = useState<string | null>(null)
   const [purchaseId, setPurchaseId] = useState<string | null>(null)
@@ -126,6 +129,8 @@ export default function FanPage() {
     setIsPaying(true)
     setError(null)
     setAudioUrl(null)
+    setAudioBase64Raw(null)
+    setDownloadHint(null)
 
     try {
       const connection = new Connection(
@@ -184,6 +189,7 @@ export default function FanPage() {
 
       const blobUrl = base64ToBlobUrl(data.audioBase64)
       setAudioUrl(blobUrl)
+      setAudioBase64Raw(typeof data.audioBase64 === 'string' ? data.audioBase64 : null)
       setPurchaseId(typeof data.purchaseId === 'string' ? data.purchaseId : null)
       setTxSignature(null)
     } catch (err: unknown) {
@@ -191,6 +197,28 @@ export default function FanPage() {
       setError(errMessage)
     } finally {
       setIsPaying(false)
+    }
+  }
+
+  const handleDownload = async () => {
+    if (!audioBase64Raw) return
+    setDownloadHint(null)
+    const result = await downloadAudio({
+      base64: audioBase64Raw,
+      filename: 'voice-message.mp3',
+    })
+    if (result === 'opened-new-tab') {
+      setDownloadHint(
+        language === 'tr'
+          ? 'Sesi yeni sekmede açtık. Dosyaya uzun basıp "Ses dosyasını kaydet" deyin.'
+          : 'Opened the audio in a new tab. Long-press the file and choose "Save audio".'
+      )
+    } else if (result === 'failed') {
+      setDownloadHint(
+        language === 'tr'
+          ? 'İndirme başarısız oldu. Ses oynatıcısından doğrudan dinleyebilirsiniz.'
+          : 'Download failed. You can still play the audio above.'
+      )
     }
   }
 
@@ -499,10 +527,11 @@ export default function FanPage() {
                           })
                         }}
                       />
-                      <a
-                        href={audioUrl}
-                        download="voice-message.mp3"
-                        className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150"
+                      <button
+                        type="button"
+                        onClick={handleDownload}
+                        disabled={!audioBase64Raw}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{
                           background: 'rgba(185,28,60,0.15)',
                           border: '1px solid rgba(185,28,60,0.35)',
@@ -510,7 +539,12 @@ export default function FanPage() {
                         }}
                       >
                         {t('fan.downloadAudio')}
-                      </a>
+                      </button>
+                      {downloadHint && (
+                        <p className="text-xs text-muted-foreground mt-1 leading-snug">
+                          {downloadHint}
+                        </p>
+                      )}
                     </div>
                   )}
                   </>
