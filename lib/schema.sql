@@ -11,8 +11,12 @@ CREATE TABLE IF NOT EXISTS creators (
   block_political BOOLEAN DEFAULT true,
   total_earned BIGINT DEFAULT 0,
   total_messages INTEGER DEFAULT 0,
+  nft_mint TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migration for existing deployments: add the on-chain voice license mint address.
+ALTER TABLE creators ADD COLUMN IF NOT EXISTS nft_mint TEXT;
 
 CREATE TABLE IF NOT EXISTS purchases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -91,6 +91,15 @@ export async function updateCreatorPrice(walletAddress: string, priceInLamports:
   if (error) throw new AuraCastError('Failed to update price', 'DB_ERROR', 500)
 }
 
+export async function updateCreatorNftMint(walletAddress: string, nftMint: string): Promise<void> {
+  const { error } = await supabase
+    .from('creators')
+    .update({ nft_mint: nftMint })
+    .eq('wallet_address', walletAddress)
+
+  if (error) throw new AuraCastError('Failed to update license mint', 'DB_ERROR', 500)
+}
+
 export async function savePurchase(data: {
   buyerWallet: string
   creatorWallet: string

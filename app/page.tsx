@@ -10,7 +10,8 @@ import bs58 from 'bs58'
 import { useLanguage } from '@/components/LanguageProvider'
 
 export default function App() {
-  const { publicKey, disconnect, connected, signMessage } = useWallet()
+  const wallet = useWallet()
+  const { publicKey, disconnect, connected, signMessage } = wallet
   const { t, language, setLanguage } = useLanguage()
   const walletAddress = publicKey?.toBase58() ?? ''
   const walletAddressStr = publicKey?.toBase58() ?? null
@@ -80,7 +81,10 @@ export default function App() {
     totalMessages: number
     priceInLamports: number
     voiceId: string
+    nftMint: string | null
   } | null>(null)
+  const [mintingLicense, setMintingLicense] = useState(false)
+  const [licenseError, setLicenseError] = useState<string | null>(null)
   const [blockAdult, setBlockAdult] = useState(true)
   const [blockProfanity, setBlockProfanity] = useState(true)
   const [blockPolitical, setBlockPolitical] = useState(true)
@@ -117,7 +121,7 @@ export default function App() {
         if (res.ok) {
           const creator = await res.json()
           if (ignore) return
-          if (!creator.is_active || !creator.voice_id) {
+          if (!creator.is_active || !creator.has_voice) {
             setAppState('onboarding')
             setOnboardingStep(1)
             return
@@ -167,6 +171,7 @@ export default function App() {
             totalMessages: creator.total_messages,
             priceInLamports: creator.price_lamports,
             voiceId: creator.voice_id,
+            nftMint: creator.nft_mint ?? null,
           })
           setBlockAdult(creator.block_adult ?? true)
           setBlockProfanity(creator.block_profanity ?? true)
@@ -369,6 +374,48 @@ export default function App() {
     }
   }
 
+  const handleActivateLicense = async () => {
+    if (!publicKey) {
+      setLicenseError(t('license.walletNotConnected'))
+      return
+    }
+    const walletAddr = publicKey.toBase58()
+    setMintingLicense(true)
+    setLicenseError(null)
+
+    try {
+      // Lazy-load the heavy Metaplex bundle only when the creator mints.
+      const { mintVoiceLicense } = await import('@/lib/voiceLicense')
+      const { nftMint, txSignature } = await mintVoiceLicense(wallet, walletAddr)
+
+      const recordMint = async (retry = true): Promise<void> => {
+        const headers = await getAuthHeaders(walletAddr)
+        const res = await fetch('/api/creator/update-license', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', ...headers },
+          body: JSON.stringify({ walletAddress: walletAddr, nftMint, txSignature }),
+        })
+        if (res.status === 401 && retry) {
+          sessionStorage.removeItem(`auracast_session_${walletAddr}`)
+          return recordMint(false)
+        }
+        if (!res.ok) {
+          const body = (await res.json().catch(() => null)) as { error?: string } | null
+          throw new Error(body?.error ?? `Failed to record license (HTTP ${res.status})`)
+        }
+      }
+      await recordMint()
+
+      setCreatorStats(prev => (prev ? { ...prev, nftMint } : prev))
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t('license.activationFailed')
+      console.warn('[handleActivateLicense]', msg)
+      setLicenseError(msg)
+    } finally {
+      setMintingLicense(false)
+    }
+  }
+
   const handleCopyLink = () => {
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
@@ -421,6 +468,9 @@ export default function App() {
           onOpenSettings={() => setSettingsOpen(true)}
           onCopyLink={handleCopyLink}
           getAuthHeaders={getAuthHeaders}
+          onActivateLicense={handleActivateLicense}
+          mintingLicense={mintingLicense}
+          licenseError={licenseError}
         />
       )}
 

@@ -24,7 +24,7 @@ interface PublicCreatorInfo {
   price_lamports: number
   is_active: boolean
   language: string
-  voice_id: string
+  has_voice: boolean
 }
 
 export async function GET(
@@ -52,7 +52,7 @@ export async function GET(
         price_lamports: creator.price_lamports,
         is_active: creator.is_active,
         language: creator.language,
-        voice_id: creator.voice_id,
+        has_voice: Boolean(creator.voice_id),
       }
       return jsonNoStore(publicInfo, 200)
     }

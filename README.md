@@ -117,9 +117,5 @@ POST /api/voice/play/[purchaseId]
 Increments play counts for the audio clip.
 ```
 
-## Hackathon
-Built solo at Dev3pack Global Hackathon — Bursa, May 2026  
-Sponsors: Solana · ElevenLabs · Groq
-
 ## License
 MIT

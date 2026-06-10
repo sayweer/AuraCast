@@ -95,6 +95,48 @@ export async function verifyTransaction(
   return true
 }
 
+/**
+ * Verify an on-chain Voice License mint transaction.
+ * Confirms the tx succeeded, that the authenticated creator wallet was the
+ * fee payer (first signer), and that the claimed NFT mint (asset) account
+ * actually appears in the transaction. This binds the stored nft_mint to a
+ * transaction the creator genuinely signed — we never trust the client blindly.
+ */
+export async function verifyLicenseMint(
+  txSignature: string,
+  nftMint: string,
+  signerWallet: string
+): Promise<boolean> {
+  const tx = await connection.getTransaction(txSignature, {
+    maxSupportedTransactionVersion: 0,
+  })
+
+  if (tx === null) throw new TransactionVerificationError(txSignature)
+  if (tx.meta?.err !== null && tx.meta?.err !== undefined) {
+    throw new TransactionVerificationError(txSignature)
+  }
+
+  const accountKeys = tx.transaction.message.getAccountKeys()
+
+  // Fee payer is always the first account key — must be the authenticated creator.
+  const feePayer = accountKeys.get(0)
+  if (!feePayer || feePayer.toBase58() !== signerWallet) {
+    throw new TransactionVerificationError(txSignature)
+  }
+
+  // The minted asset account must be present in this transaction.
+  let mintPresent = false
+  for (let i = 0; i < accountKeys.length; i++) {
+    if (accountKeys.get(i)?.toBase58() === nftMint) {
+      mintPresent = true
+      break
+    }
+  }
+  if (!mintPresent) throw new TransactionVerificationError(txSignature)
+
+  return true
+}
+
 export async function getWalletBalance(walletAddress: string): Promise<number> {
   try {
     const balance = await connection.getBalance(new PublicKey(walletAddress))

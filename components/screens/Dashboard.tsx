@@ -21,7 +21,9 @@ import {
   XCircle,
   Volume2,
   Loader2,
-  HelpCircle
+  HelpCircle,
+  ShieldCheck,
+  ExternalLink
 } from 'lucide-react';
 import type { RecentPurchaseRow } from '@/types';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -45,12 +47,16 @@ interface DashboardProps {
     totalMessages: number
     priceInLamports: number
     voiceId: string
+    nftMint: string | null
   } | null;
   priceInSol: string;
   copiedLink: boolean;
   onOpenSettings: () => void;
   onCopyLink: () => void;
   getAuthHeaders: (walletAddr: string, forceRefresh?: boolean) => Promise<Record<string, string>>;
+  onActivateLicense: () => void;
+  mintingLicense: boolean;
+  licenseError: string | null;
 }
 
 export default function Dashboard({
@@ -61,6 +67,9 @@ export default function Dashboard({
   onOpenSettings,
   onCopyLink,
   getAuthHeaders,
+  onActivateLicense,
+  mintingLicense,
+  licenseError,
 }: DashboardProps) {
   const { t, language } = useLanguage();
   const [tab, setTab] = useState<DashboardTab>('overview');
@@ -306,6 +315,72 @@ export default function Dashboard({
                 <p className="text-muted-foreground text-sm mt-1">{t('dashboard.currentRate')}</p>
               </Card>
             </div>
+
+            {/* Voice License Card */}
+            {creatorStats?.nftMint ? (
+              <Card className="bg-card border-border p-6">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-base font-bold flex items-center gap-2">
+                        {t('license.licensedTitle')}
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      </p>
+                      <p className="text-sm text-muted-foreground">{t('license.licensedDesc')}</p>
+                    </div>
+                  </div>
+                  <a
+                    href={`https://solscan.io/token/${creatorStats.nftMint}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'mainnet-beta' ? '' : '?cluster=devnet'}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                  >
+                    {t('license.viewOnExplorer')}
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+              </Card>
+            ) : (
+              <Card className="bg-card border-primary/30 p-6">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-base font-bold">{t('license.activateTitle')}</p>
+                      <p className="text-sm text-muted-foreground max-w-md">{t('license.activateDesc')}</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={onActivateLicense}
+                    disabled={mintingLicense}
+                    className="bg-primary hover:bg-secondary text-primary-foreground font-semibold flex items-center gap-2 shrink-0"
+                  >
+                    {mintingLicense ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {t('license.minting')}
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4" />
+                        {t('license.activateButton')}
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {licenseError && (
+                  <div className="mt-4 flex items-start gap-2 bg-rose-500/5 border border-rose-500/20 px-3 py-2 rounded-lg text-rose-300/90 text-xs">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                    <span>{licenseError}</span>
+                  </div>
+                )}
+              </Card>
+            )}
 
             {/* Fan Page URL Card */}
             <Card className="bg-card border-border p-6 space-y-4">

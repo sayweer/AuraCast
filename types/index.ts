@@ -14,6 +14,7 @@ export interface Creator {
   block_profanity: boolean
   block_political: boolean
   language: string
+  nft_mint: string | null
 }
 
 export interface Purchase {

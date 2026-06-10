@@ -184,6 +184,18 @@ export const translations = {
       ctaDesc: 'Rent your own AI voice clone on AuraCast! Clone your voice in 5 minutes and start earning while you sleep.',
       ctaButton: 'License Your Own Voice',
     },
+    license: {
+      title: 'Voice License',
+      licensedTitle: 'Voice Licensed on Solana',
+      licensedDesc: 'Your voice ownership is verified on-chain.',
+      viewOnExplorer: 'View on Solscan',
+      activateTitle: 'Activate your Voice License',
+      activateDesc: 'Mint an on-chain NFT that certifies you own and licensed this voice. Costs only a ~0.003 SOL network fee.',
+      activateButton: 'Activate License',
+      minting: 'Minting…',
+      walletNotConnected: 'Wallet not connected',
+      activationFailed: 'License activation failed',
+    },
   },
   tr: {
     common: {
@@ -367,6 +379,18 @@ export const translations = {
       paid: 'Ödenen:',
       ctaDesc: 'AuraCast\'te kendi yapay zeka ses klonunuzu kiralayın! Sesinizi 5 dakikada klonlayın ve siz uyurken kazanmaya başlayın.',
       ctaButton: 'Kendi Sesini Lisansla',
+    },
+    license: {
+      title: 'Ses Lisansı',
+      licensedTitle: 'Ses Solana\'da Lisanslandı',
+      licensedDesc: 'Ses sahipliğin zincir üzerinde doğrulandı.',
+      viewOnExplorer: 'Solscan\'de Görüntüle',
+      activateTitle: 'Ses Lisansını Etkinleştir',
+      activateDesc: 'Sesi sahiplendiğini ve lisansladığını kanıtlayan zincir üstü bir NFT bas. Yalnızca ~0.003 SOL ağ ücreti tutar.',
+      activateButton: 'Lisansı Etkinleştir',
+      minting: 'Basılıyor…',
+      walletNotConnected: 'Cüzdan bağlı değil',
+      activationFailed: 'Lisans etkinleştirme başarısız',
     },
   },
 } as const;
