@@ -19,7 +19,7 @@ function isIOSSafari(): boolean {
 function base64ToBlob(base64: string, mimeType: string): Blob {
     const binary = atob(base64)
     const chunkSize = 8 * 1024
-    const chunks: Uint8Array[] = []
+    const chunks: Uint8Array<ArrayBuffer>[] = []
     for (let offset = 0; offset < binary.length; offset += chunkSize) {
         const end = Math.min(offset + chunkSize, binary.length)
         const slice = new Uint8Array(end - offset)
