@@ -1,8 +1,19 @@
 'use client';
 
+import { motion } from 'framer-motion'
 import { WalletButton } from '@/components/WalletButton'
 import { useLanguage } from '@/components/LanguageProvider'
 import LanguageToggle from '@/components/LanguageToggle'
+
+const container = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
+}
+
+const item = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+}
 
 export default function Landing() {
   const { t } = useLanguage()
@@ -13,30 +24,43 @@ export default function Landing() {
       <LanguageToggle className="absolute top-6 right-6" />
 
       {/* Center Content */}
-      <div className="flex flex-col items-center justify-center gap-8 max-w-2xl">
-        {/* Mic Emoji */}
-        <div className="text-6xl">🎙</div>
+      <motion.div
+        className="flex flex-col items-center justify-center gap-8 max-w-2xl"
+        variants={container}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Mic Emblem */}
+        <motion.div
+          variants={item}
+          className="flex items-center justify-center w-24 h-24 rounded-full ember-gradient glow-ember text-5xl"
+        >
+          🎙
+        </motion.div>
 
         {/* Title */}
-        <div className="text-center">
-          <h1 className="text-7xl font-bold mb-2 bg-gradient-to-r from-secondary to-pink-500 bg-clip-text text-transparent">
+        <motion.div variants={item} className="text-center">
+          <h1 className="font-display text-7xl font-bold mb-2 ember-text-gradient">
             AuraCast
           </h1>
           <p className="text-lg text-muted-foreground italic">
             {t('landing.slogan')}
           </p>
-        </div>
+        </motion.div>
 
         {/* Main CTA Button */}
-        <div className="[&>button]:bg-primary [&>button]:text-white [&>button]:px-8 [&>button]:py-4 [&>button]:rounded-xl [&>button]:text-lg [&>button]:font-semibold [&>button:hover]:bg-secondary mt-4">
+        <motion.div
+          variants={item}
+          className="[&>button]:px-8 [&>button]:py-4 [&>button]:text-lg [&>button]:font-semibold [&>button]:glow-ember mt-4"
+        >
           <WalletButton />
-        </div>
+        </motion.div>
 
         {/* Bottom Text */}
-        <div className="mt-8 text-center text-muted-foreground text-xs">
+        <motion.div variants={item} className="mt-8 text-center text-muted-foreground text-xs">
           {t('landing.joinedCreators')}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

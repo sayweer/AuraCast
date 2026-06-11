@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import Landing from '@/components/screens/Landing';
 import Onboarding from '@/components/screens/Onboarding';
 import Dashboard from '@/components/screens/Dashboard';
@@ -431,7 +432,16 @@ export default function App() {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="app-container min-h-screen w-full bg-background text-foreground">
+      <AnimatePresence mode="wait">
+      <motion.div
+        key={appState}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+      >
       {appState === 'landing' && (
         <Landing />
       )}
@@ -473,6 +483,8 @@ export default function App() {
           licenseError={licenseError}
         />
       )}
+      </motion.div>
+      </AnimatePresence>
 
       <SettingsModal
         isOpen={settingsOpen}
@@ -508,5 +520,6 @@ export default function App() {
         getAuthHeaders={getAuthHeaders}
       />
     </div>
+    </MotionConfig>
   );
 }

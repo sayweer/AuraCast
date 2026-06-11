@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -100,9 +101,9 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
       if (isPlaying) {
         phase += 0.1;
         const colors = [
-          'rgba(236, 72, 153, 0.7)', // Pink
-          'rgba(168, 85, 247, 0.5)', // Purple
-          'rgba(59, 130, 246, 0.3)'  // Blue
+          'rgba(213, 62, 15, 0.7)',   // Ember Orange
+          'rgba(155, 15, 6, 0.5)',    // Ember Red
+          'rgba(238, 217, 185, 0.30)' // Cream
         ];
         const amplitudes = [22, 12, 28];
         const frequencies = [0.06, 0.04, 0.09];
@@ -126,7 +127,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
       } else {
         // Draw center flat line
         ctx.beginPath();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.strokeStyle = 'rgba(238, 217, 185, 0.12)';
         ctx.lineWidth = 2.5;
         ctx.moveTo(0, canvas.height / 2);
         ctx.lineTo(canvas.width, canvas.height / 2);
@@ -158,12 +159,12 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
     return (
       <div className="relative min-h-screen flex items-center justify-center bg-background text-foreground px-4 overflow-hidden">
         {/* Background Neon Blobs */}
-        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-ember-2/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-ember-3/8 rounded-full blur-[100px] pointer-events-none" />
         
         <LanguageToggle className="absolute top-6 right-6" />
         <div className="text-center space-y-4 max-w-md relative z-10">
-          <h1 className="text-3xl font-extrabold text-rose-500">{t('play.clipNotFound')}</h1>
+          <h1 className="font-display text-3xl font-extrabold text-rose-500">{t('play.clipNotFound')}</h1>
           <p className="text-muted-foreground text-sm">
             {t('play.clipNotFoundDesc')}
           </p>
@@ -244,7 +245,12 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="max-w-md w-full relative z-10 space-y-6">
+      <motion.div
+        className="max-w-md w-full relative z-10 space-y-6"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: 'easeOut' }}
+      >
         
         {/* Back Link */}
         <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
@@ -258,7 +264,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
           {/* Header */}
           <div className="flex items-start justify-between border-b border-border/50 pb-4">
             <div className="space-y-1">
-              <h1 className="text-xl font-bold text-foreground">{t('play.voiceClone')}</h1>
+              <h1 className="font-display text-xl font-bold text-foreground">{t('play.voiceClone')}</h1>
               <p className="text-xs text-muted-foreground">
                 {t('play.creator')} <strong className="text-foreground">{finalCreatorName}</strong>
               </p>
@@ -329,9 +335,9 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
                   onClick={handleDownload}
                   className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-150 border"
                   style={{
-                    background: 'rgba(185,28,60,0.15)',
-                    borderColor: 'rgba(185,28,60,0.35)',
-                    color: '#F26A82',
+                    background: 'rgba(213,62,15,0.15)',
+                    borderColor: 'rgba(213,62,15,0.35)',
+                    color: '#EED9B9',
                   }}
                 >
                   {t('fan.downloadAudio')}
@@ -379,7 +385,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
           </Link>
         </Card>
 
-      </div>
+      </motion.div>
     </div>
   );
 }

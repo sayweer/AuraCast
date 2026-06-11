@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -39,6 +40,16 @@ const Analytics = dynamic(() => import('@/components/screens/Analytics'), {
 })
 
 type DashboardTab = 'overview' | 'analytics' | 'messages'
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.07 } },
+}
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+}
 
 interface DashboardProps {
   walletAddress: string;
@@ -239,10 +250,10 @@ export default function Dashboard({
       {/* Nav Bar */}
       <div className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-primary">🎙 AuraCast</h1>
+          <h1 className="font-display text-xl font-bold ember-text-gradient">🎙 AuraCast</h1>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-3 h-3 rounded-full bg-accent"></div>
+              <div className="w-3 h-3 rounded-full bg-ember-3"></div>
               <span>{truncatedAddress}</span>
             </div>
             <LanguageToggle />
@@ -272,7 +283,16 @@ export default function Dashboard({
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          className="space-y-8"
+        >
         {tab === 'analytics' && (
           <Analytics walletAddress={walletAddress} getAuthHeaders={getAuthHeaders} />
         )}
@@ -280,41 +300,52 @@ export default function Dashboard({
         {tab === 'overview' && (
           <>
             {/* Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-3 gap-4"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {/* Total Earned */}
-              <Card className="bg-card border-border p-6 space-y-4 md:col-span-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-muted-foreground text-sm mb-2">{t('dashboard.totalEarned')}</p>
-                    <h3 className="text-4xl font-bold">
-                      {((creatorStats?.totalEarned ?? 0) / 1e9).toFixed(2)} SOL
-                    </h3>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      ≈ ${(((creatorStats?.totalEarned ?? 0) / 1e9) * 150).toFixed(0)} USD
-                    </p>
+              <motion.div variants={staggerItem} className="md:col-span-2">
+                <Card className="bg-card border-border p-6 space-y-4 h-full">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-sm mb-2">{t('dashboard.totalEarned')}</p>
+                      <h3 className="font-display text-4xl font-bold ember-text-gradient">
+                        {((creatorStats?.totalEarned ?? 0) / 1e9).toFixed(2)} SOL
+                      </h3>
+                      <p className="text-muted-foreground text-sm mt-1">
+                        ≈ ${(((creatorStats?.totalEarned ?? 0) / 1e9) * 150).toFixed(0)} USD
+                      </p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-ember-3" />
                   </div>
-                  <TrendingUp className="w-8 h-8 text-primary" />
-                </div>
-              </Card>
+                </Card>
+              </motion.div>
 
               {/* Messages Generated */}
-              <Card className="bg-card border-border p-6 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-muted-foreground text-sm mb-2">{t('dashboard.messagesGenerated')}</p>
-                    <h3 className="text-4xl font-bold">{creatorStats?.totalMessages ?? 0}</h3>
-                    <p className="text-muted-foreground text-sm mt-1">{t('dashboard.allTimeRequests')}</p>
+              <motion.div variants={staggerItem}>
+                <Card className="bg-card border-border p-6 space-y-4 h-full">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-sm mb-2">{t('dashboard.messagesGenerated')}</p>
+                      <h3 className="font-display text-4xl font-bold">{creatorStats?.totalMessages ?? 0}</h3>
+                      <p className="text-muted-foreground text-sm mt-1">{t('dashboard.allTimeRequests')}</p>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              </motion.div>
 
               {/* Price Per 150 Chars */}
-              <Card className="bg-card border-border p-6 space-y-2 md:col-span-3 lg:col-span-1">
-                <p className="text-muted-foreground text-sm">{t('dashboard.pricePer150')}</p>
-                <h3 className="text-4xl font-bold">{priceInSol} SOL</h3>
-                <p className="text-muted-foreground text-sm mt-1">{t('dashboard.currentRate')}</p>
-              </Card>
-            </div>
+              <motion.div variants={staggerItem} className="md:col-span-3 lg:col-span-1">
+                <Card className="bg-card border-border p-6 space-y-2 h-full">
+                  <p className="text-muted-foreground text-sm">{t('dashboard.pricePer150')}</p>
+                  <h3 className="font-display text-4xl font-bold">{priceInSol} SOL</h3>
+                  <p className="text-muted-foreground text-sm mt-1">{t('dashboard.currentRate')}</p>
+                </Card>
+              </motion.div>
+            </motion.div>
 
             {/* Voice License Card */}
             {creatorStats?.nftMint ? (
@@ -444,7 +475,7 @@ export default function Dashboard({
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
+                <h2 className="font-display text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
                   <Music className="w-6 h-6 text-primary" />
                   {t('dashboard.receivedMessages')}
                 </h2>
@@ -525,22 +556,30 @@ export default function Dashboard({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
                 {filteredPurchases.map((p) => (
-                  <MessageCard
-                    key={p.id}
-                    purchase={p}
-                    isPlaying={playingId === p.id && isPlaying}
-                    currentTime={playingId === p.id ? currentTime : 0}
-                    duration={playingId === p.id ? duration : 0}
-                    onPlay={() => p.audio_url && playAudio(p.id, p.audio_url)}
-                    onSeek={handleSeek}
-                  />
+                  <motion.div key={p.id} variants={staggerItem}>
+                    <MessageCard
+                      purchase={p}
+                      isPlaying={playingId === p.id && isPlaying}
+                      currentTime={playingId === p.id ? currentTime : 0}
+                      duration={playingId === p.id ? duration : 0}
+                      onPlay={() => p.audio_url && playAudio(p.id, p.audio_url)}
+                      onSeek={handleSeek}
+                    />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
         )}
+        </motion.div>
+        </AnimatePresence>
 
       </div>
     </div>
@@ -671,7 +710,7 @@ function MessageCard({
   const amountSol = (purchase.amount_lamports / 1e9).toFixed(3)
 
   return (
-    <Card className="bg-gradient-to-br from-card/90 to-card/50 backdrop-blur-md border-border/80 hover:border-primary/30 transition-all duration-300 shadow-md p-5 flex flex-col justify-between space-y-4">
+    <Card className="bg-gradient-to-br from-card/90 to-card/50 backdrop-blur-md border-border/80 hover:border-ember-3/30 transition-all duration-300 shadow-md p-5 flex flex-col justify-between space-y-4 h-full">
       {/* Top Header Row */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col">

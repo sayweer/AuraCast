@@ -4,54 +4,63 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #060008;
-  --foreground: #F5F0F1;
-  --card: rgba(196, 30, 58, 0.08);
-  --card-foreground: #F5F0F1;
-  --popover: #060008;
-  --popover-foreground: #F5F0F1;
-  --primary: #C41E3A;
-  --primary-foreground: #ffffff;
-  --secondary: #B91C3C;
-  --secondary-foreground: #ffffff;
-  --muted: rgba(196, 30, 58, 0.15);
-  --muted-foreground: #9E8A8D;
-  --accent: rgba(196, 30, 58, 0.2);
-  --accent-foreground: #F5F0F1;
+  --background: #140304;
+  --foreground: #EED9B9;
+  --card: rgba(94, 0, 6, 0.2);
+  --card-foreground: #EED9B9;
+  --popover: #1B0506;
+  --popover-foreground: #EED9B9;
+  --primary: #9B0F06;
+  --primary-foreground: #EED9B9;
+  --secondary: #5E0006;
+  --secondary-foreground: #EED9B9;
+  --muted: rgba(94, 0, 6, 0.35);
+  --muted-foreground: #B5988A;
+  --accent: rgba(213, 62, 15, 0.16);
+  --accent-foreground: #EED9B9;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: rgba(196, 30, 58, 0.25);
-  --input: rgba(196, 30, 58, 0.1);
-  --ring: #C41E3A;
+  --border: rgba(213, 62, 15, 0.22);
+  --input: rgba(94, 0, 6, 0.3);
+  --ring: #D53E0F;
   --radius: 0.75rem;
+  --ember-1: #5E0006;
+  --ember-2: #9B0F06;
+  --ember-3: #D53E0F;
+  --ember-4: #EED9B9;
 }
 
 .dark {
-  --background: #060008;
-  --foreground: #F5F0F1;
-  --card: rgba(196, 30, 58, 0.08);
-  --card-foreground: #F5F0F1;
-  --popover: #060008;
-  --popover-foreground: #F5F0F1;
-  --primary: #C41E3A;
-  --primary-foreground: #ffffff;
-  --secondary: #B91C3C;
-  --secondary-foreground: #ffffff;
-  --muted: rgba(196, 30, 58, 0.15);
-  --muted-foreground: #9E8A8D;
-  --accent: rgba(196, 30, 58, 0.2);
-  --accent-foreground: #F5F0F1;
+  --background: #140304;
+  --foreground: #EED9B9;
+  --card: rgba(94, 0, 6, 0.2);
+  --card-foreground: #EED9B9;
+  --popover: #1B0506;
+  --popover-foreground: #EED9B9;
+  --primary: #9B0F06;
+  --primary-foreground: #EED9B9;
+  --secondary: #5E0006;
+  --secondary-foreground: #EED9B9;
+  --muted: rgba(94, 0, 6, 0.35);
+  --muted-foreground: #B5988A;
+  --accent: rgba(213, 62, 15, 0.16);
+  --accent-foreground: #EED9B9;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: rgba(196, 30, 58, 0.25);
-  --input: rgba(196, 30, 58, 0.1);
-  --ring: #C41E3A;
+  --border: rgba(213, 62, 15, 0.22);
+  --input: rgba(94, 0, 6, 0.3);
+  --ring: #D53E0F;
   --radius: 0.75rem;
+  --ember-1: #5E0006;
+  --ember-2: #9B0F06;
+  --ember-3: #D53E0F;
+  --ember-4: #EED9B9;
 }
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -71,6 +80,10 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-ember-1: var(--ember-1);
+  --color-ember-2: var(--ember-2);
+  --color-ember-3: var(--ember-3);
+  --color-ember-4: var(--ember-4);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -86,17 +99,23 @@
   }
 }
 
-/* Background decoration */
+/* Background decoration — night sky above, embers rising from below */
 @layer base {
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background: radial-gradient(
-      circle at 50% 50%,
-      rgba(196, 30, 58, 0.15) 0%,
-      transparent 100%
-    );
+    background:
+      radial-gradient(
+        ellipse 80% 50% at 50% -10%,
+        rgba(155, 15, 6, 0.2) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 50% 110%,
+        rgba(213, 62, 15, 0.07) 0%,
+        transparent 70%
+      );
     pointer-events: none;
     z-index: 0;
   }
@@ -107,16 +126,50 @@
   z-index: 1;
 }
 
+/* Brand utilities */
+@utility ember-gradient {
+  background-image: linear-gradient(135deg, #5E0006 0%, #9B0F06 45%, #D53E0F 100%);
+}
+
+@utility ember-text-gradient {
+  background-image: linear-gradient(100deg, #EED9B9 0%, #D53E0F 55%, #9B0F06 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility glow-ember {
+  box-shadow:
+    0 0 24px rgba(213, 62, 15, 0.35),
+    0 0 64px rgba(155, 15, 6, 0.18);
+}
+
+/* Solana wallet-adapter button — brand override (doubled selector beats the adapter's own stylesheet) */
+.wallet-adapter-button.wallet-adapter-button {
+  background-image: linear-gradient(135deg, #5E0006 0%, #9B0F06 45%, #D53E0F 100%);
+  background-color: transparent;
+  color: var(--ember-4);
+  border-radius: var(--radius);
+  font-family: var(--font-geist-sans);
+  transition: filter 0.2s ease;
+}
+
+.wallet-adapter-button.wallet-adapter-button:not([disabled]):hover {
+  background-image: linear-gradient(135deg, #5E0006 0%, #9B0F06 45%, #D53E0F 100%);
+  background-color: transparent;
+  filter: brightness(1.15);
+}
+
 /* Pulse animation for recording button */
 @keyframes pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(185, 28, 60, 0.7);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ring) 70%, transparent);
   }
   70% {
-    box-shadow: 0 0 0 20px rgba(185, 28, 60, 0);
+    box-shadow: 0 0 0 20px color-mix(in srgb, var(--ring) 0%, transparent);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(185, 28, 60, 0);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ring) 0%, transparent);
   }
 }
 

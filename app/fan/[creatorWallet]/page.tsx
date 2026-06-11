@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { MotionConfig, motion } from 'framer-motion'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletButton } from '@/components/WalletButton'
 import {
@@ -223,13 +224,14 @@ export default function FanPage() {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="app-container min-h-screen w-full bg-background text-foreground">
       {/* Ambient glow */}
       <div
         className="pointer-events-none fixed inset-0 z-0"
         style={{
           background:
-            'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,26,47,0.18) 0%, transparent 70%)',
+            'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(155,15,6,0.20) 0%, transparent 70%)',
         }}
       />
 
@@ -238,9 +240,9 @@ export default function FanPage() {
         <a href="/" className="flex items-center gap-2 group">
           <span className="text-2xl">🎙</span>
           <span
-            className="text-xl font-bold tracking-tight"
+            className="font-display text-xl font-bold tracking-tight"
             style={{
-              background: 'linear-gradient(90deg, #F5F0F1 0%, #B91C3C 100%)',
+              background: 'linear-gradient(90deg, #EED9B9 0%, #D53E0F 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
@@ -289,7 +291,7 @@ export default function FanPage() {
                 className="rounded-2xl border border-border/60 p-6 flex flex-col gap-3"
                 style={{
                   background:
-                    'linear-gradient(135deg, rgba(139,26,47,0.12) 0%, rgba(6,0,8,0.6) 100%)',
+                    'linear-gradient(135deg, rgba(94,0,6,0.12) 0%, rgba(20,3,4,0.6) 100%)',
                   backdropFilter: 'blur(12px)',
                 }}
               >
@@ -299,8 +301,8 @@ export default function FanPage() {
                     className="w-14 h-14 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
                     style={{
                       background:
-                        'linear-gradient(135deg, rgba(139,26,47,0.5) 0%, rgba(185,28,60,0.3) 100%)',
-                      border: '1.5px solid rgba(185,28,60,0.4)',
+                        'linear-gradient(135deg, rgba(94,0,6,0.5) 0%, rgba(155,15,6,0.3) 100%)',
+                      border: '1.5px solid rgba(213,62,15,0.4)',
                     }}
                   >
                     🎙
@@ -309,7 +311,7 @@ export default function FanPage() {
                     <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
                       {t('fan.sendVoiceTo')}
                     </p>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
                       {creator.creator_name ?? creatorWallet.slice(0, 8)}
                     </h1>
                   </div>
@@ -319,13 +321,13 @@ export default function FanPage() {
                 <div
                   className="inline-flex items-center gap-2 self-start rounded-full px-3 py-1 text-xs font-medium"
                   style={{
-                    background: 'rgba(185,28,60,0.15)',
-                    border: '1px solid rgba(185,28,60,0.3)',
-                    color: '#F5A0B0',
+                    background: 'rgba(155,15,6,0.18)',
+                    border: '1px solid rgba(213,62,15,0.35)',
+                    color: '#EED9B9',
                   }}
                 >
                   <span
-                    className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"
+                    className="w-1.5 h-1.5 rounded-full bg-ember-3 animate-pulse"
                   />
                   {t('fan.pricePer150Chars', { price: pricePerUnit })}
                 </div>
@@ -338,7 +340,7 @@ export default function FanPage() {
                 <div
                   className="rounded-2xl border border-border/60 p-1 flex flex-col gap-0"
                   style={{
-                    background: 'rgba(139,26,47,0.07)',
+                    background: 'rgba(94,0,6,0.07)',
                     backdropFilter: 'blur(8px)',
                   }}
                 >
@@ -377,10 +379,10 @@ export default function FanPage() {
                           style={
                             active
                               ? {
-                                  background: 'linear-gradient(135deg, #8B1A2F 0%, #B91C3C 100%)',
-                                  borderColor: 'rgba(185,28,60,0.6)',
-                                  color: '#ffffff',
-                                  boxShadow: '0 0 12px rgba(185,28,60,0.35)',
+                                  background: 'linear-gradient(135deg, #5E0006 0%, #9B0F06 100%)',
+                                  borderColor: 'rgba(213,62,15,0.6)',
+                                  color: '#EED9B9',
+                                  boxShadow: '0 0 12px rgba(213,62,15,0.35)',
                                 }
                               : {
                                   background: 'rgba(0,0,0,0.25)',
@@ -402,7 +404,7 @@ export default function FanPage() {
                   <div
                     className="rounded-2xl border border-border/60 p-8 flex flex-col items-center gap-5 text-center"
                     style={{
-                      background: 'rgba(139,26,47,0.07)',
+                      background: 'rgba(94,0,6,0.07)',
                       backdropFilter: 'blur(8px)',
                     }}
                   >
@@ -425,8 +427,8 @@ export default function FanPage() {
                   <div
                     className="rounded-xl border px-4 py-3 flex items-center justify-between gap-2"
                     style={{
-                      background: 'rgba(185,28,60,0.12)',
-                      borderColor: 'rgba(185,28,60,0.35)',
+                      background: 'rgba(155,15,6,0.12)',
+                      borderColor: 'rgba(213,62,15,0.35)',
                     }}
                   >
                     <div className="flex items-center gap-2 text-sm">
@@ -438,31 +440,32 @@ export default function FanPage() {
                     </div>
                     <div
                       className="font-bold text-base"
-                      style={{ color: '#F26A82' }}
+                      style={{ color: '#D53E0F' }}
                     >
                       {charUnits > 0 ? `= ${totalSol} SOL` : '—'}
                     </div>
                   </div>
 
                   {/* Pay button */}
-                  <button
+                  <motion.button
                     id="pay-and-generate-btn"
                     onClick={handlePayAndGenerate}
                     disabled={!message.trim() || isPaying}
+                    whileTap={{ scale: 0.98 }}
                     className="w-full rounded-xl py-3.5 px-6 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                       background: !message.trim() || isPaying
-                        ? 'rgba(139,26,47,0.3)'
-                        : 'linear-gradient(135deg, #8B1A2F 0%, #B91C3C 100%)',
-                      color: '#ffffff',
+                        ? 'rgba(94,0,6,0.35)'
+                        : 'linear-gradient(135deg, #5E0006 0%, #9B0F06 45%, #D53E0F 100%)',
+                      color: '#EED9B9',
                       boxShadow: !message.trim() || isPaying
                         ? 'none'
-                        : '0 0 24px rgba(185,28,60,0.35)',
+                        : '0 0 24px rgba(213,62,15,0.35)',
                     }}
                   >
                     {isPaying ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-ember-4/40 border-t-ember-4 rounded-full animate-spin" />
                         {t('fan.processingPayment')}
                       </>
                     ) : (
@@ -470,7 +473,7 @@ export default function FanPage() {
                         {t('fan.payAndGenerate', { price: totalSol })}
                       </>
                     )}
-                  </button>
+                  </motion.button>
 
                   {/* Error */}
                   {error && (
@@ -496,11 +499,14 @@ export default function FanPage() {
 
                   {/* Audio player */}
                   {audioUrl && (
-                    <div
+                    <motion.div
                       className="rounded-2xl border border-border/60 p-5 flex flex-col gap-3"
+                      initial={{ opacity: 0, scale: 0.95, y: 12 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
                       style={{
                         background:
-                          'linear-gradient(135deg, rgba(139,26,47,0.15) 0%, rgba(6,0,8,0.5) 100%)',
+                          'linear-gradient(135deg, rgba(94,0,6,0.15) 0%, rgba(20,3,4,0.5) 100%)',
                         backdropFilter: 'blur(12px)',
                       }}
                     >
@@ -515,7 +521,7 @@ export default function FanPage() {
                         playsInline
                         src={audioUrl}
                         className="w-full mt-1"
-                        style={{ accentColor: '#B91C3C' }}
+                        style={{ accentColor: '#D53E0F' }}
                         onPlay={() => {
                           if (!purchaseId || !publicKey) return
                           fetch(`/api/voice/play/${purchaseId}`, {
@@ -533,9 +539,9 @@ export default function FanPage() {
                         disabled={!audioBase64Raw}
                         className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{
-                          background: 'rgba(185,28,60,0.15)',
-                          border: '1px solid rgba(185,28,60,0.35)',
-                          color: '#F26A82',
+                          background: 'rgba(213,62,15,0.15)',
+                          border: '1px solid rgba(213,62,15,0.35)',
+                          color: '#EED9B9',
                         }}
                       >
                         {t('fan.downloadAudio')}
@@ -545,7 +551,7 @@ export default function FanPage() {
                           {downloadHint}
                         </p>
                       )}
-                    </div>
+                    </motion.div>
                   )}
                   </>
                 )}
@@ -563,5 +569,6 @@ export default function FanPage() {
         </p>
       </footer>
     </div>
+    </MotionConfig>
   )
 }

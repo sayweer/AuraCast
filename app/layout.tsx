@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { Fraunces } from 'next/font/google'
 import localFont from 'next/font/local'
 import './globals.css'
 import { WalletProviderDynamic } from '@/components/WalletProviderDynamic'
@@ -15,6 +16,12 @@ const geistMono = localFont({
   src: './fonts/GeistMonoVF.woff',
   variable: '--font-geist-mono',
   weight: '100 900',
+})
+
+const fraunces = Fraunces({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-display',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -35,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`dark ${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`dark ${geistSans.variable} ${geistMono.variable} ${fraunces.variable}`}>
       <body className="font-sans antialiased">
         <WalletProviderDynamic>
           <LanguageProvider>

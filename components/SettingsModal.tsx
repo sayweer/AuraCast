@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -101,22 +102,32 @@ export default function SettingsModal({
     performUpdate();
   };
 
-  if (!isOpen) return null;
-
   return (
+    <AnimatePresence>
+      {isOpen && (
     <>
       {/* Overlay */}
-      <div
+      <motion.div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
         onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+      <motion.div
+        className="fixed inset-0 flex items-center justify-center p-4 z-50"
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+      >
         <Card className="bg-card border-border w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">{t('settings.title')}</h2>
+            <h2 className="font-display text-xl font-bold">{t('settings.title')}</h2>
             <button
               onClick={onClose}
               className="p-1 hover:bg-primary/10 rounded-lg transition-colors"
@@ -144,17 +155,17 @@ export default function SettingsModal({
           <div className="space-y-3 pb-4 border-b border-border">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('settings.voiceManagement')}</h3>
             {voiceId ? (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-green-950/30 border border-green-800/30 mb-3">
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-sm text-green-400 font-medium">{t('settings.voiceCloneActive')}</span>
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 mb-3">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-sm text-emerald-400 font-medium">{t('settings.voiceCloneActive')}</span>
                 <span className="text-xs text-muted-foreground ml-auto font-mono">
                   {voiceId.slice(0, 12)}...
                 </span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-950/30 border border-red-800/30 mb-3">
-                <div className="w-2 h-2 rounded-full bg-red-400" />
-                <span className="text-sm text-red-400 font-medium">{t('settings.noVoiceClone')}</span>
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 mb-3">
+                <div className="w-2 h-2 rounded-full bg-rose-400" />
+                <span className="text-sm text-rose-400 font-medium">{t('settings.noVoiceClone')}</span>
               </div>
             )}
             <Button
@@ -205,7 +216,7 @@ export default function SettingsModal({
                     }`}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                      className={`w-5 h-5 rounded-full bg-ember-4 transition-transform ${
                         blockAdult ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
@@ -228,7 +239,7 @@ export default function SettingsModal({
                     }`}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                      className={`w-5 h-5 rounded-full bg-ember-4 transition-transform ${
                         blockProfanity ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
@@ -251,7 +262,7 @@ export default function SettingsModal({
                     }`}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                      className={`w-5 h-5 rounded-full bg-ember-4 transition-transform ${
                         blockPolitical ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
@@ -276,7 +287,7 @@ export default function SettingsModal({
                   step={0.01}
                   value={newPrice}
                   onChange={(e) => setNewPrice(parseFloat(e.target.value))}
-                  className="w-20 bg-black/40 border border-border rounded-lg px-3 py-2 text-sm"
+                  className="w-20 bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-colors"
                 />
               )}
               <span className="text-sm text-muted-foreground">SOL</span>
@@ -289,10 +300,10 @@ export default function SettingsModal({
               </Button>
             </div>
             {priceError && (
-              <p className="text-xs text-red-400">{priceError}</p>
+              <p className="text-xs text-destructive">{priceError}</p>
             )}
             {priceSuccess && (
-              <p className="text-xs text-green-400">{t('settings.updateSuccess')}</p>
+              <p className="text-xs text-emerald-400">{t('settings.updateSuccess')}</p>
             )}
           </div>
 
@@ -301,7 +312,9 @@ export default function SettingsModal({
             {t('settings.versionText')}
           </div>
         </Card>
-      </div>
+      </motion.div>
     </>
+      )}
+    </AnimatePresence>
   );
 }

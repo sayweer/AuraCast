@@ -1,3 +1,5 @@
+'use client';
+
 import { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -169,24 +171,24 @@ export default function Onboarding({
         {
           frequency: 2.0,
           amplitudeMult: 1.0,
-          colorStart: '#C41E3A', // Crimson Red
-          colorEnd: '#EC4899',   // Neon Pink
+          colorStart: '#9B0F06', // Ember Red
+          colorEnd: '#D53E0F',   // Ember Orange
           alpha: 0.95,
           phaseOffset: 0,
         },
         {
           frequency: 3.5,
           amplitudeMult: 0.7,
-          colorStart: '#8B5CF6', // Violet
-          colorEnd: '#A78BFA',   // Purple/Violet
+          colorStart: '#D53E0F', // Ember Orange
+          colorEnd: '#EED9B9',   // Cream
           alpha: 0.6,
           phaseOffset: Math.PI / 3,
         },
         {
           frequency: 5.0,
           amplitudeMult: 0.4,
-          colorStart: '#06B6D4', // Cyan
-          colorEnd: '#EC4899',   // Pink
+          colorStart: '#5E0006', // Bordeaux
+          colorEnd: '#9B0F06',   // Ember Red
           alpha: 0.4,
           phaseOffset: (Math.PI * 2) / 3,
         },
@@ -206,7 +208,7 @@ export default function Onboarding({
         // Apply a glowing neon shadow for the primary wave
         if (w.amplitudeMult === 1.0) {
           ctx.shadowBlur = 15 // Increased blur for stronger glow
-          ctx.shadowColor = hexToRgba(w.colorStart, 0.7)
+          ctx.shadowColor = hexToRgba(w.colorEnd, 0.7)
         } else {
           ctx.shadowBlur = 0
         }
@@ -366,11 +368,11 @@ export default function Onboarding({
       {/* Nav Bar */}
       <div className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-primary">🎙 AuraCast</h1>
+          <h1 className="font-display text-xl font-bold ember-text-gradient">🎙 AuraCast</h1>
           <div className="flex items-center gap-3">
             <LanguageToggle />
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-3 h-3 rounded-full bg-accent"></div>
+              <div className="w-3 h-3 rounded-full bg-ember-3"></div>
               <span>{truncatedAddress}</span>
             </div>
           </div>
@@ -396,7 +398,7 @@ export default function Onboarding({
         {step === 1 ? (
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold">{t('onboarding.title')}</h2>
+              <h2 className="font-display text-2xl font-bold">{t('onboarding.title')}</h2>
               <p className="text-muted-foreground">{t('onboarding.subtitle')}</p>
             </div>
 
@@ -415,7 +417,7 @@ export default function Onboarding({
                   onClick={() => onSelectLanguage('en')}
                   className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${
                     selectedLanguage === 'en'
-                      ? 'bg-primary text-white border-primary'
+                      ? 'bg-primary text-primary-foreground border-primary'
                       : 'bg-transparent text-muted-foreground border-border'
                   }`}
                 >
@@ -425,7 +427,7 @@ export default function Onboarding({
                   onClick={() => onSelectLanguage('tr')}
                   className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${
                     selectedLanguage === 'tr'
-                      ? 'bg-primary text-white border-primary'
+                      ? 'bg-primary text-primary-foreground border-primary'
                       : 'bg-transparent text-muted-foreground border-border'
                   }`}
                 >
@@ -473,14 +475,14 @@ export default function Onboarding({
                   audioReady
                     ? 'bg-accent'
                     : isRecording
-                    ? 'bg-red-600 pulse-ring'
+                    ? 'bg-ember-3 pulse-ring'
                     : 'bg-primary hover:bg-secondary'
-                } text-white disabled:opacity-75`}
+                } text-primary-foreground disabled:opacity-75`}
               >
                 {audioReady ? (
                   <span className="text-2xl">✓</span>
                 ) : isRecording ? (
-                  <Mic className="w-8 h-8 text-red-400" />
+                  <Mic className="w-8 h-8 text-ember-4" />
                 ) : (
                   <Mic className="w-8 h-8" />
                 )}
@@ -519,7 +521,7 @@ export default function Onboarding({
         ) : (
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold">{t('onboarding.priceTitle')}</h2>
+              <h2 className="font-display text-2xl font-bold">{t('onboarding.priceTitle')}</h2>
               <p className="text-muted-foreground">{t('onboarding.priceSubtitle')}</p>
             </div>
 
@@ -548,13 +550,13 @@ export default function Onboarding({
             </div>
 
             {/* Earnings Preview */}
-            <div className="bg-[#200010] border border-[#C41E3A]/40 rounded-lg p-4 space-y-2">
-              <p className="text-sm text-[#F5F0F1]">{t('onboarding.earningsPreview')}</p>
+            <div className="bg-[#1B0506] border border-ember-2/40 rounded-lg p-4 space-y-2">
+              <p className="text-sm text-foreground">{t('onboarding.earningsPreview')}</p>
               <div className="space-y-1">
-                <p className="text-lg font-bold text-[#FF6B84]">
+                <p className="text-lg font-bold text-ember-3">
                   {t('onboarding.perRequest')} {(selectedPrice * 2 * 0.9).toFixed(4)} SOL
                 </p>
-                <p className="text-lg font-bold text-[#FF6B84]">
+                <p className="text-lg font-bold text-ember-3">
                   {t('onboarding.monthlyEstimate')} {(selectedPrice * 2 * 0.9 * 30 * 10).toFixed(2)} SOL
                 </p>
               </div>

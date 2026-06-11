@@ -314,34 +314,34 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
       <div className="h-80 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data.timeseries} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1f1f23" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(238, 217, 185, 0.08)" />
             <XAxis
               dataKey="date"
               tickFormatter={(d: string) => d.slice(5)}
-              stroke="#6b7280"
+              stroke="#B5988A"
               fontSize={12}
             />
             <YAxis
               yAxisId="left"
-              stroke="#C41E3A"
+              stroke="#D53E0F"
               fontSize={12}
               tickFormatter={(v: number) => (v / 1e9).toFixed(2)}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
-              stroke="#a78bfa"
+              stroke="#EED9B9"
               fontSize={12}
               allowDecimals={false}
             />
             <Tooltip
               contentStyle={{
-                background: '#0a0a0e',
-                border: '1px solid #27272a',
+                background: '#1B0506',
+                border: '1px solid rgba(213, 62, 15, 0.30)',
                 borderRadius: 8,
                 fontSize: 12,
               }}
-              labelStyle={{ color: '#F5F0F1' }}
+              labelStyle={{ color: '#EED9B9' }}
               formatter={(value, name) => {
                 const localizedName = name === 'Net SOL' ? t('analytics.netSol') : (language === 'tr' ? 'Mesaj' : 'Messages')
                 if (name === 'Net SOL' && typeof value === 'number') {
@@ -359,7 +359,7 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
               type="monotone"
               dataKey="net_lamports"
               name={t('analytics.netSol')}
-              stroke="#C41E3A"
+              stroke="#D53E0F"
               strokeWidth={2}
               dot={false}
             />
@@ -368,7 +368,7 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
               type="monotone"
               dataKey="messages"
               name={language === 'tr' ? 'Mesaj' : 'Messages'}
-              stroke="#a78bfa"
+              stroke="#EED9B9"
               strokeWidth={2}
               dot={false}
             />
