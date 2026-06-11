@@ -116,6 +116,3 @@ Body: { creatorWallet, fanText, txSignature, buyerWallet }
 POST /api/voice/play/[purchaseId]
 Increments play counts for the audio clip.
 ```
-
-## License
-MIT
