@@ -23,8 +23,6 @@ import { GooeyText } from '@/components/ui/gooey-text-morphing'
 import DisplayCards from '@/components/ui/display-cards'
 import RadialOrbitalTimeline, { OrbitalItem } from '@/components/ui/radial-orbital-timeline'
 
-// Brand tokens — deliberate EN+TR mix, intentionally not routed through i18n
-const GOOEY_WORDS = ['voice', 'patent', 'earn', 'future', 'sesin geleceği']
 
 const NEWS_IMAGES = Array.from({ length: 8 }, (_, i) => `/news/news-${i + 1}.jpg`)
 
@@ -45,7 +43,11 @@ const FEATURE_STACK_CLASSES = [
 ]
 
 export default function Landing() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+
+  const gooeyWords = language === 'tr'
+    ? ['lisans', 'kazan', 'kontrol', 'gelecek', 'sesin geleceği']
+    : ['license', 'earn', 'control', 'future', 'your voice']
 
   const features = [
     {
@@ -125,7 +127,7 @@ export default function Landing() {
               </div>
             </div>
             <p
-              lang="tr"
+              lang={language}
               className="mt-3 font-display text-sm uppercase tracking-[0.25em] text-aura-burgundy/70"
             >
               {t('landing.edition')}
@@ -134,7 +136,7 @@ export default function Landing() {
 
           <motion.div variants={item} className="w-full">
             <GooeyText
-              texts={GOOEY_WORDS}
+              texts={gooeyWords}
               morphTime={1}
               cooldownTime={1.5}
               className="h-14 sm:h-20"

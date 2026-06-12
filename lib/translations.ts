@@ -8,7 +8,7 @@ export const translations = {
     landing: {
       slogan: 'License your voice. Earn while you sleep.',
       joinedCreators: 'Join 2,400+ creators already licensing their voice',
-      edition: 'Sesin Geleceği',
+      edition: 'The Future of Voice',
       heroTagline: 'Clone your voice once. License it forever. Earn while you sleep.',
       ctaHint: 'Connect your wallet to claim your voice',
       scrollCue: 'Continued below',
