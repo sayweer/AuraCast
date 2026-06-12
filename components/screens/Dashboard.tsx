@@ -338,8 +338,7 @@ export default function Dashboard({
             >
               {/* Total Earned */}
               <motion.div variants={staggerItem}>
-                <Card className="relative overflow-hidden bg-card border-border p-6 space-y-2 h-full">
-                  <BorderBeam lightColor="#D53E0F" lightWidth={250} duration={9} />
+                <Card className="bg-card border-border p-6 space-y-2 h-full">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground mb-2">{t('dashboard.totalEarned')}</p>

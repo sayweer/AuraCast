@@ -47,8 +47,8 @@ export default function Landing() {
   const { t, language } = useLanguage()
 
   const gooeyWords = language === 'tr'
-    ? ['lisans', 'kazan', 'kontrol', 'gelecek', 'sesin geleceği']
-    : ['license', 'earn', 'control', 'future', 'your voice']
+    ? ['kontrol sende olsun', 'para cüzdanında', 'gelecek seste olsun']
+    : ['control is yours', 'money in your wallet', 'future is in your voice']
 
   const features = [
     {
