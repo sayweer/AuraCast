@@ -165,23 +165,22 @@ export default function SettingsModal({
                 <span className="h-px flex-1 bg-aura-night/10" aria-hidden="true" />
               </h3>
               {voiceId ? (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-aura-olive/10 border border-aura-olive/25 mb-3">
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-aura-olive/15 border border-aura-olive/40 mb-3">
                   <div className="w-2 h-2 rounded-full bg-aura-olive animate-pulse" />
-                  <span className="text-sm text-aura-olive font-medium">{t('settings.voiceCloneActive')}</span>
+                  <span className="text-sm text-foreground font-medium">{t('settings.voiceCloneActive')}</span>
                   <span className="text-xs text-muted-foreground ml-auto font-mono">
                     {voiceId.slice(0, 12)}...
                   </span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-aura-terracotta/10 border border-aura-terracotta/30 mb-3">
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-aura-terracotta/15 border border-aura-terracotta/45 mb-3">
                   <div className="w-2 h-2 rounded-full bg-aura-terracotta" />
                   <span className="text-sm text-aura-burgundy font-medium">{t('settings.noVoiceClone')}</span>
                 </div>
               )}
               <Button
                 onClick={onRerecord}
-                variant="outline"
-                className="w-full border-aura-olive/70 bg-aura-olive/5 text-aura-olive hover:bg-aura-olive/15 hover:text-aura-olive"
+                className="w-full bg-aura-olive hover:bg-aura-olive/90 text-aura-cream font-semibold"
               >
                 {t('settings.recordNewSample')}
               </Button>
@@ -193,7 +192,7 @@ export default function SettingsModal({
                   setIsDeleting(false)
                 }}
                 disabled={isDeleting}
-                className="w-full h-9 rounded-md border border-destructive/45 text-destructive text-sm font-medium hover:bg-destructive/5 transition-colors disabled:opacity-50"
+                className="w-full h-9 rounded-md border border-destructive/60 text-destructive text-sm font-medium hover:bg-destructive/5 transition-colors disabled:opacity-50"
               >
                 {isDeleting ? t('settings.deleting') : t('settings.deleteVoice')}
               </button>
@@ -365,7 +364,7 @@ export default function SettingsModal({
             </div>
 
             {/* Account Section — danger zone */}
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+            <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 space-y-3">
               <h3 className="font-display text-xs font-semibold uppercase tracking-[0.25em] text-destructive">
                 {t('settings.account')}
               </h3>
@@ -375,7 +374,7 @@ export default function SettingsModal({
                   onClose();
                 }}
                 variant="outline"
-                className="w-full border-destructive/50 bg-card text-destructive hover:bg-destructive/10 hover:text-destructive"
+                className="w-full border-destructive bg-card text-destructive font-semibold hover:bg-destructive/10 hover:text-destructive"
               >
                 {t('settings.disconnectWallet')}
               </Button>
