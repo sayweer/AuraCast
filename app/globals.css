@@ -28,6 +28,11 @@
   --ember-2: #9B0F06;
   --ember-3: #D53E0F;
   --ember-4: #EED9B9;
+  --aura-olive: #607456;
+  --aura-cream: #EEE0CC;
+  --aura-terracotta: #BA6A4C;
+  --aura-burgundy: #7B2525;
+  --aura-paper: #F6EDDD;
 }
 
 .dark {
@@ -84,6 +89,11 @@
   --color-ember-2: var(--ember-2);
   --color-ember-3: var(--ember-3);
   --color-ember-4: var(--ember-4);
+  --color-aura-olive: var(--aura-olive);
+  --color-aura-cream: var(--aura-cream);
+  --color-aura-terracotta: var(--aura-terracotta);
+  --color-aura-burgundy: var(--aura-burgundy);
+  --color-aura-paper: var(--aura-paper);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -175,4 +185,72 @@
 
 .pulse-ring {
   animation: pulse-ring 1.5s infinite;
+}
+
+/* ── Aura newspaper theme (landing) ─────────────────────────────── */
+
+/* News marquee — each column renders its list twice, so -50% loops seamlessly */
+@keyframes news-scroll-up {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+
+@keyframes news-scroll-down {
+  from { transform: translateY(-50%); }
+  to   { transform: translateY(0); }
+}
+
+/* Rotating conic ring around the wallet CTA */
+@keyframes aura-ring-spin {
+  to { transform: rotate(360deg); }
+}
+
+.aura-ring {
+  position: relative;
+  display: inline-block;
+  padding: 3px;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.aura-ring::before {
+  content: '';
+  position: absolute;
+  inset: -150%;
+  background: conic-gradient(
+    from 0deg,
+    var(--aura-olive),
+    var(--aura-terracotta),
+    var(--aura-burgundy),
+    var(--aura-terracotta),
+    var(--aura-olive)
+  );
+  animation: aura-ring-spin 6s linear infinite;
+}
+
+.aura-ring > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Landing-scoped wallet button — tripled selector beats the global ember override */
+.aura-landing .wallet-adapter-button.wallet-adapter-button {
+  background-image: none;
+  background-color: var(--aura-olive);
+  color: var(--aura-cream);
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+.aura-landing .wallet-adapter-button.wallet-adapter-button:not([disabled]):hover {
+  background-image: none;
+  background-color: color-mix(in srgb, var(--aura-olive) 85%, black);
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .news-column,
+  .aura-ring::before {
+    animation: none;
+  }
 }

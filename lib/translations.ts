@@ -8,6 +8,42 @@ export const translations = {
     landing: {
       slogan: 'License your voice. Earn while you sleep.',
       joinedCreators: 'Join 2,400+ creators already licensing their voice',
+      kicker: 'The Voice Licensing Journal',
+      edition: 'Creator Edition — Printed on Solana',
+      heroTagline: 'Clone your voice once. License it forever. Earn while you sleep.',
+      ctaHint: 'Connect your wallet to claim your voice',
+      features: {
+        title: 'What Creators Get',
+        cloning: {
+          tag: 'Step 1',
+          title: 'Voice Cloning',
+          desc: '90 seconds of audio, a studio-grade AI clone',
+        },
+        income: {
+          tag: 'Step 2',
+          title: 'Passive Income',
+          desc: 'Fans pay SOL — you earn on every request',
+        },
+        licensing: {
+          tag: 'Step 3',
+          title: 'Voice Licensing',
+          desc: 'An on-chain NFT proves your voice is yours',
+        },
+        control: 'You stay in control — you decide what can and cannot be created with your voice.',
+      },
+      useCases: {
+        title: 'What Can Your Voice Create?',
+        items: {
+          motivation: { title: 'Motivational Talks', desc: 'Daily push, in a voice they trust' },
+          emotional: { title: 'Heartfelt Messages', desc: 'Birthdays, apologies, love notes' },
+          audiobook: { title: 'Audiobooks', desc: 'Stories narrated by your voice' },
+          dubbing: { title: 'Video Dubbing', desc: 'Localize content without re-recording' },
+          podcast: { title: 'Podcast Intros', desc: 'Branded openings and segments' },
+          education: { title: 'Educational Content', desc: 'Lessons that sound like you' },
+          gaming: { title: 'Game Characters', desc: 'Lend your voice to new worlds' },
+          ads: { title: 'Ad Voiceovers', desc: 'Campaigns licensed on your terms' },
+        },
+      },
     },
     onboarding: {
       title: 'Create Your Voice Identity',
@@ -204,6 +240,42 @@ export const translations = {
     landing: {
       slogan: 'Sesinizi lisanslayın. Siz uyurken o kazandırsın.',
       joinedCreators: 'Sesini lisanslayan 2.400\'den fazla içerik üreticiye katılın',
+      kicker: 'Ses Lisanslama Gazetesi',
+      edition: 'Üretici Sayısı — Solana Baskısı',
+      heroTagline: 'Sesini bir kez klonla. Sonsuza dek lisansla. Sen uyurken kazan.',
+      ctaHint: 'Sesini sahiplenmek için cüzdanını bağla',
+      features: {
+        title: 'Üreticilere Ne Sunar',
+        cloning: {
+          tag: 'Adım 1',
+          title: 'Ses Klonlama',
+          desc: '90 saniyelik kayıt, stüdyo kalitesinde klon',
+        },
+        income: {
+          tag: 'Adım 2',
+          title: 'Pasif Gelir',
+          desc: 'Hayranlar SOL öder — her istekte sen kazanırsın',
+        },
+        licensing: {
+          tag: 'Adım 3',
+          title: 'Ses Lisanslama',
+          desc: 'Zincir üstü NFT sesinin sana ait olduğunu kanıtlar',
+        },
+        control: 'Kontrol sende — sesinle neyin üretilip neyin üretilemeyeceğine sen karar verirsin.',
+      },
+      useCases: {
+        title: 'Sesinle Neler Üretilebilir?',
+        items: {
+          motivation: { title: 'Motivasyon Konuşması', desc: 'Güvendikleri sesten günlük motivasyon' },
+          emotional: { title: 'Duygusal Konuşma', desc: 'Doğum günleri, özürler, aşk notları' },
+          audiobook: { title: 'Sesli Kitap', desc: 'Senin sesinle anlatılan hikâyeler' },
+          dubbing: { title: 'Video Dublaj', desc: 'Yeniden kayıt olmadan yerelleştirme' },
+          podcast: { title: 'Podcast', desc: 'Markalı açılışlar ve bölümler' },
+          education: { title: 'Eğitim İçeriği', desc: 'Senin sesinden dersler' },
+          gaming: { title: 'Oyun Karakterleri', desc: 'Sesini yeni dünyalara ödünç ver' },
+          ads: { title: 'Reklam Seslendirme', desc: 'Senin şartlarınla lisanslı kampanyalar' },
+        },
+      },
     },
     onboarding: {
       title: 'Ses Kimliğinizi Oluşturun',

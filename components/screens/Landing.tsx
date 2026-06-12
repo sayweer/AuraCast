@@ -1,9 +1,30 @@
 'use client';
 
 import { motion } from 'framer-motion'
+import {
+  BookOpen,
+  Clapperboard,
+  Coins,
+  FileText,
+  Flame,
+  Gamepad2,
+  GraduationCap,
+  Heart,
+  Megaphone,
+  Mic,
+  ShieldCheck,
+} from 'lucide-react'
 import { WalletButton } from '@/components/WalletButton'
 import { useLanguage } from '@/components/LanguageProvider'
 import LanguageToggle from '@/components/LanguageToggle'
+import NewsMarquee from '@/components/ui/news-marquee'
+import { GooeyText } from '@/components/ui/gooey-text-morphing'
+import DisplayCards from '@/components/ui/display-cards'
+
+// Brand tokens — deliberate EN+TR mix, intentionally not routed through i18n
+const GOOEY_WORDS = ['voice', 'patent', 'earn', 'future', 'sesin geleceği']
+
+const NEWS_IMAGES = Array.from({ length: 8 }, (_, i) => `/news/news-${i + 1}.jpg`)
 
 const container = {
   hidden: {},
@@ -15,52 +36,207 @@ const item = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
 }
 
+const FEATURE_STACK_CLASSES = [
+  "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:rounded-xl before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-aura-cream/25 grayscale-[60%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0",
+  "[grid-area:stack] translate-x-16 translate-y-10 hover:-translate-y-1 before:absolute before:w-[100%] before:rounded-xl before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-aura-cream/25 grayscale-[60%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0",
+  '[grid-area:stack] translate-x-32 translate-y-20 hover:translate-y-10',
+]
+
 export default function Landing() {
   const { t } = useLanguage()
 
+  const features = [
+    {
+      key: 'cloning',
+      icon: <Mic className="size-4 text-aura-cream" />,
+      iconClassName: 'bg-aura-olive',
+    },
+    {
+      key: 'income',
+      icon: <Coins className="size-4 text-aura-cream" />,
+      iconClassName: 'bg-aura-terracotta',
+    },
+    {
+      key: 'licensing',
+      icon: <FileText className="size-4 text-aura-cream" />,
+      iconClassName: 'bg-aura-burgundy',
+    },
+  ]
+
+  const featureCards = features.map((f, i) => ({
+    icon: f.icon,
+    iconClassName: f.iconClassName,
+    title: t(`landing.features.${f.key}.title`),
+    description: t(`landing.features.${f.key}.desc`),
+    date: t(`landing.features.${f.key}.tag`),
+    className: FEATURE_STACK_CLASSES[i],
+  }))
+
+  const useCases = [
+    { key: 'motivation', icon: Flame },
+    { key: 'emotional', icon: Heart },
+    { key: 'audiobook', icon: BookOpen },
+    { key: 'dubbing', icon: Clapperboard },
+    { key: 'podcast', icon: Mic },
+    { key: 'education', icon: GraduationCap },
+    { key: 'gaming', icon: Gamepad2 },
+    { key: 'ads', icon: Megaphone },
+  ]
+
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-8">
-      {/* Floating Language Toggle */}
-      <LanguageToggle className="absolute top-6 right-6" />
+    <div className="aura-landing relative min-h-screen bg-aura-cream text-aura-burgundy overflow-x-hidden">
+      {/* ── Hero ─────────────────────────────────────────────── */}
+      <section className="relative flex min-h-screen flex-col">
+        <NewsMarquee images={NEWS_IMAGES} />
 
-      {/* Center Content */}
-      <motion.div
-        className="flex flex-col items-center justify-center gap-8 max-w-2xl"
-        variants={container}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Mic Emblem */}
+        {/* Top bar */}
+        <div className="relative z-10 flex items-center justify-between px-6 pt-6">
+          <img
+            src="/logo.jpg"
+            alt="AuraCast"
+            className="h-9 w-9 rounded-lg border border-aura-burgundy/20"
+          />
+          <LanguageToggle className="!bg-aura-paper !text-aura-burgundy !border-aura-burgundy/20 !shadow-none hover:!bg-aura-paper/80" />
+        </div>
+
         <motion.div
-          variants={item}
-          className="flex items-center justify-center w-24 h-24 rounded-full ember-gradient glow-ember text-5xl"
+          className="relative z-10 flex flex-1 flex-col items-center justify-center gap-6 px-4 pb-16 text-center"
+          variants={container}
+          initial="hidden"
+          animate="visible"
         >
-          🎙
-        </motion.div>
+          {/* Masthead */}
+          <motion.p
+            variants={item}
+            className="text-xs uppercase tracking-[0.3em] text-aura-terracotta"
+          >
+            {t('landing.kicker')}
+          </motion.p>
 
-        {/* Title */}
-        <motion.div variants={item} className="text-center">
-          <h1 className="font-display text-7xl font-bold mb-2 ember-text-gradient">
-            AuraCast
-          </h1>
-          <p className="text-lg text-muted-foreground italic">
-            {t('landing.slogan')}
-          </p>
-        </motion.div>
+          <motion.div variants={item} className="w-full max-w-3xl">
+            <div className="border-y-2 border-aura-burgundy/50 py-1">
+              <div className="border-y border-aura-burgundy/30 py-4">
+                <h1 className="font-display font-black tracking-tight text-6xl sm:text-7xl md:text-8xl">
+                  AuraCast
+                </h1>
+              </div>
+            </div>
+            <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-aura-burgundy/60">
+              {t('landing.edition')}
+            </p>
+          </motion.div>
 
-        {/* Main CTA Button */}
-        <motion.div
-          variants={item}
-          className="[&>button]:px-8 [&>button]:py-4 [&>button]:text-lg [&>button]:font-semibold [&>button]:glow-ember mt-4"
-        >
-          <WalletButton />
-        </motion.div>
+          <motion.div variants={item} className="w-full">
+            <GooeyText
+              texts={GOOEY_WORDS}
+              morphTime={1}
+              cooldownTime={1.5}
+              className="h-14 sm:h-20"
+              textClassName="font-display font-semibold text-4xl sm:text-6xl text-aura-terracotta whitespace-nowrap"
+            />
+          </motion.div>
 
-        {/* Bottom Text */}
-        <motion.div variants={item} className="mt-8 text-center text-muted-foreground text-xs">
-          {t('landing.joinedCreators')}
+          <motion.p
+            variants={item}
+            className="max-w-md italic text-aura-burgundy/80"
+          >
+            {t('landing.heroTagline')}
+          </motion.p>
+
+          {/* CTA */}
+          <motion.div variants={item} className="mt-4 flex flex-col items-center gap-3">
+            <div className="aura-ring">
+              <span className="[&>button]:px-8 [&>button]:py-3.5 [&>button]:text-base">
+                <WalletButton />
+              </span>
+            </div>
+            <p className="text-xs text-aura-burgundy/60">{t('landing.ctaHint')}</p>
+          </motion.div>
         </motion.div>
-      </motion.div>
+      </section>
+
+      {/* ── Creator features ─────────────────────────────────── */}
+      <section className="relative mx-auto max-w-5xl px-6 py-20">
+        <header className="mb-12 flex items-center gap-4">
+          <span className="h-px flex-1 bg-aura-burgundy/30" />
+          <h2 className="font-display text-sm font-semibold uppercase tracking-[0.25em]">
+            {t('landing.features.title')}
+          </h2>
+          <span className="h-px flex-1 bg-aura-burgundy/30" />
+        </header>
+
+        {/* Desktop: skewed stack */}
+        <div className="hidden md:flex justify-center pb-24">
+          <DisplayCards cards={featureCards} />
+        </div>
+
+        {/* Mobile: plain vertical cards */}
+        <div className="flex flex-col gap-4 md:hidden">
+          {featureCards.map((card) => (
+            <div
+              key={card.date}
+              className="flex flex-col gap-2 rounded-xl border border-aura-burgundy/15 bg-aura-paper/90 px-4 py-3"
+            >
+              <div className="flex items-center gap-2">
+                <span className={`relative inline-block rounded-full p-1.5 ${card.iconClassName}`}>
+                  {card.icon}
+                </span>
+                <p className="text-lg font-medium">{card.title}</p>
+              </div>
+              <p className="text-sm text-aura-burgundy/70">{card.description}</p>
+              <p className="text-xs uppercase tracking-wide text-aura-terracotta">{card.date}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Content-control footnote */}
+        <div className="mt-10 flex items-center justify-center gap-2 text-sm text-aura-burgundy/70">
+          <ShieldCheck className="size-4 shrink-0 text-aura-olive" />
+          <p>{t('landing.features.control')}</p>
+        </div>
+      </section>
+
+      {/* ── Use cases: classified-ads grid ───────────────────── */}
+      <section className="relative mx-auto max-w-5xl px-6 pb-20">
+        <header className="mb-8 flex items-center gap-4">
+          <span className="h-px flex-1 bg-aura-burgundy/30" />
+          <h2 className="font-display text-sm font-semibold uppercase tracking-[0.25em]">
+            {t('landing.useCases.title')}
+          </h2>
+          <span className="h-px flex-1 bg-aura-burgundy/30" />
+        </header>
+
+        <div className="grid grid-cols-2 gap-px border border-aura-burgundy/20 bg-aura-burgundy/20 md:grid-cols-4">
+          {useCases.map(({ key, icon: Icon }) => (
+            <div key={key} className="bg-aura-cream p-5">
+              <Icon className="mb-3 size-5 text-aura-terracotta" />
+              <p className="font-display font-semibold">
+                {t(`landing.useCases.items.${key}.title`)}
+              </p>
+              <p className="mt-1 text-xs text-aura-burgundy/60">
+                {t(`landing.useCases.items.${key}.desc`)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Footer CTA ───────────────────────────────────────── */}
+      <section className="relative mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 pb-24 text-center">
+        <div className="w-full border-y-2 border-aura-burgundy/50 py-0.5">
+          <div className="w-full border-y border-aura-burgundy/30 py-6 flex flex-col items-center gap-5">
+            <p className="text-sm text-aura-burgundy/70">{t('landing.joinedCreators')}</p>
+            <div className="aura-ring">
+              <span className="[&>button]:px-8 [&>button]:py-3.5 [&>button]:text-base">
+                <WalletButton />
+              </span>
+            </div>
+          </div>
+        </div>
+        <p className="text-[11px] uppercase tracking-[0.2em] text-aura-burgundy/50">
+          AuraCast — Solana
+        </p>
+      </section>
     </div>
-  );
+  )
 }
