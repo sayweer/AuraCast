@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import {
   BookOpen,
+  ChevronDown,
   Clapperboard,
   Coins,
   FileText,
@@ -20,6 +21,7 @@ import LanguageToggle from '@/components/LanguageToggle'
 import NewsMarquee from '@/components/ui/news-marquee'
 import { GooeyText } from '@/components/ui/gooey-text-morphing'
 import DisplayCards from '@/components/ui/display-cards'
+import RadialOrbitalTimeline, { OrbitalItem } from '@/components/ui/radial-orbital-timeline'
 
 // Brand tokens — deliberate EN+TR mix, intentionally not routed through i18n
 const GOOEY_WORDS = ['voice', 'patent', 'earn', 'future', 'sesin geleceği']
@@ -73,15 +75,23 @@ export default function Landing() {
   }))
 
   const useCases = [
-    { key: 'motivation', icon: Flame },
-    { key: 'emotional', icon: Heart },
-    { key: 'audiobook', icon: BookOpen },
-    { key: 'dubbing', icon: Clapperboard },
-    { key: 'podcast', icon: Mic },
-    { key: 'education', icon: GraduationCap },
-    { key: 'gaming', icon: Gamepad2 },
-    { key: 'ads', icon: Megaphone },
+    { key: 'motivation', icon: Flame, relatedIds: [2, 5] },
+    { key: 'emotional', icon: Heart, relatedIds: [1] },
+    { key: 'audiobook', icon: BookOpen, relatedIds: [6, 4] },
+    { key: 'dubbing', icon: Clapperboard, relatedIds: [3, 7] },
+    { key: 'podcast', icon: Mic, relatedIds: [1, 8] },
+    { key: 'education', icon: GraduationCap, relatedIds: [3] },
+    { key: 'gaming', icon: Gamepad2, relatedIds: [4] },
+    { key: 'ads', icon: Megaphone, relatedIds: [5] },
   ]
+
+  const orbitalItems: OrbitalItem[] = useCases.map((uc, i) => ({
+    id: i + 1,
+    title: t(`landing.useCases.items.${uc.key}.title`),
+    content: t(`landing.useCases.items.${uc.key}.desc`),
+    icon: uc.icon,
+    relatedIds: uc.relatedIds,
+  }))
 
   return (
     <div className="aura-landing relative min-h-screen bg-aura-cream text-aura-burgundy overflow-x-hidden">
@@ -106,13 +116,6 @@ export default function Landing() {
           animate="visible"
         >
           {/* Masthead */}
-          <motion.p
-            variants={item}
-            className="text-xs uppercase tracking-[0.3em] text-aura-terracotta"
-          >
-            {t('landing.kicker')}
-          </motion.p>
-
           <motion.div variants={item} className="w-full max-w-3xl">
             <div className="border-y-2 border-aura-burgundy/50 py-1">
               <div className="border-y border-aura-burgundy/30 py-4">
@@ -121,7 +124,10 @@ export default function Landing() {
                 </h1>
               </div>
             </div>
-            <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-aura-burgundy/60">
+            <p
+              lang="tr"
+              className="mt-3 font-display text-sm uppercase tracking-[0.25em] text-aura-burgundy/70"
+            >
               {t('landing.edition')}
             </p>
           </motion.div>
@@ -153,10 +159,25 @@ export default function Landing() {
             <p className="text-xs text-aura-burgundy/60">{t('landing.ctaHint')}</p>
           </motion.div>
         </motion.div>
+
+        {/* Scroll cue */}
+        <a
+          href="#features"
+          onClick={(e) => {
+            e.preventDefault()
+            document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+          }}
+          className="absolute inset-x-0 bottom-6 z-10 flex flex-col items-center gap-1 text-aura-burgundy/60 transition-colors hover:text-aura-burgundy"
+        >
+          <span className="text-[11px] uppercase tracking-[0.2em]">
+            {t('landing.scrollCue')}
+          </span>
+          <ChevronDown className="size-4 animate-bounce motion-reduce:animate-none" />
+        </a>
       </section>
 
       {/* ── Creator features ─────────────────────────────────── */}
-      <section className="relative mx-auto max-w-5xl px-6 py-20">
+      <section id="features" className="relative mx-auto max-w-5xl px-6 py-20">
         <header className="mb-12 flex items-center gap-4">
           <span className="h-px flex-1 bg-aura-burgundy/30" />
           <h2 className="font-display text-sm font-semibold uppercase tracking-[0.25em]">
@@ -196,41 +217,44 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Use cases: classified-ads grid ───────────────────── */}
-      <section className="relative mx-auto max-w-5xl px-6 pb-20">
-        <header className="mb-8 flex items-center gap-4">
-          <span className="h-px flex-1 bg-aura-burgundy/30" />
-          <h2 className="font-display text-sm font-semibold uppercase tracking-[0.25em]">
-            {t('landing.useCases.title')}
-          </h2>
-          <span className="h-px flex-1 bg-aura-burgundy/30" />
-        </header>
+      {/* ── Use cases: night-edition orbital ─────────────────── */}
+      <section className="relative bg-aura-night py-20 text-aura-cream">
+        <div className="mx-auto max-w-5xl px-6">
+          <header className="mb-8 flex items-center gap-4">
+            <span className="h-px flex-1 bg-aura-cream/30" />
+            <h2 className="font-display text-sm font-semibold uppercase tracking-[0.25em]">
+              {t('landing.useCases.title')}
+            </h2>
+            <span className="h-px flex-1 bg-aura-cream/30" />
+          </header>
 
-        <div className="grid grid-cols-2 gap-px border border-aura-burgundy/20 bg-aura-burgundy/20 md:grid-cols-4">
-          {useCases.map(({ key, icon: Icon }) => (
-            <div key={key} className="bg-aura-cream p-5">
-              <Icon className="mb-3 size-5 text-aura-terracotta" />
-              <p className="font-display font-semibold">
-                {t(`landing.useCases.items.${key}.title`)}
-              </p>
-              <p className="mt-1 text-xs text-aura-burgundy/60">
-                {t(`landing.useCases.items.${key}.desc`)}
-              </p>
-            </div>
-          ))}
+          {/* Desktop: orbiting use cases */}
+          <div className="hidden md:block">
+            <RadialOrbitalTimeline items={orbitalItems} />
+          </div>
+
+          {/* Mobile: classified-ads grid */}
+          <div className="grid grid-cols-2 gap-px border border-aura-cream/20 bg-aura-cream/20 md:hidden">
+            {useCases.map(({ key, icon: Icon }) => (
+              <div key={key} className="bg-aura-night p-5">
+                <Icon className="mb-3 size-5 text-aura-terracotta" />
+                <p className="font-display font-semibold">
+                  {t(`landing.useCases.items.${key}.title`)}
+                </p>
+                <p className="mt-1 text-xs text-aura-cream/60">
+                  {t(`landing.useCases.items.${key}.desc`)}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── Footer CTA ───────────────────────────────────────── */}
       <section className="relative mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 pb-24 text-center">
         <div className="w-full border-y-2 border-aura-burgundy/50 py-0.5">
-          <div className="w-full border-y border-aura-burgundy/30 py-6 flex flex-col items-center gap-5">
+          <div className="w-full border-y border-aura-burgundy/30 py-6">
             <p className="text-sm text-aura-burgundy/70">{t('landing.joinedCreators')}</p>
-            <div className="aura-ring">
-              <span className="[&>button]:px-8 [&>button]:py-3.5 [&>button]:text-base">
-                <WalletButton />
-              </span>
-            </div>
           </div>
         </div>
         <p className="text-[11px] uppercase tracking-[0.2em] text-aura-burgundy/50">

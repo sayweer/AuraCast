@@ -33,6 +33,7 @@
   --aura-terracotta: #BA6A4C;
   --aura-burgundy: #7B2525;
   --aura-paper: #F6EDDD;
+  --aura-night: #2A0E0E;
 }
 
 .dark {
@@ -94,6 +95,7 @@
   --color-aura-terracotta: var(--aura-terracotta);
   --color-aura-burgundy: var(--aura-burgundy);
   --color-aura-paper: var(--aura-paper);
+  --color-aura-night: var(--aura-night);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

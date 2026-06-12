@@ -8,10 +8,10 @@ export const translations = {
     landing: {
       slogan: 'License your voice. Earn while you sleep.',
       joinedCreators: 'Join 2,400+ creators already licensing their voice',
-      kicker: 'The Voice Licensing Journal',
-      edition: 'Creator Edition — Printed on Solana',
+      edition: 'Sesin Geleceği',
       heroTagline: 'Clone your voice once. License it forever. Earn while you sleep.',
       ctaHint: 'Connect your wallet to claim your voice',
+      scrollCue: 'Continued below',
       features: {
         title: 'What Creators Get',
         cloning: {
@@ -240,10 +240,10 @@ export const translations = {
     landing: {
       slogan: 'Sesinizi lisanslayın. Siz uyurken o kazandırsın.',
       joinedCreators: 'Sesini lisanslayan 2.400\'den fazla içerik üreticiye katılın',
-      kicker: 'Ses Lisanslama Gazetesi',
-      edition: 'Üretici Sayısı — Solana Baskısı',
+      edition: 'Sesin Geleceği',
       heroTagline: 'Sesini bir kez klonla. Sonsuza dek lisansla. Sen uyurken kazan.',
       ctaHint: 'Sesini sahiplenmek için cüzdanını bağla',
+      scrollCue: 'Devamı aşağıda',
       features: {
         title: 'Üreticilere Ne Sunar',
         cloning: {

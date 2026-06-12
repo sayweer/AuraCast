@@ -23,7 +23,7 @@ export default function NewsMarquee({ images, className }: NewsMarqueeProps) {
       )}
     >
       {/* Oversized rotated canvas so corners stay covered */}
-      <div className="absolute w-[150%] h-[170%] -left-[25%] -top-[35%] -rotate-12 opacity-30 flex justify-center gap-6">
+      <div className="absolute w-[150%] h-[170%] -left-[25%] -top-[35%] -rotate-12 opacity-55 flex justify-center gap-6">
         {COLUMN_STYLES.map((col, colIndex) => {
           // Offset each column's starting image so neighbours never repeat side by side
           const rotated = images.map(
@@ -48,7 +48,7 @@ export default function NewsMarquee({ images, className }: NewsMarqueeProps) {
                   height={750}
                   loading="lazy"
                   decoding="async"
-                  className="w-44 sm:w-56 rounded-md sepia-[0.25]"
+                  className="w-44 sm:w-56 rounded-md sepia-[0.1]"
                 />
               ))}
             </div>
@@ -60,7 +60,7 @@ export default function NewsMarquee({ images, className }: NewsMarqueeProps) {
       <div className="absolute inset-0 bg-gradient-to-b from-aura-cream via-transparent to-aura-cream" />
       <div className="absolute inset-0 bg-gradient-to-r from-aura-cream via-transparent to-aura-cream" />
       {/* Central wash behind the masthead so type stays legible */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_45%,#EEE0CC_0%,rgba(238,224,204,0.6)_45%,transparent_75%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_45%,rgba(238,224,204,0.75)_0%,rgba(238,224,204,0.4)_45%,transparent_75%)]" />
     </div>
   )
 }
