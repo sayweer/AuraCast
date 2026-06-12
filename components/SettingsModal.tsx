@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, Trash2 } from 'lucide-react';
+import { AlertCircle, Loader2, ShieldCheck, X, Trash2 } from 'lucide-react';
+import { VoiceLicenseBadge } from '@/components/ui/voice-license-badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -24,6 +25,10 @@ interface SettingsModalProps {
   onDeleteVoice: () => Promise<void>;
   statsLoading: boolean;
   getAuthHeaders: (walletAddr: string, forceRefresh?: boolean) => Promise<Record<string, string>>;
+  nftMint: string | null;
+  onActivateLicense: () => void;
+  mintingLicense: boolean;
+  licenseError: string | null;
 }
 
 export default function SettingsModal({
@@ -43,8 +48,12 @@ export default function SettingsModal({
   onDeleteVoice,
   statsLoading,
   getAuthHeaders,
+  nftMint,
+  onActivateLicense,
+  mintingLicense,
+  licenseError,
 }: SettingsModalProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [newPrice, setNewPrice] = useState(selectedPrice);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -190,6 +199,44 @@ export default function SettingsModal({
             <p className="text-xs text-muted-foreground">
               {t('settings.permanentRemoveWarn')}
             </p>
+          </div>
+
+          {/* Voice License Section */}
+          <div className="space-y-3 pb-4 border-b border-border">
+            <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-[0.25em]">{t('license.title')}</h3>
+            {nftMint ? (
+              <VoiceLicenseBadge
+                href={`https://solscan.io/account/${nftMint}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'mainnet-beta' ? '' : '?cluster=devnet'}`}
+                language={language as 'tr' | 'en'}
+              />
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">{t('license.activateDesc')}</p>
+                <Button
+                  onClick={onActivateLicense}
+                  disabled={mintingLicense}
+                  className="w-full bg-primary hover:bg-secondary text-primary-foreground font-semibold flex items-center gap-2"
+                >
+                  {mintingLicense ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {t('license.minting')}
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-4 h-4" />
+                      {t('license.activateButton')}
+                    </>
+                  )}
+                </Button>
+                {licenseError && (
+                  <div className="flex items-start gap-2 bg-rose-600/5 border border-rose-600/20 px-3 py-2 rounded-lg text-rose-700/90 text-xs">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+                    <span>{licenseError}</span>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Brand Safety Filters Section */}

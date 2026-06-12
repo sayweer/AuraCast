@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { BorderBeam } from '@/components/ui/border-beam';
 import { Dock } from '@/components/ui/dock-two';
-import { VoiceLicenseBadge } from '@/components/ui/voice-license-badge';
 import { BrandLogo } from '@/components/BrandLogo';
 import {
   Copy,
@@ -31,8 +30,6 @@ import {
   Volume2,
   Loader2,
   HelpCircle,
-  ShieldCheck,
-  ExternalLink
 } from 'lucide-react';
 import type { RecentPurchaseRow } from '@/types';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -75,9 +72,6 @@ interface DashboardProps {
   onOpenSettings: () => void;
   onCopyLink: () => void;
   getAuthHeaders: (walletAddr: string, forceRefresh?: boolean) => Promise<Record<string, string>>;
-  onActivateLicense: () => void;
-  mintingLicense: boolean;
-  licenseError: string | null;
 }
 
 export default function Dashboard({
@@ -88,9 +82,6 @@ export default function Dashboard({
   onOpenSettings,
   onCopyLink,
   getAuthHeaders,
-  onActivateLicense,
-  mintingLicense,
-  licenseError,
 }: DashboardProps) {
   const { t, language } = useLanguage();
   const [tab, setTab] = useState<DashboardTab>('overview');
@@ -383,54 +374,6 @@ export default function Dashboard({
                 </Card>
               </motion.div>
             </motion.div>
-
-            {/* Voice License Card */}
-            {creatorStats?.nftMint ? (
-              <div className="flex justify-center py-1">
-                <VoiceLicenseBadge
-                  href={`https://solscan.io/account/${creatorStats.nftMint}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'mainnet-beta' ? '' : '?cluster=devnet'}`}
-                  language={language}
-                />
-              </div>
-            ) : (
-              <Card className="relative overflow-hidden bg-card border-primary/30 p-6">
-                <BorderBeam lightColor="#D53E0F" lightWidth={200} duration={11} />
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                      <ShieldCheck className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-base font-bold">{t('license.activateTitle')}</p>
-                      <p className="text-sm text-muted-foreground max-w-md">{t('license.activateDesc')}</p>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={onActivateLicense}
-                    disabled={mintingLicense}
-                    className="bg-primary hover:bg-secondary text-primary-foreground font-semibold flex items-center gap-2 shrink-0"
-                  >
-                    {mintingLicense ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        {t('license.minting')}
-                      </>
-                    ) : (
-                      <>
-                        <ShieldCheck className="w-4 h-4" />
-                        {t('license.activateButton')}
-                      </>
-                    )}
-                  </Button>
-                </div>
-                {licenseError && (
-                  <div className="mt-4 flex items-start gap-2 bg-rose-600/5 border border-rose-600/20 px-3 py-2 rounded-lg text-rose-700/90 text-xs">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
-                    <span>{licenseError}</span>
-                  </div>
-                )}
-              </Card>
-            )}
 
             {/* Fan Page URL Card */}
             <Card className="bg-card border-border p-6 space-y-4">

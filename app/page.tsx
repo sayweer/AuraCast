@@ -478,9 +478,6 @@ export default function App() {
           onOpenSettings={() => setSettingsOpen(true)}
           onCopyLink={handleCopyLink}
           getAuthHeaders={getAuthHeaders}
-          onActivateLicense={handleActivateLicense}
-          mintingLicense={mintingLicense}
-          licenseError={licenseError}
         />
       )}
       </motion.div>
@@ -518,6 +515,10 @@ export default function App() {
         onDeleteVoice={handleDeleteVoice}
         statsLoading={statsLoading}
         getAuthHeaders={getAuthHeaders}
+        nftMint={creatorStats?.nftMint ?? null}
+        onActivateLicense={handleActivateLicense}
+        mintingLicense={mintingLicense}
+        licenseError={licenseError}
       />
     </div>
     </MotionConfig>
