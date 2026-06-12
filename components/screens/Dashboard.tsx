@@ -6,13 +6,17 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { BorderBeam } from '@/components/ui/border-beam';
-import { WavePath } from '@/components/ui/wave-path';
+import { Dock } from '@/components/ui/dock-two';
 import { BrandLogo } from '@/components/BrandLogo';
 import {
   Copy,
   Check,
   Settings,
   TrendingUp,
+  LayoutDashboard,
+  BarChart3,
+  MessageSquare,
+  Coins,
   Play,
   Pause,
   Search,
@@ -54,6 +58,8 @@ const staggerItem = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
 }
 
+const PAGE_SIZE = 10
+
 interface DashboardProps {
   walletAddress: string;
   creatorStats: {
@@ -92,6 +98,8 @@ export default function Dashboard({
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'rejected'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [solUsd, setSolUsd] = useState<number | null>(null);
 
   // Audio Player State
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -139,6 +147,7 @@ export default function Dashboard({
       }
       const json = await res.json();
       setPurchases(json.recent ?? []);
+      setPage(1);
     } catch (err: any) {
       console.error('[Dashboard] Error fetching purchases:', err);
       setError(err.message || t('dashboard.errorLoading'));
@@ -162,6 +171,23 @@ export default function Dashboard({
       }
     };
   }, []);
+
+  useEffect(() => {
+    let ignore = false;
+    fetch('/api/sol-price')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!ignore && typeof json?.usd === 'number') setSolUsd(json.usd);
+      })
+      .catch(() => {});
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, searchTerm]);
 
   const playAudio = (purchaseId: string, base64Audio: string) => {
     if (playingId === purchaseId) {
@@ -236,6 +262,10 @@ export default function Dashboard({
     return true;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredPurchases.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedPurchases = filteredPurchases.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
   const fanPageUrl = walletAddress
     ? `https://auracast-murex.vercel.app/fan/${walletAddress}`
@@ -247,45 +277,40 @@ export default function Dashboard({
   const xShareUrl = fanPageUrl
     ? `https://x.com/intent/post?text=${shareText}`
     : '#'
+  const linkedInShareUrl = fanPageUrl
+    ? `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(fanPageUrl)}`
+    : '#'
+
+  const dockItems = [
+    { id: 'overview', icon: LayoutDashboard, label: t('dashboard.overviewTab'), onClick: () => setTab('overview') },
+    { id: 'analytics', icon: BarChart3, label: t('dashboard.analyticsTab'), onClick: () => setTab('analytics') },
+    { id: 'messages', icon: MessageSquare, label: t('dashboard.messagesTab'), onClick: () => setTab('messages') },
+  ]
 
   return (
-    <div className="min-h-screen pb-12">
-      {/* Nav Bar */}
-      <div className="border-b-2 border-ember-3/30 bg-background/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="border-b border-ember-3/15 mb-0.5">
+    <div className="theme-paper min-h-screen pb-12 bg-background text-foreground">
+      {/* Olive header band: nav + dock */}
+      <header className="sticky top-0 z-10 bg-aura-olive text-aura-cream border-b border-aura-night/15 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <BrandLogo variant="dark" />
+          <BrandLogo variant="cream" />
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-3 h-3 rounded-full bg-ember-3"></div>
+            <div className="flex items-center gap-2 text-sm text-aura-cream/80">
+              <div className="w-3 h-3 rounded-full bg-aura-cream/90"></div>
               <span>{truncatedAddress}</span>
             </div>
             <LanguageToggle />
             <button
               onClick={onOpenSettings}
-              className="p-2 hover:bg-primary/10 rounded-lg transition-colors"
+              className="p-2 hover:bg-aura-cream/15 rounded-lg transition-colors"
             >
-              <Settings className="w-5 h-5 text-primary" />
+              <Settings className="w-5 h-5 text-aura-cream" />
             </button>
           </div>
         </div>
+        <div className="max-w-6xl mx-auto px-4 pb-3 flex justify-center">
+          <Dock items={dockItems} activeId={tab} />
         </div>
-      </div>
-
-      {/* Tab Bar */}
-      <div className="border-b border-border bg-background/30">
-        <div className="max-w-6xl mx-auto px-4 flex gap-6">
-          <TabButton active={tab === 'overview'} onClick={() => setTab('overview')}>
-            {t('dashboard.overviewTab')}
-          </TabButton>
-          <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')}>
-            {t('dashboard.analyticsTab')}
-          </TabButton>
-          <TabButton active={tab === 'messages'} onClick={() => setTab('messages')}>
-            {t('dashboard.messagesTab')}
-          </TabButton>
-        </div>
-      </div>
+      </header>
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -312,61 +337,65 @@ export default function Dashboard({
               animate="visible"
             >
               {/* Total Earned */}
-              <motion.div variants={staggerItem} className="md:col-span-2">
-                <Card className="relative overflow-hidden bg-card border-border p-6 space-y-4 h-full">
+              <motion.div variants={staggerItem}>
+                <Card className="relative overflow-hidden bg-card border-border p-6 space-y-2 h-full">
                   <BorderBeam lightColor="#D53E0F" lightWidth={250} duration={9} />
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground mb-2">{t('dashboard.totalEarned')}</p>
-                      <h3 className="font-display text-4xl font-bold ember-text-gradient">
+                      <h3 className="font-display text-4xl font-bold text-primary">
                         {((creatorStats?.totalEarned ?? 0) / 1e9).toFixed(2)} SOL
                       </h3>
                       <p className="text-muted-foreground text-sm mt-1">
-                        ≈ ${(((creatorStats?.totalEarned ?? 0) / 1e9) * 150).toFixed(0)} USD
+                        ≈ ${(((creatorStats?.totalEarned ?? 0) / 1e9) * (solUsd ?? 150)).toFixed(0)} USD
                       </p>
                     </div>
-                    <TrendingUp className="w-8 h-8 text-ember-3" />
+                    <TrendingUp className="w-6 h-6 text-aura-terracotta" />
                   </div>
                 </Card>
               </motion.div>
 
               {/* Messages Generated */}
               <motion.div variants={staggerItem}>
-                <Card className="bg-card border-border p-6 space-y-4 h-full">
+                <Card className="bg-card border-border p-6 space-y-2 h-full">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground mb-2">{t('dashboard.messagesGenerated')}</p>
                       <h3 className="font-display text-4xl font-bold">{creatorStats?.totalMessages ?? 0}</h3>
                       <p className="text-muted-foreground text-sm mt-1">{t('dashboard.allTimeRequests')}</p>
                     </div>
+                    <MessageSquare className="w-6 h-6 text-aura-terracotta" />
                   </div>
                 </Card>
               </motion.div>
 
               {/* Price Per 150 Chars */}
-              <motion.div variants={staggerItem} className="md:col-span-3 lg:col-span-1">
+              <motion.div variants={staggerItem}>
                 <Card className="bg-card border-border p-6 space-y-2 h-full">
-                  <p className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground">{t('dashboard.pricePer150')}</p>
-                  <h3 className="font-display text-4xl font-bold">{priceInSol} SOL</h3>
-                  <p className="text-muted-foreground text-sm mt-1">{t('dashboard.currentRate')}</p>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground mb-2">{t('dashboard.pricePer150')}</p>
+                      <h3 className="font-display text-4xl font-bold">{priceInSol} SOL</h3>
+                      <p className="text-muted-foreground text-sm mt-1">{t('dashboard.currentRate')}</p>
+                    </div>
+                    <Coins className="w-6 h-6 text-aura-terracotta" />
+                  </div>
                 </Card>
               </motion.div>
             </motion.div>
-
-            <WavePath className="my-2 text-ember-3/40" />
 
             {/* Voice License Card */}
             {creatorStats?.nftMint ? (
               <Card className="bg-card border-border p-6">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                      <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                    <div className="w-11 h-11 rounded-xl bg-emerald-600/10 border border-emerald-600/25 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-6 h-6 text-emerald-700" />
                     </div>
                     <div>
                       <p className="text-base font-bold flex items-center gap-2">
                         {t('license.licensedTitle')}
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
                       </p>
                       <p className="text-sm text-muted-foreground">{t('license.licensedDesc')}</p>
                     </div>
@@ -384,7 +413,7 @@ export default function Dashboard({
               </Card>
             ) : (
               <Card className="relative overflow-hidden bg-card border-primary/30 p-6">
-                <BorderBeam lightColor="#EED9B9" lightWidth={200} duration={11} />
+                <BorderBeam lightColor="#D53E0F" lightWidth={200} duration={11} />
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
@@ -414,8 +443,8 @@ export default function Dashboard({
                   </Button>
                 </div>
                 {licenseError && (
-                  <div className="mt-4 flex items-start gap-2 bg-rose-500/5 border border-rose-500/20 px-3 py-2 rounded-lg text-rose-300/90 text-xs">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                  <div className="mt-4 flex items-start gap-2 bg-rose-600/5 border border-rose-600/20 px-3 py-2 rounded-lg text-rose-700/90 text-xs">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
                     <span>{licenseError}</span>
                   </div>
                 )}
@@ -436,7 +465,7 @@ export default function Dashboard({
                   value={fanPageUrl}
                   readOnly
                   placeholder={language === 'tr' ? 'Cüzdanınızı bağlayarak fan sayfası linkinizi alın' : 'Connect wallet to get your fan page link'}
-                  className="w-full bg-black/40 border border-border rounded-lg px-4 py-2.5 text-sm font-mono text-muted-foreground focus:outline-none"
+                  className="w-full bg-black/5 border border-border rounded-lg px-4 py-2.5 text-sm font-mono text-muted-foreground focus:outline-none"
                 />
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -463,10 +492,22 @@ export default function Dashboard({
                     href={xShareUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg text-xs font-semibold hover:bg-neutral-800 transition-colors border border-white/10"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg text-xs font-semibold hover:bg-neutral-800 transition-colors"
                   >
                     <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                    {t('dashboard.share')}
+                  </a>
+
+                  <a
+                    href={linkedInShareUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#0A66C2] text-white rounded-lg text-xs font-semibold hover:bg-[#004182] transition-colors"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zM7.119 20.452H3.555V9h3.564v11.452z" />
                     </svg>
                     {t('dashboard.share')}
                   </a>
@@ -492,13 +533,13 @@ export default function Dashboard({
                   {t('dashboard.receivedDesc')}
                 </p>
               </div>
-              <span aria-hidden="true" className="hidden md:block h-px flex-1 bg-ember-3/20" />
+              <span aria-hidden="true" className="hidden md:block h-px flex-1 bg-aura-night/15" />
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => fetchPurchases()}
                 disabled={loading}
-                className="flex items-center gap-2 border-border bg-card/40 text-foreground hover:bg-white/10 transition-all"
+                className="flex items-center gap-2 border-border bg-card/40 text-foreground hover:bg-black/5 transition-all"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 {t('dashboard.refresh')}
@@ -531,12 +572,10 @@ export default function Dashboard({
                   placeholder={t('dashboard.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-black/40 border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
+                  className="w-full bg-black/5 border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
                 />
               </div>
             </div>
-
-            <WavePath className="my-2 text-ember-3/30" />
 
             {/* Messages Container */}
             {loading && purchases.length === 0 ? (
@@ -545,13 +584,13 @@ export default function Dashboard({
                 <p className="text-sm font-medium">{t('dashboard.loadingMessages')}</p>
               </div>
             ) : error ? (
-              <div className="flex flex-col items-center justify-center py-16 text-rose-400 space-y-4 border border-rose-500/25 bg-rose-500/5 rounded-xl backdrop-blur-sm">
+              <div className="flex flex-col items-center justify-center py-16 text-rose-700 space-y-4 border border-rose-600/30 bg-rose-600/5 rounded-xl backdrop-blur-sm">
                 <AlertCircle className="w-10 h-10" />
                 <p className="text-sm font-medium">{error}</p>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-rose-500/30 hover:bg-rose-500/10 text-rose-300"
+                  className="border-rose-600/40 hover:bg-rose-600/10 text-rose-700"
                   onClick={() => fetchPurchases()}
                 >
                   {t('dashboard.retry')}
@@ -568,25 +607,69 @@ export default function Dashboard({
                 </p>
               </div>
             ) : (
-              <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-              >
-                {filteredPurchases.map((p) => (
-                  <motion.div key={p.id} variants={staggerItem}>
-                    <MessageCard
-                      purchase={p}
-                      isPlaying={playingId === p.id && isPlaying}
-                      currentTime={playingId === p.id ? currentTime : 0}
-                      duration={playingId === p.id ? duration : 0}
-                      onPlay={() => p.audio_url && playAudio(p.id, p.audio_url)}
-                      onSeek={handleSeek}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
+              <>
+                <motion.div
+                  key={`messages-page-${currentPage}`}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {pagedPurchases.map((p) => (
+                    <motion.div key={p.id} variants={staggerItem}>
+                      <MessageCard
+                        purchase={p}
+                        isPlaying={playingId === p.id && isPlaying}
+                        currentTime={playingId === p.id ? currentTime : 0}
+                        duration={playingId === p.id ? duration : 0}
+                        onPlay={() => p.audio_url && playAudio(p.id, p.audio_url)}
+                        onSeek={handleSeek}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="space-y-2 pt-2">
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === 1}
+                        onClick={() => setPage(currentPage - 1)}
+                      >
+                        {t('dashboard.pagePrev')}
+                      </Button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => setPage(n)}
+                          className={
+                            'w-8 h-8 rounded-lg text-xs font-semibold border transition-all ' +
+                            (n === currentPage
+                              ? 'bg-primary border-primary text-primary-foreground'
+                              : 'bg-card border-border text-muted-foreground hover:text-foreground hover:bg-black/5')
+                          }
+                        >
+                          {n}
+                        </button>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setPage(currentPage + 1)}
+                      >
+                        {t('dashboard.pageNext')}
+                      </Button>
+                    </div>
+                    <p className="text-center text-xs text-muted-foreground">
+                      {t('dashboard.pageInfo', { current: currentPage, total: totalPages })}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
@@ -596,33 +679,6 @@ export default function Dashboard({
       </div>
     </div>
   );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={
-        'relative py-3 font-display text-xs uppercase tracking-[0.2em] font-medium transition-colors ' +
-        (active
-          ? 'text-foreground'
-          : 'text-muted-foreground hover:text-foreground')
-      }
-    >
-      {children}
-      {active && (
-        <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-primary rounded-full" />
-      )}
-    </button>
-  )
 }
 
 function formatDate(iso: string, lang: string): string {
@@ -638,13 +694,13 @@ function formatDate(iso: string, lang: string): string {
 function statusIcon(status: string) {
   switch (status) {
     case 'completed':
-      return <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+      return <CheckCircle2 className="w-4 h-4 text-emerald-600" />
     case 'rejected':
-      return <XCircle className="w-4 h-4 text-rose-400" />
+      return <XCircle className="w-4 h-4 text-rose-600" />
     case 'refunded':
-      return <HelpCircle className="w-4 h-4 text-amber-400" />
+      return <HelpCircle className="w-4 h-4 text-amber-600" />
     default:
-      return <Clock className="w-4 h-4 text-sky-400 animate-pulse" />
+      return <Clock className="w-4 h-4 text-sky-600 animate-pulse" />
   }
 }
 
@@ -660,13 +716,13 @@ function statusLabel(status: string, t: any) {
 function statusClass(status: string) {
   switch (status) {
     case 'completed':
-      return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+      return 'bg-emerald-600/10 text-emerald-700 border-emerald-600/25'
     case 'rejected':
-      return 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+      return 'bg-rose-600/10 text-rose-700 border-rose-600/25'
     case 'refunded':
-      return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+      return 'bg-amber-500/15 text-amber-700 border-amber-600/25'
     default:
-      return 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+      return 'bg-sky-600/10 text-sky-700 border-sky-600/25'
   }
 }
 
@@ -692,7 +748,7 @@ function FilterButton({
         'px-4 py-1.5 rounded-lg text-xs font-semibold border transition-all whitespace-nowrap ' +
         (active
           ? 'bg-primary border-primary text-primary-foreground shadow-md shadow-primary/20 scale-105'
-          : 'bg-black/25 border-border text-muted-foreground hover:text-foreground hover:bg-white/5')
+          : 'bg-black/5 border-border text-muted-foreground hover:text-foreground hover:bg-black/10')
       }
     >
       {children}
@@ -742,7 +798,7 @@ function MessageCard({
 
       {/* Message content */}
       <div className="flex-1">
-        <p className="italic font-serif text-sm text-foreground/90 pl-3 border-l-2 border-primary/30 py-1.5 bg-black/20 rounded-r-lg pr-3 leading-relaxed">
+        <p className="italic font-serif text-sm text-foreground/90 pl-3 border-l-2 border-primary/30 py-1.5 bg-black/5 rounded-r-lg pr-3 leading-relaxed">
           "{purchase.fan_text || (language === 'tr' ? 'Metin yok' : 'No text')}"
         </p>
       </div>
@@ -763,7 +819,7 @@ function MessageCard({
 
         {/* Audio Player Row or Status Notification */}
         {purchase.status === 'completed' && purchase.audio_url ? (
-          <div className="flex items-center gap-3 bg-black/35 px-3 py-2 rounded-lg border border-border/50">
+          <div className="flex items-center gap-3 bg-black/5 px-3 py-2 rounded-lg border border-border/50">
             {/* Play/Pause Button */}
             <button
               onClick={onPlay}
@@ -784,7 +840,7 @@ function MessageCard({
                 max={duration || 100}
                 value={currentTime}
                 onChange={onSeek}
-                className="w-full accent-primary h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                className="w-full accent-primary h-1 bg-black/15 rounded-lg appearance-none cursor-pointer"
               />
               <div className="flex justify-between text-[9px] text-muted-foreground/80 font-mono">
                 <span>{formatPlayerTime(currentTime)}</span>
@@ -793,21 +849,21 @@ function MessageCard({
             </div>
           </div>
         ) : purchase.status === 'rejected' ? (
-          <div className="flex items-start gap-2 bg-rose-500/5 border border-rose-500/20 px-3 py-2 rounded-lg text-rose-300/90 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+          <div className="flex items-start gap-2 bg-rose-600/5 border border-rose-600/20 px-3 py-2 rounded-lg text-rose-700/90 text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
             <div className="flex-1">
-              <span className="font-semibold block text-rose-400">{t('messageCard.moderationBlocked')}</span>
+              <span className="font-semibold block text-rose-600">{t('messageCard.moderationBlocked')}</span>
               <span className="italic">{purchase.rejection_reason || (language === 'tr' ? 'Güvenlik filtrelerine takıldı.' : 'Blocked by safety filters.')}</span>
             </div>
           </div>
         ) : purchase.status === 'pending' ? (
-          <div className="flex items-center gap-2 bg-sky-500/5 border border-sky-500/10 px-3 py-2 rounded-lg text-sky-300 text-xs">
-            <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin text-sky-400" />
+          <div className="flex items-center gap-2 bg-sky-600/5 border border-sky-600/15 px-3 py-2 rounded-lg text-sky-700 text-xs">
+            <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin text-sky-600" />
             <span>{t('messageCard.generatingVoiceDesc')}</span>
           </div>
         ) : purchase.status === 'refunded' ? (
-          <div className="flex items-center gap-2 bg-amber-500/5 border border-amber-500/10 px-3 py-2 rounded-lg text-amber-300 text-xs">
-            <HelpCircle className="w-4 h-4 shrink-0 text-amber-400" />
+          <div className="flex items-center gap-2 bg-amber-600/5 border border-amber-600/15 px-3 py-2 rounded-lg text-amber-700 text-xs">
+            <HelpCircle className="w-4 h-4 shrink-0 text-amber-600" />
             <span>{t('messageCard.refundedDesc')}</span>
           </div>
         ) : null}

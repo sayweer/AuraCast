@@ -63,6 +63,29 @@
   --ember-4: #EED9B9;
 }
 
+/* ── Paper theme (dashboard scope) — cream/newspaper light palette ── */
+.theme-paper {
+  --background: #F6EDDD;
+  --foreground: #2A0E0E;
+  --card: #FFFCF5;
+  --card-foreground: #2A0E0E;
+  --popover: #FFFCF5;
+  --popover-foreground: #2A0E0E;
+  --primary: #9B0F06;
+  --primary-foreground: #F6EDDD;
+  --secondary: #7B2525;
+  --secondary-foreground: #F6EDDD;
+  --muted: rgba(123, 37, 37, 0.08);
+  --muted-foreground: #6F4E3D;
+  --accent: rgba(213, 62, 15, 0.12);
+  --accent-foreground: #7B2525;
+  --destructive: #B91C1C;
+  --destructive-foreground: #ffffff;
+  --border: rgba(42, 14, 14, 0.15);
+  --input: rgba(255, 252, 245, 0.9);
+  --ring: #D53E0F;
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

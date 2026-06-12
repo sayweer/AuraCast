@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils'
 
 interface BrandLogoProps {
-  variant?: 'light' | 'dark'
+  variant?: 'light' | 'dark' | 'cream'
   withWordmark?: boolean
   href?: string | null
   className?: string
@@ -22,14 +22,22 @@ export function BrandLogo({
         alt="AuraCast"
         className={cn(
           'h-9 w-9 rounded-lg border',
-          variant === 'light' ? 'border-aura-burgundy/20' : 'border-ember-3/30'
+          variant === 'light'
+            ? 'border-aura-burgundy/20'
+            : variant === 'cream'
+              ? 'border-aura-cream/30'
+              : 'border-ember-3/30'
         )}
       />
       {withWordmark && (
         <span
           className={cn(
             'font-display text-xl font-bold tracking-tight',
-            variant === 'light' ? 'text-aura-burgundy' : 'ember-text-gradient'
+            variant === 'light'
+              ? 'text-aura-burgundy'
+              : variant === 'cream'
+                ? 'text-aura-cream'
+                : 'ember-text-gradient'
           )}
         >
           AuraCast

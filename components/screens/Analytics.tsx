@@ -14,7 +14,6 @@ import {
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { BorderBeam } from '@/components/ui/border-beam'
-import { WavePath } from '@/components/ui/wave-path'
 import { Download, Loader2, TrendingUp } from 'lucide-react'
 import type {
   AnalyticsRangeDays,
@@ -52,13 +51,13 @@ function formatDate(iso: string, lang: string): string {
 function statusBadgeClass(status: string): string {
   switch (status) {
     case 'completed':
-      return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25'
+      return 'bg-emerald-600/10 text-emerald-700 border-emerald-600/25'
     case 'rejected':
-      return 'bg-rose-500/15 text-rose-300 border-rose-500/25'
+      return 'bg-rose-600/10 text-rose-700 border-rose-600/25'
     case 'refunded':
-      return 'bg-amber-500/15 text-amber-300 border-amber-500/25'
+      return 'bg-amber-500/15 text-amber-700 border-amber-600/25'
     default:
-      return 'bg-zinc-500/15 text-zinc-300 border-zinc-500/25'
+      return 'bg-zinc-500/10 text-zinc-600 border-zinc-500/25'
   }
 }
 
@@ -202,8 +201,8 @@ export default function Analytics({ walletAddress, getAuthHeaders }: AnalyticsPr
       {loading && <SkeletonGrid />}
 
       {!loading && error && (
-        <Card className="bg-rose-500/10 border-rose-500/30 p-6">
-          <p className="text-sm text-rose-300">{error}</p>
+        <Card className="bg-rose-600/10 border-rose-600/30 p-6">
+          <p className="text-sm text-rose-700">{error}</p>
         </Card>
       )}
 
@@ -211,8 +210,7 @@ export default function Analytics({ walletAddress, getAuthHeaders }: AnalyticsPr
         <>
           <SummaryCards data={data} />
           <ChartCard data={data} days={days} />
-          <WavePath className="my-2 text-ember-3/40" />
-          <RecentTable rows={data.recent} />
+          <RecentTable rows={data.recent.slice(0, 25)} />
         </>
       )}
     </div>
@@ -317,11 +315,11 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
       <div className="h-80 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data.timeseries} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(238, 217, 185, 0.08)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(42, 14, 14, 0.10)" />
             <XAxis
               dataKey="date"
               tickFormatter={(d: string) => d.slice(5)}
-              stroke="#B5988A"
+              stroke="#6F4E3D"
               fontSize={12}
             />
             <YAxis
@@ -333,18 +331,19 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
             <YAxis
               yAxisId="right"
               orientation="right"
-              stroke="#EED9B9"
+              stroke="#607456"
               fontSize={12}
               allowDecimals={false}
             />
             <Tooltip
               contentStyle={{
-                background: '#1B0506',
-                border: '1px solid rgba(213, 62, 15, 0.30)',
+                background: '#FFFCF5',
+                border: '1px solid rgba(42, 14, 14, 0.15)',
                 borderRadius: 8,
                 fontSize: 12,
+                color: '#2A0E0E',
               }}
-              labelStyle={{ color: '#EED9B9' }}
+              labelStyle={{ color: '#2A0E0E' }}
               formatter={(value, name) => {
                 const localizedName = name === 'Net SOL' ? t('analytics.netSol') : (language === 'tr' ? 'Mesaj' : 'Messages')
                 if (name === 'Net SOL' && typeof value === 'number') {
@@ -371,7 +370,7 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
               type="monotone"
               dataKey="messages"
               name={language === 'tr' ? 'Mesaj' : 'Messages'}
-              stroke="#EED9B9"
+              stroke="#607456"
               strokeWidth={2}
               dot={false}
             />

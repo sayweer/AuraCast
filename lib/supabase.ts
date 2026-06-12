@@ -335,7 +335,7 @@ export async function getCreatorAnalytics(
     success_rate: decided > 0 ? totalCompleted / decided : 0,
   }
 
-  const recent: RecentPurchaseRow[] = rows.slice(0, 25).map((row) => ({
+  const recent: RecentPurchaseRow[] = rows.slice(0, 100).map((row) => ({
     id: row.id,
     buyer_wallet: row.buyer_wallet,
     amount_lamports: row.amount_lamports,
