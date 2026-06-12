@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { BorderBeam } from '@/components/ui/border-beam';
 import { Dock } from '@/components/ui/dock-two';
+import { VoiceLicenseBadge } from '@/components/ui/voice-license-badge';
 import { BrandLogo } from '@/components/BrandLogo';
 import {
   Copy,
@@ -385,31 +386,12 @@ export default function Dashboard({
 
             {/* Voice License Card */}
             {creatorStats?.nftMint ? (
-              <Card className="bg-card border-border p-6">
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-emerald-600/10 border border-emerald-600/25 flex items-center justify-center shrink-0">
-                      <ShieldCheck className="w-6 h-6 text-emerald-700" />
-                    </div>
-                    <div>
-                      <p className="text-base font-bold flex items-center gap-2">
-                        {t('license.licensedTitle')}
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                      </p>
-                      <p className="text-sm text-muted-foreground">{t('license.licensedDesc')}</p>
-                    </div>
-                  </div>
-                  <a
-                    href={`https://solscan.io/account/${creatorStats.nftMint}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'mainnet-beta' ? '' : '?cluster=devnet'}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
-                  >
-                    {t('license.viewOnExplorer')}
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
-              </Card>
+              <div className="flex justify-center py-1">
+                <VoiceLicenseBadge
+                  href={`https://solscan.io/account/${creatorStats.nftMint}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'mainnet-beta' ? '' : '?cluster=devnet'}`}
+                  language={language}
+                />
+              </div>
             ) : (
               <Card className="relative overflow-hidden bg-card border-primary/30 p-6">
                 <BorderBeam lightColor="#D53E0F" lightWidth={200} duration={11} />
