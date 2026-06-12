@@ -6,10 +6,10 @@ interface NewsMarqueeProps {
 }
 
 const COLUMN_STYLES = [
-  { animation: 'news-scroll-up 60s linear infinite', extra: '' },
-  { animation: 'news-scroll-down 72s linear infinite', extra: '' },
-  { animation: 'news-scroll-up 55s linear infinite', extra: 'hidden sm:flex' },
-  { animation: 'news-scroll-down 65s linear infinite', extra: 'hidden lg:flex' },
+  { animation: 'news-scroll-up 128s linear infinite', extra: '' },
+  { animation: 'news-scroll-down 153s linear infinite', extra: '' },
+  { animation: 'news-scroll-up 117s linear infinite', extra: 'hidden sm:flex' },
+  { animation: 'news-scroll-down 138s linear infinite', extra: 'hidden lg:flex' },
 ]
 
 /** Diagonal infinite-scrolling wall of newspaper front pages — pure CSS animation. */
