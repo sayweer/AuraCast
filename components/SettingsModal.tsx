@@ -181,7 +181,7 @@ export default function SettingsModal({
               <Button
                 onClick={onRerecord}
                 variant="outline"
-                className="w-full border-aura-olive/45 text-aura-olive hover:bg-aura-olive/10 hover:text-aura-olive"
+                className="w-full border-aura-olive/70 bg-aura-olive/5 text-aura-olive hover:bg-aura-olive/15 hover:text-aura-olive"
               >
                 {t('settings.recordNewSample')}
               </Button>
@@ -193,7 +193,7 @@ export default function SettingsModal({
                   setIsDeleting(false)
                 }}
                 disabled={isDeleting}
-                className="w-full text-destructive text-sm font-medium hover:opacity-80 transition-opacity disabled:opacity-50"
+                className="w-full h-9 rounded-md border border-destructive/45 text-destructive text-sm font-medium hover:bg-destructive/5 transition-colors disabled:opacity-50"
               >
                 {isDeleting ? t('settings.deleting') : t('settings.deleteVoice')}
               </button>
@@ -375,7 +375,7 @@ export default function SettingsModal({
                   onClose();
                 }}
                 variant="outline"
-                className="w-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive bg-transparent"
+                className="w-full border-destructive/50 bg-card text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
                 {t('settings.disconnectWallet')}
               </Button>
