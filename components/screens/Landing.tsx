@@ -18,6 +18,7 @@ import {
 import { WalletButton } from '@/components/WalletButton'
 import { useLanguage } from '@/components/LanguageProvider'
 import LanguageToggle from '@/components/LanguageToggle'
+import { BrandLogo } from '@/components/BrandLogo'
 import NewsMarquee from '@/components/ui/news-marquee'
 import { GooeyText } from '@/components/ui/gooey-text-morphing'
 import DisplayCards from '@/components/ui/display-cards'
@@ -103,11 +104,7 @@ export default function Landing() {
 
         {/* Top bar */}
         <div className="relative z-10 flex items-center justify-between px-6 pt-6">
-          <img
-            src="/logo.jpg"
-            alt="AuraCast"
-            className="h-9 w-9 rounded-lg border border-aura-burgundy/20"
-          />
+          <BrandLogo variant="light" withWordmark={false} />
           <LanguageToggle className="!bg-aura-paper !text-aura-burgundy !border-aura-burgundy/20 !shadow-none hover:!bg-aura-paper/80" />
         </div>
 

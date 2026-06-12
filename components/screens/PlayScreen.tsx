@@ -20,6 +20,7 @@ import {
 import type { Purchase } from '@/types';
 import { useLanguage } from '@/components/LanguageProvider';
 import LanguageToggle from '@/components/LanguageToggle';
+import { BrandLogo } from '@/components/BrandLogo';
 import { downloadAudio } from '@/lib/audio-download';
 
 interface PlayScreenProps {
@@ -157,18 +158,19 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
 
   if (!purchase) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center bg-background text-foreground px-4 overflow-hidden">
-        {/* Background Neon Blobs */}
-        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-ember-2/15 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-ember-3/8 rounded-full blur-[100px] pointer-events-none" />
-        
-        <LanguageToggle className="absolute top-6 right-6" />
+      <div className="relative min-h-screen flex items-center justify-center bg-aura-cream text-aura-burgundy px-4 overflow-hidden">
+        {/* Background Blobs */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-aura-terracotta/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-aura-olive/10 rounded-full blur-[100px] pointer-events-none" />
+
+        <BrandLogo variant="light" href="/" withWordmark={false} className="absolute top-6 left-6" />
+        <LanguageToggle className="absolute top-6 right-6 !bg-aura-paper !text-aura-burgundy !border-aura-burgundy/20 !shadow-none hover:!bg-aura-paper/80" />
         <div className="text-center space-y-4 max-w-md relative z-10">
-          <h1 className="font-display text-3xl font-extrabold text-rose-500">{t('play.clipNotFound')}</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="font-display text-3xl font-extrabold text-aura-burgundy">{t('play.clipNotFound')}</h1>
+          <p className="text-aura-burgundy/60 text-sm">
             {t('play.clipNotFoundDesc')}
           </p>
-          <Link href="/" className="inline-block bg-primary text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-secondary transition-colors">
+          <Link href="/" className="inline-block bg-aura-burgundy text-aura-cream px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-aura-burgundy/85 transition-colors">
             {t('play.backToHome')}
           </Link>
         </div>
@@ -238,12 +240,13 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
   const finalCreatorName = creatorName || t('play.creatorDefault');
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4 py-16 overflow-hidden bg-background">
-      <LanguageToggle className="absolute top-6 right-6" />
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-16 overflow-hidden bg-aura-cream text-aura-burgundy">
+      <BrandLogo variant="light" href="/" withWordmark={false} className="absolute top-6 left-6" />
+      <LanguageToggle className="absolute top-6 right-6 !bg-aura-paper !text-aura-burgundy !border-aura-burgundy/20 !shadow-none hover:!bg-aura-paper/80" />
 
-      {/* Background Neon Blobs */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[100px] pointer-events-none" />
+      {/* Background Blobs */}
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-aura-terracotta/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-aura-olive/10 rounded-full blur-[100px] pointer-events-none" />
 
       <motion.div
         className="max-w-md w-full relative z-10 space-y-6"
@@ -253,27 +256,27 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
       >
         
         {/* Back Link */}
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
+        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-aura-burgundy/60 hover:text-aura-burgundy transition-colors">
           <ArrowLeft className="w-4 h-4" />
           {t('play.backToHome')}
         </Link>
 
         {/* Main Card */}
-        <Card className="bg-gradient-to-br from-card/90 to-card/50 backdrop-blur-md border-border/80 p-6 shadow-2xl space-y-6">
-          
+        <Card className="bg-aura-paper border-2 border-aura-burgundy/25 p-6 shadow-[0_8px_30px_rgba(123,37,37,0.18)] space-y-6">
+
           {/* Header */}
-          <div className="flex items-start justify-between border-b border-border/50 pb-4">
+          <div className="flex items-start justify-between border-b border-aura-burgundy/20 pb-4">
             <div className="space-y-1">
-              <h1 className="font-display text-xl font-bold text-foreground">{t('play.voiceClone')}</h1>
-              <p className="text-xs text-muted-foreground">
-                {t('play.creator')} <strong className="text-foreground">{finalCreatorName}</strong>
+              <h1 className="font-display text-xl font-bold text-aura-burgundy">{t('play.voiceClone')}</h1>
+              <p className="text-xs text-aura-burgundy/60">
+                {t('play.creator')} <strong className="text-aura-burgundy">{finalCreatorName}</strong>
               </p>
             </div>
             <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border flex items-center gap-1.5 ${
-              purchase.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-              purchase.status === 'rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
-              purchase.status === 'refunded' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-              'bg-sky-500/10 text-sky-400 border-sky-500/20'
+              purchase.status === 'completed' ? 'bg-emerald-600/10 text-emerald-700 border-emerald-600/25' :
+              purchase.status === 'rejected' ? 'bg-rose-600/10 text-rose-700 border-rose-600/25' :
+              purchase.status === 'refunded' ? 'bg-amber-600/10 text-amber-700 border-amber-600/25' :
+              'bg-sky-600/10 text-sky-700 border-sky-600/25'
             }`}>
               {purchase.status === 'completed' && <CheckCircle2 className="w-3.5 h-3.5" />}
               {purchase.status === 'rejected' && <XCircle className="w-3.5 h-3.5" />}
@@ -285,16 +288,16 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
 
           {/* Waveform Visualization area */}
           {purchase.status === 'completed' && purchase.audio_url && (
-            <div className="h-28 bg-black/45 rounded-xl border border-border/50 flex items-center justify-center overflow-hidden relative shadow-inner">
+            <div className="h-28 bg-aura-night rounded-xl border border-aura-burgundy/30 flex items-center justify-center overflow-hidden relative shadow-inner">
               <canvas ref={canvasRef} width={400} height={100} className="w-full h-full" />
-              <Volume2 className={`absolute bottom-3 right-3 w-4 h-4 text-muted-foreground/60 ${isPlaying ? 'animate-bounce text-primary' : ''}`} />
+              <Volume2 className={`absolute bottom-3 right-3 w-4 h-4 text-aura-cream/60 ${isPlaying ? 'animate-bounce text-aura-terracotta' : ''}`} />
             </div>
           )}
 
           {/* Fan Text Message */}
           <div className="space-y-2">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{t('play.textSpoken')}</span>
-            <p className="italic font-serif text-sm text-foreground/90 pl-3.5 border-l-2 border-primary/30 py-2 bg-black/25 rounded-r-lg leading-relaxed">
+            <span className="font-display text-[10px] uppercase font-bold text-aura-burgundy/60 tracking-[0.25em]">{t('play.textSpoken')}</span>
+            <p className="italic font-serif text-sm text-aura-night/80 pl-3.5 border-l-2 border-aura-terracotta/50 py-2 bg-aura-cream/70 rounded-r-lg leading-relaxed">
               "{purchase.fan_text}"
             </p>
           </div>
@@ -302,10 +305,10 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
           {/* Audio Player Controls */}
           {purchase.status === 'completed' && purchase.audio_url ? (
             <div className="space-y-3">
-              <div className="flex items-center gap-4 bg-black/40 px-4 py-3 rounded-lg border border-border/60">
+              <div className="flex items-center gap-4 bg-aura-cream/70 px-4 py-3 rounded-lg border border-aura-burgundy/20">
                 <button
                   onClick={handlePlayToggle}
-                  className="w-10 h-10 flex items-center justify-center bg-primary hover:bg-secondary text-primary-foreground rounded-full transition-all shrink-0 active:scale-95 shadow-md shadow-primary/20"
+                  className="w-10 h-10 flex items-center justify-center bg-aura-burgundy hover:bg-aura-burgundy/85 text-aura-cream rounded-full transition-all shrink-0 active:scale-95 shadow-md shadow-aura-burgundy/20"
                 >
                   {isPlaying ? (
                     <Pause className="w-5 h-5 fill-current" />
@@ -320,9 +323,9 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
                     max={duration || 100}
                     value={currentTime}
                     onChange={handleSeek}
-                    className="w-full accent-primary h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                    className="w-full accent-aura-terracotta h-1 bg-aura-burgundy/15 rounded-lg appearance-none cursor-pointer"
                   />
-                  <div className="flex justify-between text-[10px] text-muted-foreground/80 font-mono">
+                  <div className="flex justify-between text-[10px] text-aura-burgundy/50 font-mono">
                     <span>{formatPlayerTime(currentTime)}</span>
                     <span>{formatPlayerTime(duration)}</span>
                   </div>
@@ -333,39 +336,34 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
                 <button
                   type="button"
                   onClick={handleDownload}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-150 border"
-                  style={{
-                    background: 'rgba(213,62,15,0.15)',
-                    borderColor: 'rgba(213,62,15,0.35)',
-                    color: '#EED9B9',
-                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-150 border bg-aura-terracotta/15 border-aura-terracotta/40 text-aura-burgundy hover:bg-aura-terracotta/25"
                 >
                   {t('fan.downloadAudio')}
                 </button>
               )}
               {downloadHint && (
-                <p className="text-xs text-muted-foreground leading-snug">
+                <p className="text-xs text-aura-burgundy/60 leading-snug">
                   {downloadHint}
                 </p>
               )}
             </div>
           ) : purchase.status === 'rejected' ? (
-            <div className="flex items-start gap-2.5 p-3.5 bg-rose-500/5 border border-rose-500/20 rounded-lg text-rose-300/90 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+            <div className="flex items-start gap-2.5 p-3.5 bg-rose-600/10 border border-rose-600/25 rounded-lg text-rose-700 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-700 mt-0.5" />
               <div>
-                <span className="font-bold block text-rose-400 mb-0.5">{t('play.statusRejectedReason')}</span>
+                <span className="font-bold block text-rose-700 mb-0.5">{t('play.statusRejectedReason')}</span>
                 <span className="italic">{purchase.rejection_reason || t('play.statusRejectedDesc')}</span>
               </div>
             </div>
           ) : purchase.status === 'pending' ? (
-            <div className="flex items-center gap-3 p-3.5 bg-sky-500/5 border border-sky-500/10 rounded-lg text-sky-300 text-xs">
-              <Clock className="w-4 h-4 text-sky-400 animate-pulse shrink-0" />
+            <div className="flex items-center gap-3 p-3.5 bg-sky-600/10 border border-sky-600/25 rounded-lg text-sky-700 text-xs">
+              <Clock className="w-4 h-4 text-sky-700 animate-pulse shrink-0" />
               <span>{t('play.statusPendingDesc')}</span>
             </div>
           ) : null}
 
           {/* Details footer */}
-          <div className="flex justify-between text-[10px] text-muted-foreground border-t border-border/40 pt-4 px-1">
+          <div className="flex justify-between text-[10px] text-aura-burgundy/60 border-t border-aura-burgundy/20 pt-4 px-1">
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
               {new Date(purchase.created_at).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -376,11 +374,11 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
         </Card>
 
         {/* CTA Card */}
-        <Card className="bg-card/40 border border-border/60 p-5 text-center space-y-3.5">
-          <p className="text-xs text-muted-foreground leading-relaxed">
+        <Card className="bg-aura-paper/70 border border-aura-burgundy/20 p-5 text-center space-y-3.5">
+          <p className="text-xs text-aura-burgundy/60 leading-relaxed">
             {t('play.ctaDesc')}
           </p>
-          <Link href="/" className="inline-block w-full bg-primary hover:bg-secondary text-primary-foreground text-xs font-semibold py-2.5 rounded-lg transition-colors">
+          <Link href="/" className="inline-block w-full bg-aura-burgundy hover:bg-aura-burgundy/85 text-aura-cream text-xs font-semibold py-2.5 rounded-lg transition-colors">
             {t('play.ctaButton')}
           </Link>
         </Card>

@@ -124,7 +124,7 @@ export default function SettingsModal({
         exit={{ opacity: 0, scale: 0.96 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
       >
-        <Card className="bg-card border-border w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto space-y-6">
+        <Card className="bg-card border-border border-t-2 border-t-ember-3/40 w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <h2 className="font-display text-xl font-bold">{t('settings.title')}</h2>
@@ -138,7 +138,7 @@ export default function SettingsModal({
 
           {/* Account Section */}
           <div className="space-y-3 pb-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('settings.account')}</h3>
+            <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-[0.25em]">{t('settings.account')}</h3>
             <Button
               onClick={() => {
                 onDisconnect();
@@ -153,7 +153,7 @@ export default function SettingsModal({
 
           {/* Voice Management Section */}
           <div className="space-y-3 pb-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('settings.voiceManagement')}</h3>
+            <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-[0.25em]">{t('settings.voiceManagement')}</h3>
             {voiceId ? (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 mb-3">
                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -194,7 +194,7 @@ export default function SettingsModal({
 
           {/* Brand Safety Filters Section */}
           <div className="space-y-4 pb-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('settings.brandSafety')}</h3>
+            <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-[0.25em]">{t('settings.brandSafety')}</h3>
             <p className="text-sm text-muted-foreground">
               {t('settings.brandSafetyDesc')}
             </p>
@@ -274,7 +274,7 @@ export default function SettingsModal({
 
           {/* Pricing Section */}
           <div className="space-y-3 pb-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('settings.pricing')}</h3>
+            <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-[0.25em]">{t('settings.pricing')}</h3>
             <label className="text-sm text-muted-foreground">{t('settings.pricePer150')}</label>
             <div className="flex gap-2 items-center">
               {statsLoading ? (

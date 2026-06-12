@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/card';
 import { Mic, ChevronRight, RotateCw } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
 import LanguageToggle from '@/components/LanguageToggle';
+import { BrandLogo } from '@/components/BrandLogo';
+import { WavePath } from '@/components/ui/wave-path';
 
 interface OnboardingProps {
   step: 1 | 2;
@@ -366,9 +368,10 @@ export default function Onboarding({
   return (
     <div className="min-h-screen flex flex-col">
       {/* Nav Bar */}
-      <div className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b-2 border-ember-3/30 bg-background/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="border-b border-ember-3/15 mb-0.5">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="font-display text-xl font-bold ember-text-gradient">🎙 AuraCast</h1>
+          <BrandLogo variant="dark" />
           <div className="flex items-center gap-3">
             <LanguageToggle />
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -376,6 +379,7 @@ export default function Onboarding({
               <span>{truncatedAddress}</span>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -389,7 +393,7 @@ export default function Onboarding({
           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step === 2 ? 'bg-primary text-primary-foreground' : 'bg-border text-muted-foreground'}`}>
             2
           </div>
-          <span className="text-sm text-muted-foreground ml-4">{t('onboarding.stepLabel', { step })}</span>
+          <span className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground ml-4">{t('onboarding.stepLabel', { step })}</span>
         </div>
       </div>
 
@@ -459,7 +463,7 @@ export default function Onboarding({
                   height={160}
                 />
                 {!isRecording && (
-                  <span className="absolute bottom-2 text-[10px] text-muted-foreground tracking-widest uppercase pointer-events-none">
+                  <span className="absolute bottom-2 font-display text-[10px] text-muted-foreground tracking-[0.25em] uppercase pointer-events-none">
                     {t('onboarding.visualizerReady')}
                   </span>
                 )}
@@ -549,14 +553,16 @@ export default function Onboarding({
               {t('onboarding.mostCreators')}
             </div>
 
+            <WavePath className="my-3 text-ember-3/30" />
+
             {/* Earnings Preview */}
             <div className="bg-[#1B0506] border border-ember-2/40 rounded-lg p-4 space-y-2">
               <p className="text-sm text-foreground">{t('onboarding.earningsPreview')}</p>
               <div className="space-y-1">
-                <p className="text-lg font-bold text-ember-3">
+                <p className="font-display text-lg font-bold text-ember-3">
                   {t('onboarding.perRequest')} {(selectedPrice * 2 * 0.9).toFixed(4)} SOL
                 </p>
-                <p className="text-lg font-bold text-ember-3">
+                <p className="font-display text-lg font-bold text-ember-3">
                   {t('onboarding.monthlyEstimate')} {(selectedPrice * 2 * 0.9 * 30 * 10).toFixed(2)} SOL
                 </p>
               </div>

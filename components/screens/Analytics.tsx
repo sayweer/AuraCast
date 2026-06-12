@@ -13,6 +13,8 @@ import {
 } from 'recharts'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { BorderBeam } from '@/components/ui/border-beam'
+import { WavePath } from '@/components/ui/wave-path'
 import { Download, Loader2, TrendingUp } from 'lucide-react'
 import type {
   AnalyticsRangeDays,
@@ -209,6 +211,7 @@ export default function Analytics({ walletAddress, getAuthHeaders }: AnalyticsPr
         <>
           <SummaryCards data={data} />
           <ChartCard data={data} days={days} />
+          <WavePath className="my-2 text-ember-3/40" />
           <RecentTable rows={data.recent} />
         </>
       )}
@@ -273,10 +276,10 @@ function SummaryCards({ data }: { data: AnalyticsResponse }) {
         <Card key={idx} className="bg-card border-border p-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-muted-foreground text-xs uppercase tracking-wide mb-2">
+              <p className="font-display text-muted-foreground text-xs uppercase tracking-[0.25em] mb-2">
                 {c.label}
               </p>
-              <h3 className="text-2xl font-bold">{c.value}</h3>
+              <h3 className="font-display text-2xl font-bold">{c.value}</h3>
               <p className="text-muted-foreground text-xs mt-1">{c.sub}</p>
             </div>
             {idx === 0 && <TrendingUp className="w-5 h-5 text-primary" />}
@@ -306,7 +309,7 @@ function ChartCard({ data, days }: { data: AnalyticsResponse; days: AnalyticsRan
   return (
     <Card className="bg-card border-border p-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold">{t('analytics.activityOverTime')}</h3>
+        <h3 className="font-display text-lg font-semibold">{t('analytics.activityOverTime')}</h3>
         <p className="text-xs text-muted-foreground">
           {t('analytics.activityDesc')}
         </p>
@@ -390,12 +393,13 @@ function RecentTable({ rows }: { rows: RecentPurchaseRow[] }) {
   }
 
   return (
-    <Card className="bg-card border-border p-6">
-      <h3 className="text-lg font-semibold mb-4">{t('analytics.recentActivity')}</h3>
+    <Card className="relative overflow-hidden bg-card border-border p-6">
+      <BorderBeam lightColor="#D53E0F" lightWidth={250} duration={10} />
+      <h3 className="font-display text-lg font-semibold mb-4">{t('analytics.recentActivity')}</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-muted-foreground border-b border-border">
+            <tr className="text-left text-muted-foreground border-b border-border font-display text-xs uppercase tracking-[0.2em]">
               <th className="pb-2 pr-4 font-normal">{t('analytics.date')}</th>
               <th className="pb-2 pr-4 font-normal">{t('analytics.fan')}</th>
               <th className="pb-2 pr-4 font-normal text-right">{t('analytics.netSol')}</th>
