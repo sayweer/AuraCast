@@ -21,7 +21,7 @@ import {
   Pause,
   Search,
   RefreshCw,
-  Music,
+  AudioLines,
   AlertCircle,
   Calendar,
   CheckCircle2,
@@ -450,7 +450,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="font-display text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-                  <Music className="w-6 h-6 text-primary" />
+                  <AudioLines className="w-6 h-6 text-primary" />
                   {t('dashboard.receivedMessages')}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -522,7 +522,7 @@ export default function Dashboard({
               </div>
             ) : filteredPurchases.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-border/80 border-dashed rounded-xl bg-card/10 space-y-3">
-                <Music className="w-10 h-10 opacity-30 text-primary" />
+                <AudioLines className="w-10 h-10 opacity-30 text-primary" />
                 <p className="text-sm font-semibold text-foreground/80">{t('dashboard.notFound')}</p>
                 <p className="text-xs max-w-md text-center px-4">
                   {purchases.length === 0
