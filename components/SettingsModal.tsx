@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, Loader2, ShieldCheck, X, Trash2 } from 'lucide-react';
 import { VoiceLicenseBadge } from '@/components/ui/voice-license-badge';
 import { Button } from '@/components/ui/button';
+import { SlideButton } from '@/components/ui/slide-button';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/components/LanguageProvider';
 
@@ -55,7 +56,6 @@ export default function SettingsModal({
 }: SettingsModalProps) {
   const { t, language } = useLanguage();
   const [newPrice, setNewPrice] = useState(selectedPrice);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [priceError, setPriceError] = useState<string | null>(null);
   const [priceSuccess, setPriceSuccess] = useState(false);
@@ -178,24 +178,16 @@ export default function SettingsModal({
                   <span className="text-sm text-aura-burgundy font-medium">{t('settings.noVoiceClone')}</span>
                 </div>
               )}
-              <Button
-                onClick={onRerecord}
-                className="w-full bg-aura-olive hover:bg-aura-olive/90 text-aura-cream font-semibold"
-              >
-                {t('settings.recordNewSample')}
-              </Button>
-              <button
-                onClick={async () => {
-                  if (!confirm(t('settings.deleteConfirm'))) return
-                  setIsDeleting(true)
-                  await onDeleteVoice()
-                  setIsDeleting(false)
-                }}
-                disabled={isDeleting}
-                className="w-full h-9 rounded-md border border-destructive/60 text-destructive text-sm font-medium hover:bg-destructive/5 transition-colors disabled:opacity-50"
-              >
-                {isDeleting ? t('settings.deleting') : t('settings.deleteVoice')}
-              </button>
+              <SlideButton
+                label={t('settings.recordNewSample')}
+                color="olive"
+                onConfirm={onRerecord}
+              />
+              <SlideButton
+                label={t('settings.deleteVoice')}
+                color="burgundy"
+                onConfirm={onDeleteVoice}
+              />
               <p className="text-xs text-muted-foreground">
                 {t('settings.permanentRemoveWarn')}
               </p>
@@ -368,16 +360,14 @@ export default function SettingsModal({
               <h3 className="font-display text-xs font-semibold uppercase tracking-[0.25em] text-destructive">
                 {t('settings.account')}
               </h3>
-              <Button
-                onClick={() => {
+              <SlideButton
+                label={t('settings.disconnectWallet')}
+                color="burgundy"
+                onConfirm={() => {
                   onDisconnect();
                   onClose();
                 }}
-                variant="outline"
-                className="w-full border-destructive bg-card text-destructive font-semibold hover:bg-destructive/10 hover:text-destructive"
-              >
-                {t('settings.disconnectWallet')}
-              </Button>
+              />
             </div>
 
             {/* Footer */}
