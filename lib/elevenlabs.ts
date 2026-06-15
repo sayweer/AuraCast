@@ -1,5 +1,5 @@
 import type { GenerateSpeechOptions, GenerateSpeechResult } from '@/types'
-import { AuraCastError, ElevenLabsError, VoiceNotFoundError } from '@/lib/errors'
+import { VocliraError, ElevenLabsError, VoiceNotFoundError } from '@/lib/errors'
 
 const BASE_URL = 'https://api.elevenlabs.io/v1'
 
@@ -55,14 +55,14 @@ export async function cloneVoice(
     creatorName: string
 ): Promise<string> {
     if (audioBuffer.byteLength < MIN_SAMPLE_BYTES) {
-        throw new AuraCastError(
+        throw new VocliraError(
             'Ses örneği çok kısa — en az 60 saniyelik temiz bir kayıt yükleyin.',
             'SAMPLE_TOO_SHORT',
             400
         )
     }
     if (audioBuffer.byteLength > MAX_SAMPLE_BYTES) {
-        throw new AuraCastError(
+        throw new VocliraError(
             'Ses örneği çok büyük — en fazla 25 MB yükleyebilirsiniz.',
             'SAMPLE_TOO_LARGE',
             400
@@ -112,7 +112,7 @@ export async function verifyClonedVoice(voiceId: string, expectedName: string): 
         console.error(
             `[ElevenLabs] verifyClonedVoice name mismatch: expected="${expectedName}" got="${json.name}" voice_id=${voiceId}`
         )
-        throw new AuraCastError(
+        throw new VocliraError(
             'Voice clone verification failed',
             'VOICE_VERIFY_FAILED',
             502

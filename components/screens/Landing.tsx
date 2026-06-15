@@ -38,8 +38,8 @@ const item = {
 }
 
 const FEATURE_STACK_CLASSES = [
-  "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:rounded-xl before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-aura-cream/25 grayscale-[60%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0",
-  "[grid-area:stack] translate-x-16 translate-y-10 hover:-translate-y-1 before:absolute before:w-[100%] before:rounded-xl before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-aura-cream/25 grayscale-[60%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0",
+  "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:rounded-xl before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-voclira-cream/25 grayscale-[60%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0",
+  "[grid-area:stack] translate-x-16 translate-y-10 hover:-translate-y-1 before:absolute before:w-[100%] before:rounded-xl before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-voclira-cream/25 grayscale-[60%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0",
   '[grid-area:stack] translate-x-32 translate-y-20 hover:translate-y-10',
 ]
 
@@ -53,18 +53,18 @@ export default function Landing() {
   const features = [
     {
       key: 'cloning',
-      icon: <Mic className="size-4 text-aura-cream" />,
-      iconClassName: 'bg-aura-olive',
+      icon: <Mic className="size-4 text-voclira-cream" />,
+      iconClassName: 'bg-voclira-olive',
     },
     {
       key: 'income',
-      icon: <Coins className="size-4 text-aura-cream" />,
-      iconClassName: 'bg-aura-terracotta',
+      icon: <Coins className="size-4 text-voclira-cream" />,
+      iconClassName: 'bg-voclira-terracotta',
     },
     {
       key: 'licensing',
-      icon: <FileText className="size-4 text-aura-cream" />,
-      iconClassName: 'bg-aura-burgundy',
+      icon: <FileText className="size-4 text-voclira-cream" />,
+      iconClassName: 'bg-voclira-burgundy',
     },
   ]
 
@@ -97,7 +97,7 @@ export default function Landing() {
   }))
 
   return (
-    <div className="aura-landing relative min-h-screen bg-aura-cream text-aura-burgundy overflow-x-hidden">
+    <div className="voclira-landing relative min-h-screen bg-voclira-cream text-voclira-burgundy overflow-x-hidden">
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="relative flex min-h-screen flex-col">
         <NewsMarquee images={NEWS_IMAGES} />
@@ -105,7 +105,7 @@ export default function Landing() {
         {/* Top bar */}
         <div className="relative z-10 flex items-center justify-between px-6 pt-6">
           <BrandLogo variant="light" withWordmark={false} />
-          <LanguageToggle className="!bg-aura-paper !text-aura-burgundy !border-aura-burgundy/20 !shadow-none hover:!bg-aura-paper/80" />
+          <LanguageToggle className="!bg-voclira-paper !text-voclira-burgundy !border-voclira-burgundy/20 !shadow-none hover:!bg-voclira-paper/80" />
         </div>
 
         <motion.div
@@ -116,16 +116,16 @@ export default function Landing() {
         >
           {/* Masthead */}
           <motion.div variants={item} className="w-full max-w-3xl">
-            <div className="border-y-2 border-aura-burgundy/50 py-1">
-              <div className="border-y border-aura-burgundy/30 py-4">
+            <div className="border-y-2 border-voclira-burgundy/50 py-1">
+              <div className="border-y border-voclira-burgundy/30 py-4">
                 <h1 className="font-display font-black tracking-tight text-6xl sm:text-7xl md:text-8xl">
-                  AuraCast
+                  Voclira
                 </h1>
               </div>
             </div>
             <p
               lang={language}
-              className="mt-3 font-display text-sm uppercase tracking-[0.25em] text-aura-burgundy/70"
+              className="mt-3 font-display text-sm uppercase tracking-[0.25em] text-voclira-burgundy/70"
             >
               {t('landing.edition')}
             </p>
@@ -137,25 +137,25 @@ export default function Landing() {
               morphTime={1}
               cooldownTime={1.5}
               className="h-14 sm:h-20"
-              textClassName="font-display font-semibold text-4xl sm:text-6xl text-aura-terracotta whitespace-nowrap"
+              textClassName="font-display font-semibold text-4xl sm:text-6xl text-voclira-terracotta whitespace-nowrap"
             />
           </motion.div>
 
           <motion.p
             variants={item}
-            className="max-w-md italic text-aura-burgundy/80"
+            className="max-w-md italic text-voclira-burgundy/80"
           >
             {t('landing.heroTagline')}
           </motion.p>
 
           {/* CTA */}
           <motion.div variants={item} className="mt-4 flex flex-col items-center gap-3">
-            <div className="aura-ring">
+            <div className="voclira-ring">
               <span className="[&>button]:px-8 [&>button]:py-3.5 [&>button]:text-base">
                 <WalletButton />
               </span>
             </div>
-            <p className="text-xs text-aura-burgundy/60">{t('landing.ctaHint')}</p>
+            <p className="text-xs text-voclira-burgundy/60">{t('landing.ctaHint')}</p>
           </motion.div>
         </motion.div>
 
@@ -166,7 +166,7 @@ export default function Landing() {
             e.preventDefault()
             document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
           }}
-          className="absolute inset-x-0 bottom-6 z-10 flex flex-col items-center gap-1 text-aura-burgundy/60 transition-colors hover:text-aura-burgundy"
+          className="absolute inset-x-0 bottom-6 z-10 flex flex-col items-center gap-1 text-voclira-burgundy/60 transition-colors hover:text-voclira-burgundy"
         >
           <span className="text-[11px] uppercase tracking-[0.2em]">
             {t('landing.scrollCue')}
@@ -178,11 +178,11 @@ export default function Landing() {
       {/* ── Creator features ─────────────────────────────────── */}
       <section id="features" className="relative mx-auto max-w-5xl px-6 py-20">
         <header className="mb-12 flex items-center gap-4">
-          <span className="h-px flex-1 bg-aura-burgundy/30" />
+          <span className="h-px flex-1 bg-voclira-burgundy/30" />
           <h2 className="font-display text-sm font-semibold uppercase tracking-[0.25em]">
             {t('landing.features.title')}
           </h2>
-          <span className="h-px flex-1 bg-aura-burgundy/30" />
+          <span className="h-px flex-1 bg-voclira-burgundy/30" />
         </header>
 
         {/* Desktop: skewed stack */}
@@ -195,7 +195,7 @@ export default function Landing() {
           {featureCards.map((card) => (
             <div
               key={card.date}
-              className="flex flex-col gap-2 rounded-xl border border-aura-burgundy/15 bg-aura-paper/90 px-4 py-3"
+              className="flex flex-col gap-2 rounded-xl border border-voclira-burgundy/15 bg-voclira-paper/90 px-4 py-3"
             >
               <div className="flex items-center gap-2">
                 <span className={`relative inline-block rounded-full p-1.5 ${card.iconClassName}`}>
@@ -203,28 +203,28 @@ export default function Landing() {
                 </span>
                 <p className="text-lg font-medium">{card.title}</p>
               </div>
-              <p className="text-sm text-aura-burgundy/70">{card.description}</p>
-              <p className="text-xs uppercase tracking-wide text-aura-terracotta">{card.date}</p>
+              <p className="text-sm text-voclira-burgundy/70">{card.description}</p>
+              <p className="text-xs uppercase tracking-wide text-voclira-terracotta">{card.date}</p>
             </div>
           ))}
         </div>
 
         {/* Content-control footnote */}
-        <div className="mt-10 flex items-center justify-center gap-2 text-sm text-aura-burgundy/70">
-          <ShieldCheck className="size-4 shrink-0 text-aura-olive" />
+        <div className="mt-10 flex items-center justify-center gap-2 text-sm text-voclira-burgundy/70">
+          <ShieldCheck className="size-4 shrink-0 text-voclira-olive" />
           <p>{t('landing.features.control')}</p>
         </div>
       </section>
 
       {/* ── Use cases: night-edition orbital ─────────────────── */}
-      <section className="relative bg-aura-night py-20 text-aura-cream">
+      <section className="relative bg-voclira-night py-20 text-voclira-cream">
         <div className="mx-auto max-w-5xl px-6">
           <header className="mb-8 flex items-center gap-4">
-            <span className="h-px flex-1 bg-aura-cream/30" />
+            <span className="h-px flex-1 bg-voclira-cream/30" />
             <h2 className="font-display text-sm font-semibold uppercase tracking-[0.25em]">
               {t('landing.useCases.title')}
             </h2>
-            <span className="h-px flex-1 bg-aura-cream/30" />
+            <span className="h-px flex-1 bg-voclira-cream/30" />
           </header>
 
           {/* Desktop: orbiting use cases */}
@@ -233,14 +233,14 @@ export default function Landing() {
           </div>
 
           {/* Mobile: classified-ads grid */}
-          <div className="grid grid-cols-2 gap-px border border-aura-cream/20 bg-aura-cream/20 md:hidden">
+          <div className="grid grid-cols-2 gap-px border border-voclira-cream/20 bg-voclira-cream/20 md:hidden">
             {useCases.map(({ key, icon: Icon }) => (
-              <div key={key} className="bg-aura-night p-5">
-                <Icon className="mb-3 size-5 text-aura-terracotta" />
+              <div key={key} className="bg-voclira-night p-5">
+                <Icon className="mb-3 size-5 text-voclira-terracotta" />
                 <p className="font-display font-semibold">
                   {t(`landing.useCases.items.${key}.title`)}
                 </p>
-                <p className="mt-1 text-xs text-aura-cream/60">
+                <p className="mt-1 text-xs text-voclira-cream/60">
                   {t(`landing.useCases.items.${key}.desc`)}
                 </p>
               </div>
@@ -251,13 +251,13 @@ export default function Landing() {
 
       {/* ── Footer CTA ───────────────────────────────────────── */}
       <section className="relative mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 pb-24 text-center">
-        <div className="w-full border-y-2 border-aura-burgundy/50 py-0.5">
-          <div className="w-full border-y border-aura-burgundy/30 py-6">
-            <p className="text-sm text-aura-burgundy/70">{t('landing.joinedCreators')}</p>
+        <div className="w-full border-y-2 border-voclira-burgundy/50 py-0.5">
+          <div className="w-full border-y border-voclira-burgundy/30 py-6">
+            <p className="text-sm text-voclira-burgundy/70">{t('landing.joinedCreators')}</p>
           </div>
         </div>
-        <p className="text-[11px] uppercase tracking-[0.2em] text-aura-burgundy/50">
-          AuraCast — Solana
+        <p className="text-[11px] uppercase tracking-[0.2em] text-voclira-burgundy/50">
+          Voclira — Solana
         </p>
       </section>
     </div>

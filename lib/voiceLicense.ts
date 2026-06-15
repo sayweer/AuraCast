@@ -40,7 +40,7 @@ export async function mintVoiceLicense(
 
   const { signature } = await create(umi, {
     asset,
-    name: 'AuraCast Voice License',
+    name: 'Voclira Voice License',
     uri: `${window.location.origin}/api/creator/license-metadata/${walletAddress}`,
     owner: toUmiPublicKey(walletAddress),
     updateAuthority: toUmiPublicKey(platformWallet),

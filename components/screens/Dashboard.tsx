@@ -92,6 +92,7 @@ export default function Dashboard({
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [solUsd, setSolUsd] = useState<number | null>(null);
+  const [origin, setOrigin] = useState('');
 
   // Audio Player State
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -129,7 +130,7 @@ export default function Dashboard({
         cache: 'no-store'
       });
       if (res.status === 401 && retry) {
-        sessionStorage.removeItem(`auracast_session_${walletAddress}`);
+        sessionStorage.removeItem(`voclira_session_${walletAddress}`);
         await fetchPurchases(false);
         return;
       }
@@ -180,6 +181,10 @@ export default function Dashboard({
   useEffect(() => {
     setPage(1);
   }, [statusFilter, searchTerm]);
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   const playAudio = (purchaseId: string, base64Audio: string) => {
     if (playingId === purchaseId) {
@@ -259,12 +264,12 @@ export default function Dashboard({
   const pagedPurchases = filteredPurchases.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
-  const fanPageUrl = walletAddress
-    ? `https://auracast-murex.vercel.app/fan/${walletAddress}`
+  const fanPageUrl = walletAddress && origin
+    ? `${origin}/fan/${walletAddress}`
     : ''
   const shareText = encodeURIComponent(
     t('dashboard.shareTweetText') +
-    `${fanPageUrl}\n\n#AuraCast #AI`
+    `${fanPageUrl}\n\n#Voclira #AI`
   )
   const xShareUrl = fanPageUrl
     ? `https://x.com/intent/post?text=${shareText}`
@@ -282,20 +287,20 @@ export default function Dashboard({
   return (
     <div className="theme-paper min-h-screen pb-12 bg-background text-foreground">
       {/* Olive header band: nav + dock */}
-      <header className="sticky top-0 z-10 bg-aura-olive text-aura-cream border-b border-aura-night/15 shadow-sm">
+      <header className="sticky top-0 z-10 bg-voclira-olive text-voclira-cream border-b border-voclira-night/15 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <BrandLogo variant="cream" />
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-aura-cream/80">
-              <div className="w-3 h-3 rounded-full bg-aura-cream/90"></div>
+            <div className="flex items-center gap-2 text-sm text-voclira-cream/80">
+              <div className="w-3 h-3 rounded-full bg-voclira-cream/90"></div>
               <span>{truncatedAddress}</span>
             </div>
             <LanguageToggle />
             <button
               onClick={onOpenSettings}
-              className="p-2 hover:bg-aura-cream/15 rounded-lg transition-colors"
+              className="p-2 hover:bg-voclira-cream/15 rounded-lg transition-colors"
             >
-              <Settings className="w-5 h-5 text-aura-cream" />
+              <Settings className="w-5 h-5 text-voclira-cream" />
             </button>
           </div>
         </div>
@@ -341,7 +346,7 @@ export default function Dashboard({
                         ≈ ${(((creatorStats?.totalEarned ?? 0) / 1e9) * (solUsd ?? 150)).toFixed(0)} USD
                       </p>
                     </div>
-                    <TrendingUp className="w-6 h-6 text-aura-terracotta" />
+                    <TrendingUp className="w-6 h-6 text-voclira-terracotta" />
                   </div>
                 </Card>
               </motion.div>
@@ -355,7 +360,7 @@ export default function Dashboard({
                       <h3 className="font-display text-4xl font-bold">{creatorStats?.totalMessages ?? 0}</h3>
                       <p className="text-muted-foreground text-sm mt-1">{t('dashboard.allTimeRequests')}</p>
                     </div>
-                    <MessageSquare className="w-6 h-6 text-aura-terracotta" />
+                    <MessageSquare className="w-6 h-6 text-voclira-terracotta" />
                   </div>
                 </Card>
               </motion.div>
@@ -369,7 +374,7 @@ export default function Dashboard({
                       <h3 className="font-display text-4xl font-bold">{priceInSol} SOL</h3>
                       <p className="text-muted-foreground text-sm mt-1">{t('dashboard.currentRate')}</p>
                     </div>
-                    <Coins className="w-6 h-6 text-aura-terracotta" />
+                    <Coins className="w-6 h-6 text-voclira-terracotta" />
                   </div>
                 </Card>
               </motion.div>
@@ -457,7 +462,7 @@ export default function Dashboard({
                   {t('dashboard.receivedDesc')}
                 </p>
               </div>
-              <span aria-hidden="true" className="hidden md:block h-px flex-1 bg-aura-night/15" />
+              <span aria-hidden="true" className="hidden md:block h-px flex-1 bg-voclira-night/15" />
               <Button
                 variant="outline"
                 size="sm"

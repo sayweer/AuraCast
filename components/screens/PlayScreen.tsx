@@ -158,19 +158,19 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
 
   if (!purchase) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center bg-aura-cream text-aura-burgundy px-4 overflow-hidden">
+      <div className="relative min-h-screen flex items-center justify-center bg-voclira-cream text-voclira-burgundy px-4 overflow-hidden">
         {/* Background Blobs */}
-        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-aura-terracotta/15 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-aura-olive/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-voclira-terracotta/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-voclira-olive/10 rounded-full blur-[100px] pointer-events-none" />
 
         <BrandLogo variant="light" href="/" withWordmark={false} className="absolute top-6 left-6" />
-        <LanguageToggle className="absolute top-6 right-6 !bg-aura-paper !text-aura-burgundy !border-aura-burgundy/20 !shadow-none hover:!bg-aura-paper/80" />
+        <LanguageToggle className="absolute top-6 right-6 !bg-voclira-paper !text-voclira-burgundy !border-voclira-burgundy/20 !shadow-none hover:!bg-voclira-paper/80" />
         <div className="text-center space-y-4 max-w-md relative z-10">
-          <h1 className="font-display text-3xl font-extrabold text-aura-burgundy">{t('play.clipNotFound')}</h1>
-          <p className="text-aura-burgundy/60 text-sm">
+          <h1 className="font-display text-3xl font-extrabold text-voclira-burgundy">{t('play.clipNotFound')}</h1>
+          <p className="text-voclira-burgundy/60 text-sm">
             {t('play.clipNotFoundDesc')}
           </p>
-          <Link href="/" className="inline-block bg-aura-burgundy text-aura-cream px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-aura-burgundy/85 transition-colors">
+          <Link href="/" className="inline-block bg-voclira-burgundy text-voclira-cream px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-voclira-burgundy/85 transition-colors">
             {t('play.backToHome')}
           </Link>
         </div>
@@ -240,13 +240,13 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
   const finalCreatorName = creatorName || t('play.creatorDefault');
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4 py-16 overflow-hidden bg-aura-cream text-aura-burgundy">
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-16 overflow-hidden bg-voclira-cream text-voclira-burgundy">
       <BrandLogo variant="light" href="/" withWordmark={false} className="absolute top-6 left-6" />
-      <LanguageToggle className="absolute top-6 right-6 !bg-aura-paper !text-aura-burgundy !border-aura-burgundy/20 !shadow-none hover:!bg-aura-paper/80" />
+      <LanguageToggle className="absolute top-6 right-6 !bg-voclira-paper !text-voclira-burgundy !border-voclira-burgundy/20 !shadow-none hover:!bg-voclira-paper/80" />
 
       {/* Background Blobs */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-aura-terracotta/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-aura-olive/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-voclira-terracotta/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] bg-voclira-olive/10 rounded-full blur-[100px] pointer-events-none" />
 
       <motion.div
         className="max-w-md w-full relative z-10 space-y-6"
@@ -256,20 +256,20 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
       >
         
         {/* Back Link */}
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-aura-burgundy/60 hover:text-aura-burgundy transition-colors">
+        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-voclira-burgundy/60 hover:text-voclira-burgundy transition-colors">
           <ArrowLeft className="w-4 h-4" />
           {t('play.backToHome')}
         </Link>
 
         {/* Main Card */}
-        <Card className="bg-aura-paper border-2 border-aura-burgundy/25 p-6 shadow-[0_8px_30px_rgba(123,37,37,0.18)] space-y-6">
+        <Card className="bg-voclira-paper border-2 border-voclira-burgundy/25 p-6 shadow-[0_8px_30px_rgba(123,37,37,0.18)] space-y-6">
 
           {/* Header */}
-          <div className="flex items-start justify-between border-b border-aura-burgundy/20 pb-4">
+          <div className="flex items-start justify-between border-b border-voclira-burgundy/20 pb-4">
             <div className="space-y-1">
-              <h1 className="font-display text-xl font-bold text-aura-burgundy">{t('play.voiceClone')}</h1>
-              <p className="text-xs text-aura-burgundy/60">
-                {t('play.creator')} <strong className="text-aura-burgundy">{finalCreatorName}</strong>
+              <h1 className="font-display text-xl font-bold text-voclira-burgundy">{t('play.voiceClone')}</h1>
+              <p className="text-xs text-voclira-burgundy/60">
+                {t('play.creator')} <strong className="text-voclira-burgundy">{finalCreatorName}</strong>
               </p>
             </div>
             <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border flex items-center gap-1.5 ${
@@ -288,16 +288,16 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
 
           {/* Waveform Visualization area */}
           {purchase.status === 'completed' && purchase.audio_url && (
-            <div className="h-28 bg-aura-night rounded-xl border border-aura-burgundy/30 flex items-center justify-center overflow-hidden relative shadow-inner">
+            <div className="h-28 bg-voclira-night rounded-xl border border-voclira-burgundy/30 flex items-center justify-center overflow-hidden relative shadow-inner">
               <canvas ref={canvasRef} width={400} height={100} className="w-full h-full" />
-              <Volume2 className={`absolute bottom-3 right-3 w-4 h-4 text-aura-cream/60 ${isPlaying ? 'animate-bounce text-aura-terracotta' : ''}`} />
+              <Volume2 className={`absolute bottom-3 right-3 w-4 h-4 text-voclira-cream/60 ${isPlaying ? 'animate-bounce text-voclira-terracotta' : ''}`} />
             </div>
           )}
 
           {/* Fan Text Message */}
           <div className="space-y-2">
-            <span className="font-display text-[10px] uppercase font-bold text-aura-burgundy/60 tracking-[0.25em]">{t('play.textSpoken')}</span>
-            <p className="italic font-serif text-sm text-aura-night/80 pl-3.5 border-l-2 border-aura-terracotta/50 py-2 bg-aura-cream/70 rounded-r-lg leading-relaxed">
+            <span className="font-display text-[10px] uppercase font-bold text-voclira-burgundy/60 tracking-[0.25em]">{t('play.textSpoken')}</span>
+            <p className="italic font-serif text-sm text-voclira-night/80 pl-3.5 border-l-2 border-voclira-terracotta/50 py-2 bg-voclira-cream/70 rounded-r-lg leading-relaxed">
               "{purchase.fan_text}"
             </p>
           </div>
@@ -305,10 +305,10 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
           {/* Audio Player Controls */}
           {purchase.status === 'completed' && purchase.audio_url ? (
             <div className="space-y-3">
-              <div className="flex items-center gap-4 bg-aura-cream/70 px-4 py-3 rounded-lg border border-aura-burgundy/20">
+              <div className="flex items-center gap-4 bg-voclira-cream/70 px-4 py-3 rounded-lg border border-voclira-burgundy/20">
                 <button
                   onClick={handlePlayToggle}
-                  className="w-10 h-10 flex items-center justify-center bg-aura-burgundy hover:bg-aura-burgundy/85 text-aura-cream rounded-full transition-all shrink-0 active:scale-95 shadow-md shadow-aura-burgundy/20"
+                  className="w-10 h-10 flex items-center justify-center bg-voclira-burgundy hover:bg-voclira-burgundy/85 text-voclira-cream rounded-full transition-all shrink-0 active:scale-95 shadow-md shadow-voclira-burgundy/20"
                 >
                   {isPlaying ? (
                     <Pause className="w-5 h-5 fill-current" />
@@ -323,9 +323,9 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
                     max={duration || 100}
                     value={currentTime}
                     onChange={handleSeek}
-                    className="w-full accent-aura-terracotta h-1 bg-aura-burgundy/15 rounded-lg appearance-none cursor-pointer"
+                    className="w-full accent-voclira-terracotta h-1 bg-voclira-burgundy/15 rounded-lg appearance-none cursor-pointer"
                   />
-                  <div className="flex justify-between text-[10px] text-aura-burgundy/50 font-mono">
+                  <div className="flex justify-between text-[10px] text-voclira-burgundy/50 font-mono">
                     <span>{formatPlayerTime(currentTime)}</span>
                     <span>{formatPlayerTime(duration)}</span>
                   </div>
@@ -336,13 +336,13 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
                 <button
                   type="button"
                   onClick={handleDownload}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-150 border bg-aura-terracotta/15 border-aura-terracotta/40 text-aura-burgundy hover:bg-aura-terracotta/25"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-150 border bg-voclira-terracotta/15 border-voclira-terracotta/40 text-voclira-burgundy hover:bg-voclira-terracotta/25"
                 >
                   {t('fan.downloadAudio')}
                 </button>
               )}
               {downloadHint && (
-                <p className="text-xs text-aura-burgundy/60 leading-snug">
+                <p className="text-xs text-voclira-burgundy/60 leading-snug">
                   {downloadHint}
                 </p>
               )}
@@ -363,7 +363,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
           ) : null}
 
           {/* Details footer */}
-          <div className="flex justify-between text-[10px] text-aura-burgundy/60 border-t border-aura-burgundy/20 pt-4 px-1">
+          <div className="flex justify-between text-[10px] text-voclira-burgundy/60 border-t border-voclira-burgundy/20 pt-4 px-1">
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
               {new Date(purchase.created_at).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -374,11 +374,11 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
         </Card>
 
         {/* CTA Card */}
-        <Card className="bg-aura-paper/70 border border-aura-burgundy/20 p-5 text-center space-y-3.5">
-          <p className="text-xs text-aura-burgundy/60 leading-relaxed">
+        <Card className="bg-voclira-paper/70 border border-voclira-burgundy/20 p-5 text-center space-y-3.5">
+          <p className="text-xs text-voclira-burgundy/60 leading-relaxed">
             {t('play.ctaDesc')}
           </p>
-          <Link href="/" className="inline-block w-full bg-aura-burgundy hover:bg-aura-burgundy/85 text-aura-cream text-xs font-semibold py-2.5 rounded-lg transition-colors">
+          <Link href="/" className="inline-block w-full bg-voclira-burgundy hover:bg-voclira-burgundy/85 text-voclira-cream text-xs font-semibold py-2.5 rounded-lg transition-colors">
             {t('play.ctaButton')}
           </Link>
         </Card>

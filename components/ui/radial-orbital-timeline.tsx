@@ -86,17 +86,17 @@ export default function RadialOrbitalTimeline({ items }: RadialOrbitalTimelinePr
           style={{ perspective: '1000px' }}
         >
           {/* Center pulse */}
-          <div className="absolute z-10 flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-gradient-to-br from-aura-olive via-aura-terracotta to-aura-burgundy">
-            <div className="absolute h-20 w-20 animate-ping rounded-full border border-aura-cream/20 opacity-70" />
+          <div className="absolute z-10 flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-gradient-to-br from-voclira-olive via-voclira-terracotta to-voclira-burgundy">
+            <div className="absolute h-20 w-20 animate-ping rounded-full border border-voclira-cream/20 opacity-70" />
             <div
-              className="absolute h-24 w-24 animate-ping rounded-full border border-aura-cream/10 opacity-50"
+              className="absolute h-24 w-24 animate-ping rounded-full border border-voclira-cream/10 opacity-50"
               style={{ animationDelay: '0.5s' }}
             />
-            <div className="h-8 w-8 rounded-full bg-aura-cream/80 backdrop-blur-md" />
+            <div className="h-8 w-8 rounded-full bg-voclira-cream/80 backdrop-blur-md" />
           </div>
 
           {/* Orbit ring */}
-          <div className="absolute h-96 w-96 rounded-full border border-aura-cream/15" />
+          <div className="absolute h-96 w-96 rounded-full border border-voclira-cream/15" />
 
           {items.map((item, index) => {
             const position = calculateNodePosition(index, items.length)
@@ -124,10 +124,10 @@ export default function RadialOrbitalTimeline({ items }: RadialOrbitalTimelinePr
                   aria-expanded={isExpanded}
                   className={`flex h-10 w-10 transform cursor-pointer items-center justify-center rounded-full border-2 transition-all duration-300 ${
                     isExpanded
-                      ? 'scale-150 border-aura-cream bg-aura-cream text-aura-burgundy shadow-lg shadow-aura-cream/30'
+                      ? 'scale-150 border-voclira-cream bg-voclira-cream text-voclira-burgundy shadow-lg shadow-voclira-cream/30'
                       : isRelated
-                        ? 'animate-pulse border-aura-terracotta bg-aura-terracotta/60 text-aura-cream'
-                        : 'border-aura-cream/40 bg-aura-night text-aura-cream'
+                        ? 'animate-pulse border-voclira-terracotta bg-voclira-terracotta/60 text-voclira-cream'
+                        : 'border-voclira-cream/40 bg-voclira-night text-voclira-cream'
                   }`}
                 >
                   <Icon size={16} />
@@ -135,22 +135,22 @@ export default function RadialOrbitalTimeline({ items }: RadialOrbitalTimelinePr
 
                 <div
                   className={`absolute top-12 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-semibold tracking-wider transition-all duration-300 ${
-                    isExpanded ? 'scale-125 text-aura-cream' : 'text-aura-cream/70'
+                    isExpanded ? 'scale-125 text-voclira-cream' : 'text-voclira-cream/70'
                   }`}
                 >
                   {item.title}
                 </div>
 
                 {isExpanded && (
-                  <div className="absolute top-24 left-1/2 w-64 -translate-x-1/2 overflow-visible rounded-xl border border-aura-cream/30 bg-aura-night/95 p-4 shadow-xl shadow-aura-cream/10 backdrop-blur-lg">
-                    <div className="absolute -top-3 left-1/2 h-3 w-px -translate-x-1/2 bg-aura-cream/50" />
-                    <p className="font-display text-sm font-semibold text-aura-cream">
+                  <div className="absolute top-24 left-1/2 w-64 -translate-x-1/2 overflow-visible rounded-xl border border-voclira-cream/30 bg-voclira-night/95 p-4 shadow-xl shadow-voclira-cream/10 backdrop-blur-lg">
+                    <div className="absolute -top-3 left-1/2 h-3 w-px -translate-x-1/2 bg-voclira-cream/50" />
+                    <p className="font-display text-sm font-semibold text-voclira-cream">
                       {item.title}
                     </p>
-                    <p className="mt-2 text-xs text-aura-cream/80">{item.content}</p>
+                    <p className="mt-2 text-xs text-voclira-cream/80">{item.content}</p>
 
                     {item.relatedIds.length > 0 && (
-                      <div className="mt-4 border-t border-aura-cream/10 pt-3">
+                      <div className="mt-4 border-t border-voclira-cream/10 pt-3">
                         <div className="flex flex-wrap gap-1">
                           {item.relatedIds.map((relatedId) => {
                             const relatedItem = items.find((i) => i.id === relatedId)
@@ -158,14 +158,14 @@ export default function RadialOrbitalTimeline({ items }: RadialOrbitalTimelinePr
                             return (
                               <button
                                 key={relatedId}
-                                className="flex h-6 items-center rounded-full border border-aura-cream/20 bg-transparent px-2 text-xs text-aura-cream/80 transition-all hover:border-aura-terracotta hover:text-aura-cream"
+                                className="flex h-6 items-center rounded-full border border-voclira-cream/20 bg-transparent px-2 text-xs text-voclira-cream/80 transition-all hover:border-voclira-terracotta hover:text-voclira-cream"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   toggleItem(relatedId)
                                 }}
                               >
                                 {relatedItem.title}
-                                <ArrowRight size={8} className="ml-1 text-aura-cream/60" />
+                                <ArrowRight size={8} className="ml-1 text-voclira-cream/60" />
                               </button>
                             )
                           })}

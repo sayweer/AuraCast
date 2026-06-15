@@ -19,13 +19,13 @@ export function BrandLogo({
     <>
       <img
         src="/logo.jpg"
-        alt="AuraCast"
+        alt="Voclira"
         className={cn(
           'h-9 w-9 rounded-lg border',
           variant === 'light'
-            ? 'border-aura-burgundy/20'
+            ? 'border-voclira-burgundy/20'
             : variant === 'cream'
-              ? 'border-aura-cream/30'
+              ? 'border-voclira-cream/30'
               : 'border-ember-3/30'
         )}
       />
@@ -34,13 +34,13 @@ export function BrandLogo({
           className={cn(
             'font-display text-xl font-bold tracking-tight',
             variant === 'light'
-              ? 'text-aura-burgundy'
+              ? 'text-voclira-burgundy'
               : variant === 'cream'
-                ? 'text-aura-cream'
+                ? 'text-voclira-cream'
                 : 'ember-text-gradient'
           )}
         >
-          AuraCast
+          Voclira
         </span>
       )}
     </>

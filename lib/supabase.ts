@@ -10,7 +10,7 @@ import type {
   RecentPurchaseRow,
   RegisterCreatorRequest,
 } from '@/types'
-import { AuraCastError, CreatorNotFoundError } from '@/lib/errors'
+import { VocliraError, CreatorNotFoundError } from '@/lib/errors'
 
 const supabase = createClient(
   process.env.SUPABASE_URL ?? '',
@@ -20,7 +20,7 @@ const supabase = createClient(
 function dbError(msg: string): never {
   // Log full error detail server-side for debugging
   console.error(`[Supabase] ${msg}`)
-  throw new AuraCastError('A database error occurred', 'DB_ERROR', 500)
+  throw new VocliraError('A database error occurred', 'DB_ERROR', 500)
 }
 
 export async function getCreatorByWallet(walletAddress: string): Promise<Creator | null> {
@@ -62,7 +62,7 @@ export async function saveCreator(
 
   if (error) {
     if (error.code === '23505') {
-      throw new AuraCastError('Creator already registered', 'ALREADY_EXISTS', 409)
+      throw new VocliraError('Creator already registered', 'ALREADY_EXISTS', 409)
     }
     dbError(`DB error: ${error.message}`)
   }
@@ -88,7 +88,7 @@ export async function updateCreatorPrice(walletAddress: string, priceInLamports:
     .update({ price_lamports: priceInLamports })
     .eq('wallet_address', walletAddress)
 
-  if (error) throw new AuraCastError('Failed to update price', 'DB_ERROR', 500)
+  if (error) throw new VocliraError('Failed to update price', 'DB_ERROR', 500)
 }
 
 export async function updateCreatorNftMint(walletAddress: string, nftMint: string): Promise<void> {
@@ -97,7 +97,7 @@ export async function updateCreatorNftMint(walletAddress: string, nftMint: strin
     .update({ nft_mint: nftMint })
     .eq('wallet_address', walletAddress)
 
-  if (error) throw new AuraCastError('Failed to update license mint', 'DB_ERROR', 500)
+  if (error) throw new VocliraError('Failed to update license mint', 'DB_ERROR', 500)
 }
 
 export async function savePurchase(data: {
@@ -213,7 +213,7 @@ export async function updateCreatorFilters(
     })
     .eq('wallet_address', walletAddress)
 
-  if (error) throw new AuraCastError('Failed to update filters', 'DB_ERROR', 500)
+  if (error) throw new VocliraError('Failed to update filters', 'DB_ERROR', 500)
 }
 
 export async function deleteCreatorVoice(walletAddress: string): Promise<void> {
@@ -222,7 +222,7 @@ export async function deleteCreatorVoice(walletAddress: string): Promise<void> {
     .update({ voice_id: '', is_active: false })
     .eq('wallet_address', walletAddress)
 
-  if (error) throw new AuraCastError('Failed to delete voice', 'DB_ERROR', 500)
+  if (error) throw new VocliraError('Failed to delete voice', 'DB_ERROR', 500)
 }
 
 const ANALYTICS_ROW_CAP = 5000

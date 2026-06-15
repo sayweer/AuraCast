@@ -1,9 +1,9 @@
-# 🎙 AuraCast
+# 🎙 Voclira
 > License your voice. Earn while you sleep.
 Built on Solana · Powered by ElevenLabs · Protected by Llama 3.1 (Groq)
 
 ## Overview
-AuraCast is a Web3 voice licensing platform. Creators clone their voice once, set a price in SOL, and earn SOL every time a fan requests a personalized AI-generated voice message via their dedicated Fan Page. AuraCast features a selectable bilingual interface (English and Turkish) and filters all requests through an AI moderation firewall before audio is generated.
+Voclira is a Web3 voice licensing platform. Creators clone their voice once, set a price in SOL, and earn SOL every time a fan requests a personalized AI-generated voice message via their dedicated Fan Page. Voclira features a selectable bilingual interface (English and Turkish) and filters all requests through an AI moderation firewall before audio is generated.
 
 ## How It Works
 
@@ -50,8 +50,8 @@ AuraCast is a Web3 voice licensing platform. Creators clone their voice once, se
 ```
 
 ## Bilingual Support (TR/EN)
-AuraCast has full bilingual capabilities. Users can dynamically switch between English and Turkish:
-- Persists user preferences locally via `localStorage` under `auracast_lang`.
+Voclira has full bilingual capabilities. Users can dynamically switch between English and Turkish:
+- Persists user preferences locally via `localStorage` under `voclira_lang`.
 - Responsive floating glassmorphism `<LanguageToggle />` button.
 - Comprehensive UI localization covering landing, onboarding, analytics charts, settings, creator dashboard, and purchase playback pages.
 

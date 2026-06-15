@@ -51,8 +51,8 @@ const DockIconButton = React.forwardRef<HTMLButtonElement, DockIconButtonProps>(
         className={cn(
           'relative group p-3 rounded-xl transition-colors',
           active
-            ? 'bg-aura-cream text-aura-night shadow-md'
-            : 'text-aura-cream/85 hover:bg-aura-cream/15',
+            ? 'bg-voclira-cream text-voclira-night shadow-md'
+            : 'text-voclira-cream/85 hover:bg-voclira-cream/15',
           className
         )}
       >
@@ -61,7 +61,7 @@ const DockIconButton = React.forwardRef<HTMLButtonElement, DockIconButtonProps>(
           className={cn(
             'absolute top-full mt-2 left-1/2 -translate-x-1/2',
             'px-2 py-1 rounded-md text-xs font-semibold',
-            'bg-aura-night text-aura-cream',
+            'bg-voclira-night text-voclira-cream',
             'opacity-0 group-hover:opacity-100',
             'transition-opacity whitespace-nowrap pointer-events-none'
           )}
@@ -85,7 +85,7 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
           className={cn(
             'flex items-center gap-1 p-1.5 rounded-2xl',
             'backdrop-blur-lg border shadow-lg',
-            'bg-aura-night/15 border-aura-cream/20',
+            'bg-voclira-night/15 border-voclira-cream/20',
             'hover:shadow-xl transition-shadow duration-300'
           )}
         >

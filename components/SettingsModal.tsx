@@ -98,7 +98,7 @@ export default function SettingsModal({
         });
 
         if (res.status === 401 && retry) {
-          sessionStorage.removeItem(`auracast_session_${walletAddress}`);
+          sessionStorage.removeItem(`voclira_session_${walletAddress}`);
           await performUpdate(false);
           return;
         }
@@ -126,7 +126,7 @@ export default function SettingsModal({
     <>
       {/* Overlay */}
       <motion.div
-        className="fixed inset-0 bg-aura-night/60 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-voclira-night/60 backdrop-blur-sm z-40"
         onClick={onClose}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -145,13 +145,13 @@ export default function SettingsModal({
         exit={{ opacity: 0, scale: 0.96 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
       >
-        <Card className="text-foreground bg-card border border-aura-night/15 w-full max-w-md rounded-2xl p-0 gap-0 max-h-[90vh] flex flex-col overflow-hidden shadow-[0_24px_48px_-12px_rgba(42,14,14,0.45)]">
+        <Card className="text-foreground bg-card border border-voclira-night/15 w-full max-w-md rounded-2xl p-0 gap-0 max-h-[90vh] flex flex-col overflow-hidden shadow-[0_24px_48px_-12px_rgba(42,14,14,0.45)]">
           {/* Header — olive masthead */}
-          <div className="flex items-center justify-between px-6 py-4 bg-aura-olive shrink-0">
-            <h2 className="font-display text-xl font-bold tracking-tight text-aura-cream">{t('settings.title')}</h2>
+          <div className="flex items-center justify-between px-6 py-4 bg-voclira-olive shrink-0">
+            <h2 className="font-display text-xl font-bold tracking-tight text-voclira-cream">{t('settings.title')}</h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-aura-cream/80 hover:text-aura-cream hover:bg-aura-cream/15 transition-colors"
+              className="p-1.5 rounded-lg text-voclira-cream/80 hover:text-voclira-cream hover:bg-voclira-cream/15 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -160,22 +160,22 @@ export default function SettingsModal({
           <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7">
             {/* Voice Management Section */}
             <div className="space-y-3">
-              <h3 className="flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.25em] text-aura-burgundy">
+              <h3 className="flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.25em] text-voclira-burgundy">
                 {t('settings.voiceManagement')}
-                <span className="h-px flex-1 bg-aura-night/10" aria-hidden="true" />
+                <span className="h-px flex-1 bg-voclira-night/10" aria-hidden="true" />
               </h3>
               {voiceId ? (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-aura-olive/15 border border-aura-olive/40 mb-3">
-                  <div className="w-2 h-2 rounded-full bg-aura-olive animate-pulse" />
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-voclira-olive/15 border border-voclira-olive/40 mb-3">
+                  <div className="w-2 h-2 rounded-full bg-voclira-olive animate-pulse" />
                   <span className="text-sm text-foreground font-medium">{t('settings.voiceCloneActive')}</span>
                   <span className="text-xs text-muted-foreground ml-auto font-mono">
                     {voiceId.slice(0, 12)}...
                   </span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-aura-terracotta/15 border border-aura-terracotta/45 mb-3">
-                  <div className="w-2 h-2 rounded-full bg-aura-terracotta" />
-                  <span className="text-sm text-aura-burgundy font-medium">{t('settings.noVoiceClone')}</span>
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-voclira-terracotta/15 border border-voclira-terracotta/45 mb-3">
+                  <div className="w-2 h-2 rounded-full bg-voclira-terracotta" />
+                  <span className="text-sm text-voclira-burgundy font-medium">{t('settings.noVoiceClone')}</span>
                 </div>
               )}
               <SlideButton
@@ -195,9 +195,9 @@ export default function SettingsModal({
 
             {/* Pricing Section */}
             <div className="space-y-3">
-              <h3 className="flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.25em] text-aura-burgundy">
+              <h3 className="flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.25em] text-voclira-burgundy">
                 {t('settings.pricing')}
-                <span className="h-px flex-1 bg-aura-night/10" aria-hidden="true" />
+                <span className="h-px flex-1 bg-voclira-night/10" aria-hidden="true" />
               </h3>
               <label className="text-sm text-muted-foreground">{t('settings.pricePer150')}</label>
               <div className="flex gap-2 items-center">
@@ -211,14 +211,14 @@ export default function SettingsModal({
                     step={0.01}
                     value={newPrice}
                     onChange={(e) => setNewPrice(parseFloat(e.target.value))}
-                    className="w-20 bg-input border border-aura-night/20 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-aura-olive focus:ring-2 focus:ring-aura-olive/25 transition-colors"
+                    className="w-20 bg-input border border-voclira-night/20 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-voclira-olive focus:ring-2 focus:ring-voclira-olive/25 transition-colors"
                   />
                 )}
                 <span className="text-sm text-muted-foreground">SOL</span>
                 <Button
                   onClick={handlePriceUpdate}
                   disabled={isUpdating || statsLoading}
-                  className="bg-aura-olive hover:bg-aura-olive/90 text-aura-cream font-semibold px-4 disabled:opacity-50"
+                  className="bg-voclira-olive hover:bg-voclira-olive/90 text-voclira-cream font-semibold px-4 disabled:opacity-50"
                 >
                   {isUpdating ? t('settings.updating') : t('settings.update')}
                 </Button>
@@ -227,15 +227,15 @@ export default function SettingsModal({
                 <p className="text-xs text-destructive">{priceError}</p>
               )}
               {priceSuccess && (
-                <p className="text-xs text-aura-olive font-medium">{t('settings.updateSuccess')}</p>
+                <p className="text-xs text-voclira-olive font-medium">{t('settings.updateSuccess')}</p>
               )}
             </div>
 
             {/* Brand Safety Filters Section */}
             <div className="space-y-4">
-              <h3 className="flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.25em] text-aura-burgundy">
+              <h3 className="flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.25em] text-voclira-burgundy">
                 {t('settings.brandSafety')}
-                <span className="h-px flex-1 bg-aura-night/10" aria-hidden="true" />
+                <span className="h-px flex-1 bg-voclira-night/10" aria-hidden="true" />
               </h3>
               <p className="text-sm text-muted-foreground">
                 {t('settings.brandSafetyDesc')}
@@ -254,11 +254,11 @@ export default function SettingsModal({
                     <div
                       onClick={() => onFilterUpdate('blockAdult', !blockAdult)}
                       className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
-                        blockAdult ? 'bg-aura-olive' : 'bg-aura-night/15'
+                        blockAdult ? 'bg-voclira-olive' : 'bg-voclira-night/15'
                       }`}
                     >
                       <div
-                        className={`w-5 h-5 rounded-full bg-card border border-aura-night/10 shadow-sm transition-transform ${
+                        className={`w-5 h-5 rounded-full bg-card border border-voclira-night/10 shadow-sm transition-transform ${
                           blockAdult ? 'translate-x-6' : 'translate-x-1'
                         }`}
                       />
@@ -277,11 +277,11 @@ export default function SettingsModal({
                     <div
                       onClick={() => onFilterUpdate('blockProfanity', !blockProfanity)}
                       className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
-                        blockProfanity ? 'bg-aura-olive' : 'bg-aura-night/15'
+                        blockProfanity ? 'bg-voclira-olive' : 'bg-voclira-night/15'
                       }`}
                     >
                       <div
-                        className={`w-5 h-5 rounded-full bg-card border border-aura-night/10 shadow-sm transition-transform ${
+                        className={`w-5 h-5 rounded-full bg-card border border-voclira-night/10 shadow-sm transition-transform ${
                           blockProfanity ? 'translate-x-6' : 'translate-x-1'
                         }`}
                       />
@@ -300,11 +300,11 @@ export default function SettingsModal({
                     <div
                       onClick={() => onFilterUpdate('blockPolitical', !blockPolitical)}
                       className={`w-12 h-6 rounded-full transition-colors flex items-center cursor-pointer ${
-                        blockPolitical ? 'bg-aura-olive' : 'bg-aura-night/15'
+                        blockPolitical ? 'bg-voclira-olive' : 'bg-voclira-night/15'
                       }`}
                     >
                       <div
-                        className={`w-5 h-5 rounded-full bg-card border border-aura-night/10 shadow-sm transition-transform ${
+                        className={`w-5 h-5 rounded-full bg-card border border-voclira-night/10 shadow-sm transition-transform ${
                           blockPolitical ? 'translate-x-6' : 'translate-x-1'
                         }`}
                       />
@@ -316,9 +316,9 @@ export default function SettingsModal({
 
             {/* Voice License Section */}
             <div className="space-y-3">
-              <h3 className="flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.25em] text-aura-burgundy">
+              <h3 className="flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.25em] text-voclira-burgundy">
                 {t('license.title')}
-                <span className="h-px flex-1 bg-aura-night/10" aria-hidden="true" />
+                <span className="h-px flex-1 bg-voclira-night/10" aria-hidden="true" />
               </h3>
               {nftMint ? (
                 <VoiceLicenseBadge
@@ -331,7 +331,7 @@ export default function SettingsModal({
                   <Button
                     onClick={onActivateLicense}
                     disabled={mintingLicense}
-                    className="w-full bg-aura-terracotta hover:bg-aura-terracotta/90 text-aura-cream font-semibold flex items-center gap-2"
+                    className="w-full bg-voclira-terracotta hover:bg-voclira-terracotta/90 text-voclira-cream font-semibold flex items-center gap-2"
                   >
                     {mintingLicense ? (
                       <>
@@ -371,7 +371,7 @@ export default function SettingsModal({
             </div>
 
             {/* Footer */}
-            <div className="text-center text-xs text-muted-foreground pt-4 border-t border-aura-night/10">
+            <div className="text-center text-xs text-muted-foreground pt-4 border-t border-voclira-night/10">
               {t('settings.versionText')}
             </div>
           </div>

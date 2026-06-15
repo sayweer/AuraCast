@@ -209,7 +209,7 @@ export function VoiceLicenseBadge({ href, language }: VoiceLicenseBadgeProps) {
 
           {/* Text: brand + title */}
           <text fontFamily="Helvetica-Bold, Helvetica" fontSize="8" fontWeight="bold" fill="#607456" x="53" y="19" letterSpacing="1.5">
-            AURACAST
+            VOCLIRA
           </text>
           <text fontFamily="Helvetica-Bold, Helvetica" fontSize="13" fontWeight="bold" fill="#2A0E0E" x="52" y="38">
             {title}

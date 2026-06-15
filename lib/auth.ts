@@ -30,10 +30,10 @@ export function verifyWalletSignature(
 }
 
 export function buildAuthMessage(walletAddress: string, nonce: string): string {
-  return `AuraCast: Verify wallet ownership\nWallet: ${walletAddress}\nNonce: ${nonce}`
+  return `Voclira: Verify wallet ownership\nWallet: ${walletAddress}\nNonce: ${nonce}`
 }
 
-const NONCE_SECRET = process.env.SUPABASE_ANON_KEY || 'auracast-default-secret-key'
+const NONCE_SECRET = process.env.SUPABASE_ANON_KEY || 'voclira-default-secret-key'
 
 function generateHmac(data: string): string {
   return createHmac('sha256', NONCE_SECRET).update(data).digest('hex')

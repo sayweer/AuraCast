@@ -91,7 +91,7 @@ export async function GET(
   try {
     const rows = await getCreatorPurchasesWindow(walletAddress, days)
     const csv = toCsv(rows)
-    const filename = `auracast-${walletAddress.slice(0, 8)}-${days}d.csv`
+    const filename = `voclira-${walletAddress.slice(0, 8)}-${days}d.csv`
     return new NextResponse(csv, {
       status: 200,
       headers: {

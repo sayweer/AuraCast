@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
  * Keyed by walletAddress (NOT voice_id) — the NFT's on-chain `uri` field is
  * permanent, so embedding the raw ElevenLabs voice_id there would leak it
  * forever. Instead we publish a one-way SHA-256 "Voice Fingerprint" that binds
- * the license to the specific voice without exposing it. AuraCast holds the
+ * the license to the specific voice without exposing it. Voclira holds the
  * pre-image (voice_id) and can prove the binding when needed.
  */
 export async function GET(
@@ -39,16 +39,16 @@ export async function GET(
     const origin = _req.nextUrl.origin
 
     const metadata = {
-      name: 'AuraCast Voice License',
+      name: 'Voclira Voice License',
       description:
-        'On-chain voice license issued on AuraCast — the Web3 voice licensing platform. ' +
-        'This NFT certifies that the holder cloned and licensed their voice through AuraCast.',
+        'On-chain voice license issued on Voclira — the Web3 voice licensing platform. ' +
+        'This NFT certifies that the holder cloned and licensed their voice through Voclira.',
       image: `${origin}/voice-license-nft.svg`,
       external_url: origin,
       attributes: [
         { trait_type: 'Voice Fingerprint', value: fingerprint },
         { trait_type: 'Creator', value: walletAddress },
-        { trait_type: 'Platform', value: 'AuraCast' },
+        { trait_type: 'Platform', value: 'Voclira' },
         { trait_type: 'License Type', value: 'Voice Clone' },
         { trait_type: 'Issued', value: issuedDate },
       ],

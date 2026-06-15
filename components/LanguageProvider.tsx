@@ -16,7 +16,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('auracast_lang') as Language;
+    const saved = localStorage.getItem('voclira_lang') as Language;
     if (saved === 'en' || saved === 'tr') {
       setLanguageState(saved);
     }
@@ -25,7 +25,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('auracast_lang', lang);
+    localStorage.setItem('voclira_lang', lang);
   };
 
   const t = (path: string, variables?: Record<string, string | number>): string => {

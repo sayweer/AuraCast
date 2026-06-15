@@ -57,8 +57,8 @@ export default function NewsMarquee({ images, className }: NewsMarqueeProps) {
       </div>
 
       {/* Edge masks — melt the wall into the cream paper */}
-      <div className="absolute inset-0 bg-gradient-to-b from-aura-cream via-transparent to-aura-cream" />
-      <div className="absolute inset-0 bg-gradient-to-r from-aura-cream via-transparent to-aura-cream" />
+      <div className="absolute inset-0 bg-gradient-to-b from-voclira-cream via-transparent to-voclira-cream" />
+      <div className="absolute inset-0 bg-gradient-to-r from-voclira-cream via-transparent to-voclira-cream" />
       {/* Central wash behind the masthead so type stays legible */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_45%,rgba(238,224,204,0.75)_0%,rgba(238,224,204,0.4)_45%,transparent_75%)]" />
     </div>

@@ -3,7 +3,7 @@ export type Language = 'en' | 'tr';
 export const translations = {
   en: {
     common: {
-      auracast: 'AuraCast',
+      voclira: 'Voclira',
     },
     landing: {
       slogan: 'License your voice. Earn while you sleep.',
@@ -87,7 +87,7 @@ export const translations = {
       copied: 'Copied!',
       share: 'Share',
       shareTextDesc: 'Share this link anywhere — fans click it, type a message, pay SOL, and instantly hear it in your voice.',
-      shareTweetText: '🎙 Send me a personalized AI voice message on AuraCast! Type your text, pay with SOL, and hear it instantly in my voice 🔥\n\n',
+      shareTweetText: '🎙 Send me a personalized AI voice message on Voclira! Type your text, pay with SOL, and hear it instantly in my voice 🔥\n\n',
       receivedMessages: 'Voiced Messages',
       receivedDesc: 'Personalized fan messages generated with your voice.',
       refresh: 'Refresh',
@@ -145,7 +145,7 @@ export const translations = {
       updateFailed: 'Update failed. Try again.',
       updateSuccess: '✓ Price updated successfully!',
       networkError: 'Network error. Try again.',
-      versionText: 'AuraCast v1.0.0 — License your voice. Earn while you sleep.',
+      versionText: 'Voclira v1.0.0 — License your voice. Earn while you sleep.',
     },
     analytics: {
       exportCsv: 'Export CSV',
@@ -179,7 +179,7 @@ export const translations = {
       creatorUnavailable: 'Creator unavailable',
       creatorNotFound: 'Creator not found',
       creatorUnavailableDesc: 'This creator is currently not accepting messages. Please check back later.',
-      creatorNotFoundDesc: 'This creator hasn\'t registered on AuraCast yet, or the wallet address is invalid.',
+      creatorNotFoundDesc: 'This creator hasn\'t registered on Voclira yet, or the wallet address is invalid.',
       sendVoiceTo: 'Send a voice message to',
       pricePer150Chars: 'Price: {price} SOL per 150 characters',
       connectWalletPrompt: 'Connect your wallet to send a message',
@@ -207,10 +207,10 @@ export const translations = {
     play: {
       clipNotFound: 'Voice Clip Not Found',
       clipNotFoundDesc: 'No voice recording was found in our database for this transaction signature. Please check the address or make sure the transaction is completed.',
-      backToHome: 'Back to AuraCast Home',
-      voiceClone: 'AuraCast Voice Clip',
+      backToHome: 'Back to Voclira Home',
+      voiceClone: 'Voclira Voice Clip',
       creator: 'Creator:',
-      creatorDefault: 'AuraCast Creator',
+      creatorDefault: 'Voclira Creator',
       textSpoken: 'Text Spoken:',
       statusSuccess: 'Success',
       statusRejectedWithSafety: 'Rejected (Brand Safety)',
@@ -220,7 +220,7 @@ export const translations = {
       statusRejectedReason: 'Moderation Block:',
       statusPending: 'Generating',
       paid: 'Paid:',
-      ctaDesc: 'Rent your own AI voice clone on AuraCast! Clone your voice in 5 minutes and start earning while you sleep.',
+      ctaDesc: 'Rent your own AI voice clone on Voclira! Clone your voice in 5 minutes and start earning while you sleep.',
       ctaButton: 'License Your Own Voice',
     },
     license: {
@@ -238,7 +238,7 @@ export const translations = {
   },
   tr: {
     common: {
-      auracast: 'AuraCast',
+      voclira: 'Voclira',
     },
     landing: {
       slogan: 'Sesinizi lisanslayın. Siz uyurken o kazandırsın.',
@@ -322,7 +322,7 @@ export const translations = {
       copied: 'Kopyalandı!',
       share: 'Paylaş',
       shareTextDesc: 'Bu linki her yerde paylaşın — takipçileriniz tıklar, mesaj yazar, SOL öder ve anında sesinizle dinler.',
-      shareTweetText: '🎙 Bana AuraCast üzerinden kişiselleştirilmiş bir yapay zeka sesli mesajı gönderin! Metninizi yazın, SOL ile ödeyin ve anında benim sesimle dinleyin 🔥\n\n',
+      shareTweetText: '🎙 Bana Voclira üzerinden kişiselleştirilmiş bir yapay zeka sesli mesajı gönderin! Metninizi yazın, SOL ile ödeyin ve anında benim sesimle dinleyin 🔥\n\n',
       receivedMessages: 'Seslendirilen Mesajlar',
       receivedDesc: 'Sesinizle üretilen kişiselleştirilmiş fan mesajları.',
       refresh: 'Yenile',
@@ -380,7 +380,7 @@ export const translations = {
       updateFailed: 'Güncelleme başarısız oldu. Tekrar deneyin.',
       updateSuccess: '✓ Fiyat başarıyla güncellendi!',
       networkError: 'Ağ hatası. Tekrar deneyin.',
-      versionText: 'AuraCast v1.0.0 — Sesinizi lisanslayın. Siz uyurken o kazandırsın.',
+      versionText: 'Voclira v1.0.0 — Sesinizi lisanslayın. Siz uyurken o kazandırsın.',
     },
     analytics: {
       exportCsv: 'CSV Dışa Aktar',
@@ -414,7 +414,7 @@ export const translations = {
       creatorUnavailable: 'İçerik üretici şu an uygun değil',
       creatorNotFound: 'İçerik üretici bulunamadı',
       creatorUnavailableDesc: 'Bu içerik üretici şu an mesaj kabul etmiyor. Lütfen daha sonra tekrar deneyin.',
-      creatorNotFoundDesc: 'Bu içerik üretici henüz AuraCast\'e kayıt olmamış veya cüzdan adresi geçersiz.',
+      creatorNotFoundDesc: 'Bu içerik üretici henüz Voclira\'e kayıt olmamış veya cüzdan adresi geçersiz.',
       sendVoiceTo: 'Şu kişiye sesli mesaj gönder:',
       pricePer150Chars: 'Ücret: 150 karakter başına {price} SOL',
       connectWalletPrompt: 'Mesaj göndermek için cüzdanınızı bağlayın',
@@ -442,10 +442,10 @@ export const translations = {
     play: {
       clipNotFound: 'Ses Klibi Bulunamadı',
       clipNotFoundDesc: 'İşlem imzasına ait herhangi bir ses kaydı veritabanımızda bulunamadı. Lütfen adresi kontrol edin veya işlemin tamamlandığından emin olun.',
-      backToHome: 'AuraCast Ana Sayfasına Dön',
-      voiceClone: 'AuraCast Ses Klibi',
+      backToHome: 'Voclira Ana Sayfasına Dön',
+      voiceClone: 'Voclira Ses Klibi',
       creator: 'Yaratıcı:',
-      creatorDefault: 'AuraCast Yaratıcısı',
+      creatorDefault: 'Voclira Yaratıcısı',
       textSpoken: 'Seslendirilen Metin:',
       statusSuccess: 'Başarılı',
       statusRejectedWithSafety: 'Reddedildi (Marka Güvenliği)',
@@ -455,7 +455,7 @@ export const translations = {
       statusRejectedReason: 'Moderasyon Engeli:',
       statusPending: 'Hazırlanıyor',
       paid: 'Ödenen:',
-      ctaDesc: 'AuraCast\'te kendi yapay zeka ses klonunuzu kiralayın! Sesinizi 5 dakikada klonlayın ve siz uyurken kazanmaya başlayın.',
+      ctaDesc: 'Voclira\'te kendi yapay zeka ses klonunuzu kiralayın! Sesinizi 5 dakikada klonlayın ve siz uyurken kazanmaya başlayın.',
       ctaButton: 'Kendi Sesini Lisansla',
     },
     license: {

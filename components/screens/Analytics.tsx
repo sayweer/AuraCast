@@ -95,7 +95,7 @@ export default function Analytics({ walletAddress, getAuthHeaders }: AnalyticsPr
         )
         if (ignore) return
         if (res.status === 401 && retry) {
-          sessionStorage.removeItem(`auracast_session_${walletAddress}`)
+          sessionStorage.removeItem(`voclira_session_${walletAddress}`)
           await run(false)
           return
         }
@@ -136,7 +136,7 @@ export default function Analytics({ walletAddress, getAuthHeaders }: AnalyticsPr
           }
         )
         if (res.status === 401 && retry) {
-          sessionStorage.removeItem(`auracast_session_${walletAddress}`)
+          sessionStorage.removeItem(`voclira_session_${walletAddress}`)
           await performExport(false)
           return
         }
@@ -147,7 +147,7 @@ export default function Analytics({ walletAddress, getAuthHeaders }: AnalyticsPr
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `auracast-${days}d.csv`
+        a.download = `voclira-${days}d.csv`
         document.body.appendChild(a)
         a.click()
         a.remove()

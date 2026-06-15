@@ -46,7 +46,7 @@
 
   <!-- Title -->
   <text x="250" y="378" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="6" fill="#F5F0F1">VOICE LICENSE</text>
-  <text x="250" y="406" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" letter-spacing="3" fill="#C41E3A">AURACAST</text>
+  <text x="250" y="406" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" letter-spacing="3" fill="#C41E3A">VOCLIRA</text>
 
   <!-- Footer badge -->
   <circle cx="206" cy="442" r="4" fill="#22C55E"/>

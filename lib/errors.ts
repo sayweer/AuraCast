@@ -1,15 +1,15 @@
-export class AuraCastError extends Error {
+export class VocliraError extends Error {
   constructor(
     message: string,
     public readonly code: string,
     public readonly statusCode: number = 500
   ) {
     super(message)
-    this.name = 'AuraCastError'
+    this.name = 'VocliraError'
   }
 }
 
-export class ModerationError extends AuraCastError {
+export class ModerationError extends VocliraError {
   constructor(
     message: string,
     public readonly category?: string
@@ -19,7 +19,7 @@ export class ModerationError extends AuraCastError {
   }
 }
 
-export class UnsafeContentError extends AuraCastError {
+export class UnsafeContentError extends VocliraError {
   constructor(
     public readonly category: string,
     public readonly reason: string
@@ -33,7 +33,7 @@ export class UnsafeContentError extends AuraCastError {
   }
 }
 
-export class ElevenLabsError extends AuraCastError {
+export class ElevenLabsError extends VocliraError {
   constructor(
     message: string,
     public readonly status: number
@@ -43,7 +43,7 @@ export class ElevenLabsError extends AuraCastError {
   }
 }
 
-export class VoiceNotFoundError extends AuraCastError {
+export class VoiceNotFoundError extends VocliraError {
   constructor(voiceId: string) {
     super(
       `Voice not found: ${voiceId}`,
@@ -54,7 +54,7 @@ export class VoiceNotFoundError extends AuraCastError {
   }
 }
 
-export class TransactionVerificationError extends AuraCastError {
+export class TransactionVerificationError extends VocliraError {
   constructor(txSignature: string) {
     super(
       `Transaction could not be verified: ${txSignature}`,
@@ -65,7 +65,7 @@ export class TransactionVerificationError extends AuraCastError {
   }
 }
 
-export class CreatorNotFoundError extends AuraCastError {
+export class CreatorNotFoundError extends VocliraError {
   constructor(wallet: string) {
     super(
       `Creator not found: ${wallet}`,
@@ -91,7 +91,7 @@ export function getErrorResponse(error: unknown): {
       statusCode: error.statusCode
     }
   }
-  if (error instanceof AuraCastError) {
+  if (error instanceof VocliraError) {
     // For 500-level errors, sanitize the message to avoid leaking internals
     const safeMessage = error.statusCode >= 500
       ? 'An internal error occurred'
@@ -104,7 +104,7 @@ export function getErrorResponse(error: unknown): {
     }
   }
   // Log unexpected errors server-side for debugging
-  console.error('[AuraCast] Unexpected error:', error)
+  console.error('[Voclira] Unexpected error:', error)
   return {
     error: 'Unexpected error occurred',
     code: 'UNKNOWN_ERROR',

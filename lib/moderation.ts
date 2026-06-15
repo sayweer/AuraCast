@@ -1,6 +1,6 @@
 import Groq from 'groq-sdk'
 import type { ModerationResult, ModerationCategory } from '@/types'
-import { AuraCastError, ModerationError, UnsafeContentError } from '@/lib/errors'
+import { VocliraError, ModerationError, UnsafeContentError } from '@/lib/errors'
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY ?? '',
@@ -47,14 +47,14 @@ If unsafe: {"safe": false, "category": "<category>", "reason": "<one sentence in
 
 export function validateTextLength(text: string): void {
   if (text.trim().length < 5) {
-    throw new AuraCastError(
+    throw new VocliraError(
       'Text too short (minimum 5 characters)',
       'INVALID_TEXT_LENGTH',
       400
     )
   }
   if (text.trim().length > 300) {
-    throw new AuraCastError(
+    throw new VocliraError(
       'Text too long (maximum 300 characters)',
       'INVALID_TEXT_LENGTH',
       400
@@ -118,7 +118,7 @@ export async function isSafeToGenerate(
     return true
   } catch (error) {
     if (error instanceof UnsafeContentError) throw error
-    if (error instanceof AuraCastError) throw error
+    if (error instanceof VocliraError) throw error
     throw new ModerationError('Moderation failed unexpectedly')
   }
 }

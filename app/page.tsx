@@ -36,7 +36,7 @@ export default function App() {
 
   const getAuthHeaders = useCallback(async (walletAddr: string, forceRefresh = false): Promise<Record<string, string>> => {
     if (!walletAddr) throw new Error('No wallet address provided')
-    const tokenKey = `auracast_session_${walletAddr}`
+    const tokenKey = `voclira_session_${walletAddr}`
     let token = forceRefresh ? null : sessionStorage.getItem(tokenKey)
 
     if (!token) {
@@ -160,7 +160,7 @@ export default function App() {
         })
         if (ignore) return
         if (res.status === 401 && retry) {
-          sessionStorage.removeItem(`auracast_session_${walletAddressStr}`)
+          sessionStorage.removeItem(`voclira_session_${walletAddressStr}`)
           await fetchStats(false)
           return
         }
@@ -262,7 +262,7 @@ export default function App() {
           body: JSON.stringify({ walletAddress, ...newFilters }),
         })
         if (res.status === 401 && retry) {
-          sessionStorage.removeItem(`auracast_session_${walletAddress}`)
+          sessionStorage.removeItem(`voclira_session_${walletAddress}`)
           await performUpdate(false)
           return
         }
@@ -293,7 +293,7 @@ export default function App() {
           body: JSON.stringify({ walletAddress }),
         })
         if (res.status === 401 && retry) {
-          sessionStorage.removeItem(`auracast_session_${walletAddress}`)
+          sessionStorage.removeItem(`voclira_session_${walletAddress}`)
           await performDelete(false)
           return
         }
@@ -397,7 +397,7 @@ export default function App() {
           body: JSON.stringify({ walletAddress: walletAddr, nftMint, txSignature }),
         })
         if (res.status === 401 && retry) {
-          sessionStorage.removeItem(`auracast_session_${walletAddr}`)
+          sessionStorage.removeItem(`voclira_session_${walletAddr}`)
           return recordMint(false)
         }
         if (!res.ok) {

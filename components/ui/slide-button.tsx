@@ -20,8 +20,8 @@ const SPRING = { type: 'spring' as const, stiffness: 400, damping: 40, mass: 0.8
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 const COLORS = {
-  burgundy: { track: 'bg-aura-burgundy', icon: 'text-aura-burgundy' },
-  olive: { track: 'bg-aura-olive', icon: 'text-aura-olive' },
+  burgundy: { track: 'bg-voclira-burgundy', icon: 'text-voclira-burgundy' },
+  olive: { track: 'bg-voclira-olive', icon: 'text-voclira-olive' },
 } as const;
 
 interface SlideButtonProps {
@@ -111,7 +111,7 @@ export function SlideButton({
     >
       <motion.span
         style={{ opacity: labelOpacity }}
-        className="pointer-events-none px-12 text-sm font-semibold text-aura-cream"
+        className="pointer-events-none px-12 text-sm font-semibold text-voclira-cream"
       >
         {label}
       </motion.span>
@@ -124,7 +124,7 @@ export function SlideButton({
         onDragEnd={handleDragEnd}
         style={{ x }}
         className={cn(
-          'absolute left-1 flex size-10 items-center justify-center rounded-full bg-aura-cream shadow-md',
+          'absolute left-1 flex size-10 items-center justify-center rounded-full bg-voclira-cream shadow-md',
           colors.icon,
           interactive && 'cursor-grab active:cursor-grabbing',
         )}

@@ -1,5 +1,5 @@
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
-import { TransactionVerificationError, AuraCastError } from '@/lib/errors'
+import { TransactionVerificationError, VocliraError } from '@/lib/errors'
 
 const connection = new Connection(
   process.env.SOLANA_RPC_URL ?? 'https://api.devnet.solana.com',
@@ -15,7 +15,7 @@ export async function verifyTransaction(
   // Read platform wallet from env — required for fee verification
   const platformWallet = process.env.PLATFORM_WALLET
   if (!platformWallet) {
-    throw new AuraCastError('Platform wallet not configured', 'CONFIG_ERROR', 500)
+    throw new VocliraError('Platform wallet not configured', 'CONFIG_ERROR', 500)
   }
 
   const platformFee = Math.floor(expectedTotalLamports * 0.1)
@@ -36,7 +36,7 @@ export async function verifyTransaction(
   // impossible at the protocol level. This check adds defense-in-depth.
   const blockTime = tx.blockTime
   if (!blockTime) {
-    throw new AuraCastError(
+    throw new VocliraError(
       'Transaction age could not be verified',
       'TX_UNVERIFIABLE',
       400
@@ -45,7 +45,7 @@ export async function verifyTransaction(
 
   const txAgeMs = Date.now() - blockTime * 1000
   if (txAgeMs > 5 * 60 * 1000) {
-    throw new AuraCastError(
+    throw new VocliraError(
       'Transaction too old',
       'TX_TOO_OLD',
       400
@@ -142,7 +142,7 @@ export async function getWalletBalance(walletAddress: string): Promise<number> {
     const balance = await connection.getBalance(new PublicKey(walletAddress))
     return balance / LAMPORTS_PER_SOL
   } catch {
-    throw new AuraCastError('Failed to fetch wallet balance', 'WALLET_ERROR', 500)
+    throw new VocliraError('Failed to fetch wallet balance', 'WALLET_ERROR', 500)
   }
 }
 

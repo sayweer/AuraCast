@@ -229,11 +229,11 @@ export default function FanPage() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <div className="app-container aura-landing min-h-screen w-full bg-aura-cream text-aura-burgundy">
+    <div className="app-container voclira-landing min-h-screen w-full bg-voclira-cream text-voclira-burgundy">
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 border-b-2 border-aura-burgundy/40">
+      <header className="relative z-10 flex items-center justify-between px-6 py-5 border-b-2 border-voclira-burgundy/40">
         <BrandLogo variant="light" href="/" />
-        <LanguageToggle className="!bg-aura-paper !text-aura-burgundy !border-aura-burgundy/20 !shadow-none hover:!bg-aura-paper/80" />
+        <LanguageToggle className="!bg-voclira-paper !text-voclira-burgundy !border-voclira-burgundy/20 !shadow-none hover:!bg-voclira-paper/80" />
       </header>
 
       {/* Main content */}
@@ -244,9 +244,9 @@ export default function FanPage() {
           {loading && (
             <div className="flex flex-col items-center justify-center gap-3 py-24">
               <div
-                className="w-8 h-8 rounded-full border-2 border-aura-burgundy border-t-transparent animate-spin"
+                className="w-8 h-8 rounded-full border-2 border-voclira-burgundy border-t-transparent animate-spin"
               />
-              <p className="text-aura-burgundy/60 text-sm">{t('fan.loadingCreator')}</p>
+              <p className="text-voclira-burgundy/60 text-sm">{t('fan.loadingCreator')}</p>
             </div>
           )}
 
@@ -254,10 +254,10 @@ export default function FanPage() {
           {!loading && (!creator || !creator.is_active) && (
             <div className="flex flex-col items-center justify-center gap-4 py-24">
               <div className="text-5xl">🔍</div>
-              <h2 className="font-display text-xl font-semibold text-aura-burgundy">
+              <h2 className="font-display text-xl font-semibold text-voclira-burgundy">
                 {creator && !creator.is_active ? t('fan.creatorUnavailable') : t('fan.creatorNotFound')}
               </h2>
-              <p className="text-aura-burgundy/60 text-sm text-center">
+              <p className="text-voclira-burgundy/60 text-sm text-center">
                 {creator && !creator.is_active
                   ? t('fan.creatorUnavailableDesc')
                   : t('fan.creatorNotFoundDesc')}
@@ -270,27 +270,27 @@ export default function FanPage() {
             <div className="flex flex-col gap-6">
 
               {/* Creator identity card */}
-              <div className="relative overflow-hidden rounded-2xl border-2 border-aura-burgundy/25 bg-aura-paper shadow-[0_8px_30px_rgba(123,37,37,0.12)] p-6 flex flex-col gap-3">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-voclira-burgundy/25 bg-voclira-paper shadow-[0_8px_30px_rgba(123,37,37,0.12)] p-6 flex flex-col gap-3">
                 <BorderBeam lightColor="#7B2525" lightWidth={220} duration={9} borderWidth={2} />
                 {/* Avatar */}
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 bg-aura-burgundy/10 border-2 border-aura-burgundy/25">
-                    <Mic className="w-6 h-6 text-aura-terracotta" />
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 bg-voclira-burgundy/10 border-2 border-voclira-burgundy/25">
+                    <Mic className="w-6 h-6 text-voclira-terracotta" />
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <p className="font-display text-xs text-aura-burgundy/60 uppercase tracking-[0.25em] font-medium">
+                    <p className="font-display text-xs text-voclira-burgundy/60 uppercase tracking-[0.25em] font-medium">
                       {t('fan.sendVoiceTo')}
                     </p>
-                    <h1 className="font-display text-2xl font-bold tracking-tight text-aura-burgundy">
+                    <h1 className="font-display text-2xl font-bold tracking-tight text-voclira-burgundy">
                       {creator.creator_name ?? creatorWallet.slice(0, 8)}
                     </h1>
                   </div>
                 </div>
 
                 {/* Price pill */}
-                <div className="inline-flex items-center gap-2 self-start rounded-full px-3 py-1 text-xs font-medium bg-aura-olive/15 border border-aura-olive/40 text-aura-olive">
+                <div className="inline-flex items-center gap-2 self-start rounded-full px-3 py-1 text-xs font-medium bg-voclira-olive/15 border border-voclira-olive/40 text-voclira-olive">
                   <span
-                    className="w-1.5 h-1.5 rounded-full bg-aura-olive animate-pulse"
+                    className="w-1.5 h-1.5 rounded-full bg-voclira-olive animate-pulse"
                   />
                   {t('fan.pricePer150Chars', { price: pricePerUnit })}
                 </div>
@@ -300,18 +300,18 @@ export default function FanPage() {
               <div className="flex flex-col gap-4">
 
                 {/* Textarea */}
-                <div className="rounded-2xl border border-aura-burgundy/20 bg-aura-paper p-1 flex flex-col gap-0 transition-colors focus-within:border-aura-burgundy/40">
+                <div className="rounded-2xl border border-voclira-burgundy/20 bg-voclira-paper p-1 flex flex-col gap-0 transition-colors focus-within:border-voclira-burgundy/40">
                   <textarea
                     id="fan-message"
                     value={message}
                     onChange={(e) => setMessage(e.target.value.slice(0, 300))}
                     placeholder={t('fan.typeMessagePlaceholder')}
                     rows={4}
-                    className="w-full resize-none rounded-xl px-4 pt-4 pb-2 text-sm text-aura-night placeholder:text-aura-burgundy/40 bg-transparent outline-none focus:outline-none"
+                    className="w-full resize-none rounded-xl px-4 pt-4 pb-2 text-sm text-voclira-night placeholder:text-voclira-burgundy/40 bg-transparent outline-none focus:outline-none"
                   />
                   <div className="flex justify-end px-4 pb-3">
                     <span
-                      className={`text-xs ${message.length >= 270 ? 'text-red-600' : 'text-aura-burgundy/50'}`}
+                      className={`text-xs ${message.length >= 270 ? 'text-red-600' : 'text-voclira-burgundy/50'}`}
                     >
                       {message.length}/300
                     </span>
@@ -320,7 +320,7 @@ export default function FanPage() {
 
                 {/* Mood selector */}
                 <div className="flex flex-col gap-2">
-                  <label className="font-display text-xs font-medium text-aura-burgundy/60 uppercase tracking-[0.25em]">
+                  <label className="font-display text-xs font-medium text-voclira-burgundy/60 uppercase tracking-[0.25em]">
                     {t('fan.moodLabel')}
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -333,8 +333,8 @@ export default function FanPage() {
                           onClick={() => setSelectedMood(m.id)}
                           className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                             active
-                              ? 'bg-aura-olive border-aura-olive text-aura-cream shadow-[0_2px_12px_rgba(96,116,86,0.35)]'
-                              : 'bg-aura-paper border-aura-burgundy/20 text-aura-burgundy/70 hover:border-aura-burgundy/40'
+                              ? 'bg-voclira-olive border-voclira-olive text-voclira-cream shadow-[0_2px_12px_rgba(96,116,86,0.35)]'
+                              : 'bg-voclira-paper border-voclira-burgundy/20 text-voclira-burgundy/70 hover:border-voclira-burgundy/40'
                           }`}
                         >
                           <span className="mr-1">{m.emoji}</span>
@@ -345,19 +345,19 @@ export default function FanPage() {
                   </div>
                 </div>
 
-                <WavePath className="my-3 text-aura-burgundy/40" />
+                <WavePath className="my-3 text-voclira-burgundy/40" />
 
                 {/* Wallet prompt — shown when not connected */}
                 {!connected && (
-                  <div className="rounded-2xl border-2 border-aura-burgundy/25 bg-aura-paper p-8 flex flex-col items-center gap-5 text-center">
+                  <div className="rounded-2xl border-2 border-voclira-burgundy/25 bg-voclira-paper p-8 flex flex-col items-center gap-5 text-center">
                     <div className="text-4xl">👛</div>
                     <div className="flex flex-col gap-1">
-                      <p className="font-semibold text-aura-burgundy">{t('fan.connectWalletPrompt')}</p>
-                      <p className="text-xs text-aura-burgundy/60">
+                      <p className="font-semibold text-voclira-burgundy">{t('fan.connectWalletPrompt')}</p>
+                      <p className="text-xs text-voclira-burgundy/60">
                         {t('fan.receiveAiVoiceClip')}
                       </p>
                     </div>
-                    <div className="aura-ring">
+                    <div className="voclira-ring">
                       <WalletButton />
                     </div>
                   </div>
@@ -368,15 +368,15 @@ export default function FanPage() {
                   <>
 
                   {/* Price preview */}
-                  <div className="rounded-xl border border-aura-terracotta/40 bg-aura-terracotta/10 px-4 py-3 flex items-center justify-between gap-2">
+                  <div className="rounded-xl border border-voclira-terracotta/40 bg-voclira-terracotta/10 px-4 py-3 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-aura-burgundy/60">
+                      <span className="text-voclira-burgundy/60">
                         {charUnits > 0
                           ? t('fan.priceUnitLabel', { units: charUnits, plural: charUnits !== 1 ? 's' : '', price: pricePerUnit })
                           : t('fan.priceLabel', { price: pricePerUnit })}
                       </span>
                     </div>
-                    <div className="font-display font-bold text-base text-aura-terracotta">
+                    <div className="font-display font-bold text-base text-voclira-terracotta">
                       {charUnits > 0 ? `= ${totalSol} SOL` : '—'}
                     </div>
                   </div>
@@ -387,11 +387,11 @@ export default function FanPage() {
                     onClick={handlePayAndGenerate}
                     disabled={!message.trim() || isPaying}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full rounded-xl py-3.5 px-6 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-aura-burgundy text-aura-cream shadow-[0_4px_20px_rgba(123,37,37,0.35)] hover:bg-aura-burgundy/90 disabled:bg-aura-burgundy/30 disabled:shadow-none disabled:cursor-not-allowed"
+                    className="w-full rounded-xl py-3.5 px-6 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-voclira-burgundy text-voclira-cream shadow-[0_4px_20px_rgba(123,37,37,0.35)] hover:bg-voclira-burgundy/90 disabled:bg-voclira-burgundy/30 disabled:shadow-none disabled:cursor-not-allowed"
                   >
                     {isPaying ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-aura-cream/40 border-t-aura-cream rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-voclira-cream/40 border-t-voclira-cream rounded-full animate-spin" />
                         {t('fan.processingPayment')}
                       </>
                     ) : (
@@ -411,7 +411,7 @@ export default function FanPage() {
 
                   {/* Transaction confirmation */}
                   {txSignature && !audioUrl && isPaying && (
-                    <p className="text-xs text-aura-burgundy/60 text-center">
+                    <p className="text-xs text-voclira-burgundy/60 text-center">
                       {t('fan.txConfirmed')}
                     </p>
                   )}
@@ -419,14 +419,14 @@ export default function FanPage() {
                   {/* Audio player */}
                   {audioUrl && (
                     <motion.div
-                      className="rounded-2xl border-2 border-aura-burgundy/25 bg-aura-paper shadow-[0_8px_30px_rgba(123,37,37,0.12)] p-5 flex flex-col gap-3"
+                      className="rounded-2xl border-2 border-voclira-burgundy/25 bg-voclira-paper shadow-[0_8px_30px_rgba(123,37,37,0.12)] p-5 flex flex-col gap-3"
                       initial={{ opacity: 0, scale: 0.95, y: 12 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       transition={{ type: 'spring', stiffness: 260, damping: 22 }}
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-xl">🎉</span>
-                        <p className="font-semibold text-aura-burgundy text-sm">
+                        <p className="font-semibold text-voclira-burgundy text-sm">
                           {t('fan.voiceReady')}
                         </p>
                       </div>
@@ -434,7 +434,7 @@ export default function FanPage() {
                         controls
                         playsInline
                         src={audioUrl}
-                        className="w-full mt-1 accent-aura-terracotta"
+                        className="w-full mt-1 accent-voclira-terracotta"
                         onPlay={() => {
                           if (!purchaseId || !publicKey) return
                           fetch(`/api/voice/play/${purchaseId}`, {
@@ -450,12 +450,12 @@ export default function FanPage() {
                         type="button"
                         onClick={handleDownload}
                         disabled={!audioBase64Raw}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 bg-aura-terracotta/15 border border-aura-terracotta/40 text-aura-burgundy hover:bg-aura-terracotta/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 bg-voclira-terracotta/15 border border-voclira-terracotta/40 text-voclira-burgundy hover:bg-voclira-terracotta/25 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {t('fan.downloadAudio')}
                       </button>
                       {downloadHint && (
-                        <p className="text-xs text-aura-burgundy/60 mt-1 leading-snug">
+                        <p className="text-xs text-voclira-burgundy/60 mt-1 leading-snug">
                           {downloadHint}
                         </p>
                       )}
@@ -472,7 +472,7 @@ export default function FanPage() {
 
       {/* Footer */}
       <footer className="relative z-10 py-6 text-center">
-        <p className="text-[11px] uppercase tracking-[0.2em] text-aura-burgundy/50">
+        <p className="text-[11px] uppercase tracking-[0.2em] text-voclira-burgundy/50">
           {t('fan.protectedSafety')}
         </p>
       </footer>
