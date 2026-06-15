@@ -27,6 +27,11 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   title: 'Voclira - License Your Voice on Solana',
   description: 'Web3 voice licensing platform. Create your voice clone, earn SOL from fan requests.',
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/favicon.ico',
+    apple: '/icon.png',
+  },
 }
 
 export const viewport: Viewport = {
