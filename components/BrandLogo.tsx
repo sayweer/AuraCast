@@ -18,7 +18,7 @@ export function BrandLogo({
   const content = (
     <>
       <img
-        src="/logo.jpg"
+        src="/logo.png"
         alt="Voclira"
         className={cn(
           'h-9 w-9 rounded-lg border',
