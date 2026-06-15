@@ -25,7 +25,7 @@ import DisplayCards from '@/components/ui/display-cards'
 import RadialOrbitalTimeline, { OrbitalItem } from '@/components/ui/radial-orbital-timeline'
 
 
-const NEWS_IMAGES = Array.from({ length: 17 }, (_, i) => `/news/news-${i + 1}.jpg`)
+const NEWS_IMAGES = Array.from({ length: 17 }, (_, i) => `/news/news-${i + 1}.png`)
 
 const container = {
   hidden: {},
