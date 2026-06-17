@@ -6,6 +6,10 @@ const BASE_URL = 'https://api.elevenlabs.io/v1'
 const DEFAULT_TTS_MODEL = 'eleven_v3'
 const DEFAULT_TTS_FALLBACK = 'eleven_turbo_v2_5'
 
+// Model used to fine-tune Professional Voice Clones. eleven_v3 does not support PVC
+// fine-tuning, so PVC trains against a fine-tune-capable model by default.
+const DEFAULT_PVC_MODEL = 'eleven_multilingual_v2'
+
 // Instant Voice Cloning sample size guards (60s @ 64kbps ≈ 480KB; we accept down to ~250KB
 // to tolerate variable-bitrate webm/opus from MediaRecorder). Max 25MB hard cap.
 const MIN_SAMPLE_BYTES = 250 * 1024
@@ -25,6 +29,28 @@ export function getTtsModel(): string {
 
 export function getTtsFallbackModel(): string {
     return process.env.ELEVENLABS_TTS_FALLBACK?.trim() || DEFAULT_TTS_FALLBACK
+}
+
+export function getPvcModel(): string {
+    return process.env.ELEVENLABS_PVC_MODEL?.trim() || DEFAULT_PVC_MODEL
+}
+
+const MIME_TYPE_MAP: Record<string, string> = {
+    mp4: 'audio/mp4',
+    m4a: 'audio/mp4',
+    webm: 'audio/webm',
+    ogg: 'audio/ogg',
+    wav: 'audio/wav',
+    mp3: 'audio/mpeg',
+}
+
+function mimeForFile(fileName: string): string {
+    const ext = fileName.split('.').pop()?.toLowerCase() ?? 'webm'
+    return MIME_TYPE_MAP[ext] ?? 'audio/webm'
+}
+
+function fileBlob(buffer: Buffer, fileName: string): Blob {
+    return new Blob([new Uint8Array(buffer)], { type: mimeForFile(fileName) })
 }
 
 function stripAudioTags(text: string): string {
@@ -206,4 +232,158 @@ export async function deleteVoice(voiceId: string): Promise<void> {
 
     if (res.status === 404) return
     if (!res.ok) return handleError(res)
+}
+
+// ─── Professional Voice Cloning (PVC) ──────────────────
+//
+// PVC is asynchronous: create the voice → upload 30min+ of samples → the owner reads a
+// captcha aloud to prove consent → training runs for 2-6h → poll fine_tuning state.
+// NOTE: an ElevenLabs account has a limited number of PVC slots (Creator/Pro plans ~1),
+// so a single shared API key can only hold a few PVC voices at once.
+
+interface PvcSampleResult {
+    sample_id: string
+    duration_secs?: number
+}
+
+export type PvcFineTuneState =
+    | 'not_started'
+    | 'queued'
+    | 'fine_tuning'
+    | 'fine_tuned'
+    | 'failed'
+    | 'delayed'
+
+/** Create an empty PVC voice (metadata only). Returns the new voice_id. */
+export async function createPvcVoice(
+    name: string,
+    language: string,
+    description?: string
+): Promise<string> {
+    const res = await fetch(`${BASE_URL}/voices/pvc`, {
+        method: 'POST',
+        headers: {
+            'xi-api-key': apiKey(),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, language, description: description ?? null }),
+    })
+
+    if (!res.ok) {
+        // 403 (and often 400) here means the account has no free PVC slot or the plan
+        // does not include PVC. Surface a clear, actionable error to the creator.
+        if (res.status === 403 || res.status === 400) {
+            const detail = await res.text().catch(() => '')
+            console.error(`[ElevenLabs] createPvcVoice HTTP ${res.status}: ${detail}`)
+            throw new VocliraError(
+                'PVC kapasitesi şu anda dolu. Lütfen IVC ile devam edin ya da daha sonra tekrar deneyin.',
+                'PVC_SLOT_FULL',
+                409
+            )
+        }
+        return handleError(res)
+    }
+
+    const json = (await res.json()) as { voice_id: string }
+    return json.voice_id
+}
+
+/** Upload audio samples to a PVC voice. Returns total sample duration in seconds. */
+export async function addPvcSamples(
+    voiceId: string,
+    files: Array<{ buffer: Buffer; fileName: string }>
+): Promise<number> {
+    const form = new FormData()
+    for (const f of files) {
+        form.append('files', fileBlob(f.buffer, f.fileName), f.fileName)
+    }
+
+    const res = await fetch(`${BASE_URL}/voices/pvc/${voiceId}/samples`, {
+        method: 'POST',
+        headers: { 'xi-api-key': apiKey() },
+        body: form,
+    })
+
+    if (!res.ok) return handleError(res)
+
+    const json = (await res.json()) as PvcSampleResult[]
+    return json.reduce((sum, s) => sum + (s.duration_secs ?? 0), 0)
+}
+
+/**
+ * Fetch the verification captcha for a PVC voice. The captcha is an image containing
+ * text the voice owner must read aloud. Returned as a base64 data URL ready for <img>.
+ */
+export async function getPvcCaptcha(voiceId: string): Promise<string> {
+    const res = await fetch(`${BASE_URL}/voices/pvc/${voiceId}/verification/captcha`, {
+        method: 'GET',
+        headers: { 'xi-api-key': apiKey() },
+    })
+
+    if (!res.ok) return handleError(res)
+
+    const contentType = res.headers.get('content-type') ?? ''
+    const buf = Buffer.from(await res.arrayBuffer())
+    const imageType = contentType.startsWith('image/') ? contentType : 'image/png'
+    return `data:${imageType};base64,${buf.toString('base64')}`
+}
+
+/** Submit the owner's recording of the captcha text to verify consent. */
+export async function verifyPvcCaptcha(voiceId: string, recording: Buffer, fileName = 'captcha.webm'): Promise<void> {
+    const form = new FormData()
+    form.append('recording', fileBlob(recording, fileName), fileName)
+
+    const res = await fetch(`${BASE_URL}/voices/pvc/${voiceId}/verification/captcha/verify`, {
+        method: 'POST',
+        headers: { 'xi-api-key': apiKey() },
+        body: form,
+    })
+
+    if (!res.ok) {
+        const detail = await res.text().catch(() => '')
+        console.error(`[ElevenLabs] verifyPvcCaptcha HTTP ${res.status}: ${detail}`)
+        throw new VocliraError(
+            'Ses doğrulaması başarısız oldu. Metni net biçimde okuduğunuzdan emin olup tekrar deneyin.',
+            'PVC_CAPTCHA_FAILED',
+            422
+        )
+    }
+}
+
+/** Kick off PVC fine-tuning against the configured PVC model. */
+export async function trainPvcVoice(voiceId: string, modelId: string = getPvcModel()): Promise<void> {
+    const res = await fetch(`${BASE_URL}/voices/pvc/${voiceId}/train`, {
+        method: 'POST',
+        headers: {
+            'xi-api-key': apiKey(),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ model_id: modelId }),
+    })
+
+    if (!res.ok) return handleError(res)
+}
+
+/** Poll a PVC voice's fine-tuning state for the configured model. */
+export async function getPvcFineTuneState(
+    voiceId: string,
+    modelId: string = getPvcModel()
+): Promise<{ state: PvcFineTuneState; progress: number }> {
+    const res = await fetch(`${BASE_URL}/voices/${voiceId}`, {
+        method: 'GET',
+        headers: { 'xi-api-key': apiKey() },
+    })
+
+    if (!res.ok) return handleError(res)
+
+    const json = (await res.json()) as {
+        fine_tuning?: {
+            state?: Record<string, PvcFineTuneState>
+            progress?: Record<string, number>
+        }
+    }
+
+    const state = json.fine_tuning?.state?.[modelId] ?? 'not_started'
+    const progress = json.fine_tuning?.progress?.[modelId] ?? 0
+    return { state, progress }
 }

@@ -68,7 +68,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<RegisterCreat
       throw verifyError
     }
 
-    const creator = await saveCreator({ walletAddress, creatorName, audioBase64, fileName, voiceId, priceInLamports, language: language ?? 'en' })
+    const creator = await saveCreator({ walletAddress, creatorName, voiceId, priceInLamports, language: language ?? 'en' })
 
     return NextResponse.json({ success: true, voiceId, creatorId: creator.id }, { status: 201 })
   } catch (error) {

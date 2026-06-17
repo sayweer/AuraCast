@@ -9,6 +9,7 @@ import SettingsModal from '@/components/SettingsModal';
 import { useWallet } from '@solana/wallet-adapter-react'
 import bs58 from 'bs58'
 import { useLanguage } from '@/components/LanguageProvider'
+import type { CloneType, VoiceStatus } from '@/types'
 
 export default function App() {
   const wallet = useWallet()
@@ -65,7 +66,12 @@ export default function App() {
   }, [getSignature])
 
   const [appState, setAppState] = useState<'landing' | 'onboarding' | 'dashboard'>('landing');
-  const [onboardingStep, setOnboardingStep] = useState<1 | 2>(1);
+  const [onboardingStep, setOnboardingStep] = useState<1 | 2 | 3>(1);
+  const [cloneType, setCloneType] = useState<CloneType>('ivc');
+  const [pvcFiles, setPvcFiles] = useState<File[]>([]);
+  const [captchaImage, setCaptchaImage] = useState<string | null>(null);
+  const [isVerifyingCaptcha, setIsVerifyingCaptcha] = useState(false);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [audioReady, setAudioReady] = useState(false);
@@ -83,6 +89,8 @@ export default function App() {
     priceInLamports: number
     voiceId: string
     nftMint: string | null
+    voiceStatus: VoiceStatus
+    cloneType: CloneType
   } | null>(null)
   const [mintingLicense, setMintingLicense] = useState(false)
   const [licenseError, setLicenseError] = useState<string | null>(null)
@@ -122,12 +130,20 @@ export default function App() {
         if (res.ok) {
           const creator = await res.json()
           if (ignore) return
-          if (!creator.is_active || !creator.has_voice) {
-            setAppState('onboarding')
-            setOnboardingStep(1)
+          const ready = creator.is_active && creator.has_voice
+          // A PVC creator mid-setup (verifying/training/failed) has no usable voice yet,
+          // but should land on the dashboard to see status — not be sent back to onboarding.
+          const pvcInProgress =
+            creator.clone_type === 'pvc' &&
+            (creator.voice_status === 'training' ||
+              creator.voice_status === 'pending_verification' ||
+              creator.voice_status === 'failed')
+          if (ready || pvcInProgress) {
+            setAppState('dashboard')
             return
           }
-          setAppState('dashboard')
+          setAppState('onboarding')
+          setOnboardingStep(1)
         } else {
           setAppState('onboarding')
           setOnboardingStep(1)
@@ -173,6 +189,8 @@ export default function App() {
             priceInLamports: creator.price_lamports,
             voiceId: creator.voice_id,
             nftMint: creator.nft_mint ?? null,
+            voiceStatus: creator.voice_status,
+            cloneType: creator.clone_type,
           })
           setBlockAdult(creator.block_adult ?? true)
           setBlockProfanity(creator.block_profanity ?? true)
@@ -205,6 +223,37 @@ export default function App() {
     return () => { ignore = true }
   }, [appState, walletAddressStr, getAuthHeaders])
 
+  // Poll PVC training status while a voice is still fine-tuning. The status endpoint
+  // syncs DB state lazily; once it returns a non-training status we update local state
+  // (which removes the dashboard banner and re-enables the fan page) and stop polling.
+  useEffect(() => {
+    if (appState !== 'dashboard' || !walletAddressStr) return
+    if (creatorStats?.voiceStatus !== 'training') return
+
+    let ignore = false
+    let timer: ReturnType<typeof setTimeout>
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/creator/pvc-status/${walletAddressStr}`, { cache: 'no-store' })
+        if (ignore) return
+        if (res.ok) {
+          const data = (await res.json()) as { voice_status: VoiceStatus }
+          if (data.voice_status !== 'training') {
+            setCreatorStats((prev) => (prev ? { ...prev, voiceStatus: data.voice_status } : prev))
+            return
+          }
+        }
+      } catch {
+        // transient error — keep polling
+      }
+      if (!ignore) timer = setTimeout(poll, 45000)
+    }
+
+    timer = setTimeout(poll, 45000)
+    return () => { ignore = true; clearTimeout(timer) }
+  }, [appState, walletAddressStr, creatorStats?.voiceStatus])
+
   const handleDisconnectWallet = async () => {
     await disconnect()
     setAppState('landing')
@@ -221,6 +270,11 @@ export default function App() {
     setBlockPolitical(true)
     setSelectedPrice(0.05)
     setSelectedLanguage('en')
+    setCloneType('ivc')
+    setPvcFiles([])
+    setCaptchaImage(null)
+    setCaptchaError(null)
+    setIsVerifyingCaptcha(false)
   }
 
   const handleFilterUpdate = async (
@@ -304,6 +358,11 @@ export default function App() {
         setCreatorStats(null)
         setAppState('onboarding')
         setOnboardingStep(1)
+        setCloneType('ivc')
+        setPvcFiles([])
+        setCaptchaImage(null)
+        setAudioReady(false)
+        setAudioBlob(null)
       } catch {
         alert('Network error. Please try again.')
       }
@@ -323,7 +382,100 @@ export default function App() {
     setIsRecording(false)
   }
 
+  const handleSelectCloneType = (type: CloneType) => {
+    setCloneType(type)
+    // Switching modes invalidates whichever sample input was in progress.
+    setAudioReady(false)
+    setAudioBlob(null)
+    setPvcFiles([])
+    setRegisterError(null)
+  }
+
+  const handlePvcFiles = (files: File[]) => {
+    setPvcFiles(files)
+  }
+
+  const handleLaunchPvc = async () => {
+    if (!publicKey || pvcFiles.length === 0) {
+      setRegisterError(!publicKey ? 'Wallet not connected' : 'No audio files selected.')
+      return
+    }
+    setIsRegistering(true)
+    setRegisterError(null)
+
+    try {
+      const form = new FormData()
+      form.append('walletAddress', publicKey.toBase58())
+      form.append('creatorName', publicKey.toBase58().slice(0, 8))
+      form.append('priceInLamports', String(Math.round(selectedPrice * 1_000_000_000)))
+      form.append('language', selectedLanguage)
+      pvcFiles.forEach((f) => form.append('files', f, f.name))
+
+      const res = await fetch('/api/creator/register-pvc', { method: 'POST', body: form })
+      const data = await res.json()
+
+      if (!res.ok) {
+        // 409 without PVC_SLOT_FULL means the creator already exists → go to dashboard.
+        if (res.status === 409 && data.code !== 'PVC_SLOT_FULL') {
+          setAppState('dashboard')
+          return
+        }
+        setRegisterError(data.error ?? 'Registration failed')
+        return
+      }
+
+      setCaptchaImage(data.captchaImage ?? null)
+      setOnboardingStep(3)
+    } catch {
+      setRegisterError('Network error. Please try again.')
+    } finally {
+      setIsRegistering(false)
+    }
+  }
+
+  const handleVerifyCaptcha = async (recording: Blob) => {
+    if (!publicKey) {
+      setCaptchaError('Wallet not connected')
+      return
+    }
+    const walletAddr = publicKey.toBase58()
+    setIsVerifyingCaptcha(true)
+    setCaptchaError(null)
+
+    try {
+      const arrayBuffer = await recording.arrayBuffer()
+      const base64 = Buffer.from(arrayBuffer).toString('base64')
+
+      const verify = async (retry = true): Promise<void> => {
+        const headers = await getAuthHeaders(walletAddr)
+        const res = await fetch('/api/creator/verify-pvc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...headers },
+          body: JSON.stringify({ walletAddress: walletAddr, recordingBase64: base64 }),
+        })
+        if (res.status === 401 && retry) {
+          sessionStorage.removeItem(`voclira_session_${walletAddr}`)
+          return verify(false)
+        }
+        const data = await res.json().catch(() => null)
+        if (!res.ok) throw new Error(data?.error ?? 'Verification failed')
+      }
+
+      await verify()
+      // Training has started — the dashboard polls for completion.
+      setAppState('dashboard')
+    } catch (err) {
+      setCaptchaError(err instanceof Error ? err.message : 'Verification failed')
+    } finally {
+      setIsVerifyingCaptcha(false)
+    }
+  }
+
   const handleLaunch = async () => {
+    if (cloneType === 'pvc') {
+      await handleLaunchPvc()
+      return
+    }
     if (!publicKey || !audioBlob) {
       setRegisterError(
         !publicKey
@@ -339,8 +491,10 @@ export default function App() {
       const arrayBuffer = await audioBlob.arrayBuffer()
       const base64 = Buffer.from(arrayBuffer).toString('base64')
 
-      const extension = audioMimeType.includes('mp4') ? 'mp4'
+      const extension = audioMimeType.includes('mp4') || audioMimeType.includes('m4a') ? 'mp4'
         : audioMimeType.includes('ogg') ? 'ogg'
+        : audioMimeType.includes('mpeg') || audioMimeType.includes('mp3') ? 'mp3'
+        : audioMimeType.includes('wav') ? 'wav'
         : 'webm'
 
       const res = await fetch('/api/creator/register', {
@@ -454,6 +608,14 @@ export default function App() {
           audioReady={audioReady}
           selectedPrice={selectedPrice}
           walletAddress={walletAddress}
+          cloneType={cloneType}
+          pvcReady={pvcFiles.length > 0}
+          captchaImage={captchaImage}
+          isVerifyingCaptcha={isVerifyingCaptcha}
+          captchaError={captchaError}
+          onSelectCloneType={handleSelectCloneType}
+          onPvcFiles={handlePvcFiles}
+          onVerifyCaptcha={handleVerifyCaptcha}
           onStartRecording={handleStartRecording}
           onNextStep={() => setOnboardingStep(2)}
           onBackStep={() => setOnboardingStep(1)}
@@ -499,6 +661,10 @@ export default function App() {
           setAudioMimeType('audio/webm');
           setRegisterError(null);
           setCreatorStats(null);
+          setCloneType('ivc');
+          setPvcFiles([]);
+          setCaptchaImage(null);
+          setCaptchaError(null);
           setSettingsOpen(false);
         }}
         onPriceUpdate={(newPrice) => {

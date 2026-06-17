@@ -3,6 +3,7 @@ import { getCreatorByWallet } from '@/lib/supabase'
 import { getErrorResponse } from '@/lib/errors'
 import { isValidWalletAddress } from '@/lib/validation'
 import { verifyWalletAuthOrSession } from '@/lib/auth'
+import type { CloneType, VoiceStatus } from '@/types'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -25,6 +26,8 @@ interface PublicCreatorInfo {
   is_active: boolean
   language: string
   has_voice: boolean
+  clone_type: CloneType
+  voice_status: VoiceStatus
 }
 
 export async function GET(
@@ -52,7 +55,10 @@ export async function GET(
         price_lamports: creator.price_lamports,
         is_active: creator.is_active,
         language: creator.language,
-        has_voice: Boolean(creator.voice_id),
+        // A PVC voice exists in ElevenLabs from creation but is only usable once trained.
+        has_voice: Boolean(creator.voice_id) && creator.voice_status === 'ready',
+        clone_type: creator.clone_type,
+        voice_status: creator.voice_status,
       }
       return jsonNoStore(publicInfo, 200)
     }

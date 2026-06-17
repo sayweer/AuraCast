@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, Fragment } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Mic, ChevronRight, RotateCw } from 'lucide-react';
@@ -8,14 +8,29 @@ import { useLanguage } from '@/components/LanguageProvider';
 import LanguageToggle from '@/components/LanguageToggle';
 import { BrandLogo } from '@/components/BrandLogo';
 import { WavePath } from '@/components/ui/wave-path';
+import { CloneTypeSelect } from '@/components/onboarding/CloneTypeSelect';
+import { AudioUpload } from '@/components/onboarding/AudioUpload';
+import { PvcCaptcha } from '@/components/onboarding/PvcCaptcha';
+import type { CloneType } from '@/types';
+
+// PVC needs at least 30 minutes of audio (recommended ~3 hours).
+const PVC_MIN_DURATION_SEC = 30 * 60;
 
 interface OnboardingProps {
-  step: 1 | 2;
+  step: 1 | 2 | 3;
   isRecording: boolean;
   recordingSeconds: number;
   audioReady: boolean;
   selectedPrice: number;
   walletAddress: string;
+  cloneType: CloneType;
+  pvcReady: boolean;
+  captchaImage: string | null;
+  isVerifyingCaptcha: boolean;
+  captchaError: string | null;
+  onSelectCloneType: (type: CloneType) => void;
+  onPvcFiles: (files: File[], totalDurationSec: number) => void;
+  onVerifyCaptcha: (recording: Blob, mimeType: string) => void;
   onStartRecording: () => void;
   onNextStep: () => void;
   onBackStep: () => void;
@@ -78,6 +93,14 @@ export default function Onboarding({
   audioReady,
   selectedPrice,
   walletAddress,
+  cloneType,
+  pvcReady,
+  captchaImage,
+  isVerifyingCaptcha,
+  captchaError,
+  onSelectCloneType,
+  onPvcFiles,
+  onVerifyCaptcha,
   onStartRecording,
   onNextStep,
   onBackStep,
@@ -365,6 +388,18 @@ export default function Onboarding({
     }
   }
 
+  // Uploaded IVC file feeds the same downstream state as a recording. Duration metadata
+  // can be unknown (0) for some containers; in that case we let the server-side byte-size
+  // guard enforce the minimum rather than blocking a valid upload.
+  const handleIvcUpload = (files: File[], durationSec: number) => {
+    const file = files[0]
+    if (!file) return
+    setSavedDuration(durationSec > 0 ? durationSec : 90)
+    onAudioReady(file, file.type || 'audio/webm')
+  }
+
+  const totalSteps = cloneType === 'pvc' ? 3 : 2
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Nav Bar */}
@@ -386,14 +421,30 @@ export default function Onboarding({
       {/* Step Indicator */}
       <div className="max-w-4xl mx-auto w-full px-4 py-6">
         <div className="flex items-center gap-2">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step === 1 ? 'bg-primary text-primary-foreground' : 'bg-primary/30 text-primary'}`}>
-            1
-          </div>
-          <div className={`h-1 flex-1 ${step === 2 ? 'bg-primary' : 'bg-border'}`}></div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step === 2 ? 'bg-primary text-primary-foreground' : 'bg-border text-muted-foreground'}`}>
-            2
-          </div>
-          <span className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground ml-4">{t('onboarding.stepLabel', { step })}</span>
+          {Array.from({ length: totalSteps }).map((_, i) => {
+            const n = i + 1
+            return (
+              <Fragment key={n}>
+                {i > 0 && (
+                  <div className={`h-1 flex-1 ${step >= n ? 'bg-primary' : 'bg-border'}`}></div>
+                )}
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                    step === n
+                      ? 'bg-primary text-primary-foreground'
+                      : step > n
+                        ? 'bg-primary/30 text-primary'
+                        : 'bg-border text-muted-foreground'
+                  }`}
+                >
+                  {n}
+                </div>
+              </Fragment>
+            )
+          })}
+          <span className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground ml-4">
+            {t(cloneType === 'pvc' ? 'onboarding.stepLabelPvc' : 'onboarding.stepLabel', { step })}
+          </span>
         </div>
       </div>
 
@@ -403,17 +454,15 @@ export default function Onboarding({
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
               <h2 className="font-display text-2xl font-bold">{t('onboarding.title')}</h2>
-              <p className="text-muted-foreground">{t('onboarding.subtitle')}</p>
+              {cloneType === 'ivc' && (
+                <p className="text-muted-foreground">{t('onboarding.subtitle')}</p>
+              )}
             </div>
 
-            {/* Info Box */}
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-              <p className="text-sm text-amber-100">
-                {t('onboarding.infoBox')}
-              </p>
-            </div>
+            {/* Clone method picker */}
+            <CloneTypeSelect value={cloneType} onChange={onSelectCloneType} />
 
-            {/* Language Selector */}
+            {/* Language Selector (both modes) */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">{t('onboarding.selectLanguage')}</label>
               <div className="flex gap-3">
@@ -440,89 +489,120 @@ export default function Onboarding({
               </div>
             </div>
 
-            {/* Script Box */}
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground">{t('onboarding.readAloud')}</label>
-              <div className="bg-black/40 border border-border rounded-lg p-4 max-h-48 overflow-y-auto text-sm font-mono">
-                <textarea
-                  readOnly
-                  value={selectedLanguage === 'tr' ? SCRIPT_TR : SCRIPT_EN}
-                  className="w-full bg-transparent text-foreground text-sm font-mono resize-none outline-none"
-                  rows={8}
-                />
-              </div>
-            </div>
+            {cloneType === 'ivc' ? (
+              <>
+                {/* Info Box */}
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                  <p className="text-sm text-amber-100">
+                    {t('onboarding.infoBox')}
+                  </p>
+                </div>
 
-            {/* Live Waveform Visualizer */}
-            {!audioReady && (
-              <div className="w-full bg-black/40 border border-border/60 rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden h-24">
-                <canvas
-                  ref={canvasRef}
-                  className="w-full h-full block"
-                  width={640}
-                  height={160}
-                />
-                {!isRecording && (
-                  <span className="absolute bottom-2 font-display text-[10px] text-muted-foreground tracking-[0.25em] uppercase pointer-events-none">
-                    {t('onboarding.visualizerReady')}
-                  </span>
+                {/* Script Box */}
+                <div className="space-y-2">
+                  <label className="text-sm text-muted-foreground">{t('onboarding.readAloud')}</label>
+                  <div className="bg-black/40 border border-border rounded-lg p-4 max-h-48 overflow-y-auto text-sm font-mono">
+                    <textarea
+                      readOnly
+                      value={selectedLanguage === 'tr' ? SCRIPT_TR : SCRIPT_EN}
+                      className="w-full bg-transparent text-foreground text-sm font-mono resize-none outline-none"
+                      rows={8}
+                    />
+                  </div>
+                </div>
+
+                {/* Live Waveform Visualizer */}
+                {!audioReady && (
+                  <div className="w-full bg-black/40 border border-border/60 rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden h-24">
+                    <canvas
+                      ref={canvasRef}
+                      className="w-full h-full block"
+                      width={640}
+                      height={160}
+                    />
+                    {!isRecording && (
+                      <span className="absolute bottom-2 font-display text-[10px] text-muted-foreground tracking-[0.25em] uppercase pointer-events-none">
+                        {t('onboarding.visualizerReady')}
+                      </span>
+                    )}
+                  </div>
                 )}
+
+                {/* Recording Button */}
+                <div className="flex flex-col items-center gap-4">
+                  <button
+                    onClick={handleRecord}
+                    disabled={audioReady}
+                    className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${
+                      audioReady
+                        ? 'bg-accent'
+                        : isRecording
+                        ? 'bg-ember-3 pulse-ring'
+                        : 'bg-primary hover:bg-secondary'
+                    } text-primary-foreground disabled:opacity-75`}
+                  >
+                    {audioReady ? (
+                      <span className="text-2xl">✓</span>
+                    ) : isRecording ? (
+                      <Mic className="w-8 h-8 text-ember-4" />
+                    ) : (
+                      <Mic className="w-8 h-8" />
+                    )}
+                  </button>
+                  <p className="text-sm text-muted-foreground">
+                    {audioReady
+                      ? t('onboarding.recordingComplete')
+                      : isRecording
+                      ? `${formatTime(recordingSeconds)} — ${t('onboarding.tapToStop')}`
+                      : t('onboarding.tapToStart')}
+                  </p>
+                  {isRecording && recordingSeconds < 90 && (
+                    <p className="text-xs text-amber-400 text-center max-w-xs">
+                      {t('onboarding.cloneQualityWarn')}
+                    </p>
+                  )}
+                  {audioReady && savedDuration < 90 && (
+                    <p className="text-sm text-red-400 text-center max-w-xs">
+                      {t('onboarding.minDurationError')}
+                    </p>
+                  )}
+                  {micError && (
+                    <p className="text-sm text-red-400 text-center max-w-xs">{micError}</p>
+                  )}
+                </div>
+
+                {/* Upload alternative */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                    {t('onboarding.orRecord')}
+                  </span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <AudioUpload multiple={false} minDurationSec={90} onFiles={handleIvcUpload} />
+              </>
+            ) : (
+              /* PVC: upload pre-recorded samples (30 min+) */
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <h3 className="font-display font-bold">{t('onboarding.pvcSampleTitle')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('onboarding.pvcSampleSubtitle')}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">{t('onboarding.uploadHintPvc')}</p>
+                <AudioUpload multiple minDurationSec={PVC_MIN_DURATION_SEC} onFiles={onPvcFiles} />
               </div>
             )}
-
-            {/* Recording Button */}
-            <div className="flex flex-col items-center gap-4">
-              <button
-                onClick={handleRecord}
-                disabled={audioReady}
-                className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${
-                  audioReady
-                    ? 'bg-accent'
-                    : isRecording
-                    ? 'bg-ember-3 pulse-ring'
-                    : 'bg-primary hover:bg-secondary'
-                } text-primary-foreground disabled:opacity-75`}
-              >
-                {audioReady ? (
-                  <span className="text-2xl">✓</span>
-                ) : isRecording ? (
-                  <Mic className="w-8 h-8 text-ember-4" />
-                ) : (
-                  <Mic className="w-8 h-8" />
-                )}
-              </button>
-              <p className="text-sm text-muted-foreground">
-                {audioReady
-                  ? t('onboarding.recordingComplete')
-                  : isRecording
-                  ? `${formatTime(recordingSeconds)} — ${t('onboarding.tapToStop')}`
-                  : t('onboarding.tapToStart')}
-              </p>
-              {isRecording && recordingSeconds < 90 && (
-                <p className="text-xs text-amber-400 text-center max-w-xs">
-                  {t('onboarding.cloneQualityWarn')}
-                </p>
-              )}
-              {audioReady && savedDuration < 90 && (
-                <p className="text-sm text-red-400 text-center max-w-xs">
-                  {t('onboarding.minDurationError')}
-                </p>
-              )}
-              {micError && (
-                <p className="text-sm text-red-400 text-center max-w-xs">{micError}</p>
-              )}
-            </div>
 
             {/* Continue Button */}
             <Button
               onClick={onNextStep}
-              disabled={!audioReady || savedDuration < 90}
+              disabled={cloneType === 'pvc' ? !pvcReady : !audioReady || savedDuration < 90}
               className="w-full bg-primary text-primary-foreground hover:bg-secondary disabled:bg-primary/30 disabled:text-primary/50 disabled:cursor-not-allowed"
             >
               {t('onboarding.buttonCreateVoice')} <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           </Card>
-        ) : (
+        ) : step === 2 ? (
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
               <h2 className="font-display text-2xl font-bold">{t('onboarding.priceTitle')}</h2>
@@ -586,8 +666,10 @@ export default function Onboarding({
                 {isRegistering ? (
                   <>
                     <RotateCw className="w-4 h-4 mr-2 animate-spin" />
-                    {t('onboarding.creatingVoice')}
+                    {cloneType === 'pvc' ? t('onboarding.pvcUploading') : t('onboarding.creatingVoice')}
                   </>
+                ) : cloneType === 'pvc' ? (
+                  t('onboarding.pvcContinue')
                 ) : (
                   t('onboarding.launchButton')
                 )}
@@ -596,6 +678,15 @@ export default function Onboarding({
             {registerError && (
               <p className="text-sm text-red-400 text-center">{registerError}</p>
             )}
+          </Card>
+        ) : (
+          <Card className="w-full max-w-lg bg-card border-border p-8">
+            <PvcCaptcha
+              captchaImage={captchaImage}
+              isSubmitting={isVerifyingCaptcha}
+              error={captchaError}
+              onSubmit={onVerifyCaptcha}
+            />
           </Card>
         )}
       </div>

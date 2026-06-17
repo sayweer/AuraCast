@@ -31,7 +31,7 @@ import {
   Loader2,
   HelpCircle,
 } from 'lucide-react';
-import type { RecentPurchaseRow } from '@/types';
+import type { CloneType, RecentPurchaseRow, VoiceStatus } from '@/types';
 import { useLanguage } from '@/components/LanguageProvider';
 import LanguageToggle from '@/components/LanguageToggle';
 
@@ -66,6 +66,8 @@ interface DashboardProps {
     priceInLamports: number
     voiceId: string
     nftMint: string | null
+    voiceStatus: VoiceStatus
+    cloneType: CloneType
   } | null;
   priceInSol: string;
   copiedLink: boolean;
@@ -264,7 +266,9 @@ export default function Dashboard({
   const pagedPurchases = filteredPurchases.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const truncatedAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 6);
-  const fanPageUrl = walletAddress && origin
+  // A PVC voice isn't usable until training finishes, so sharing the fan page is gated.
+  const voiceReady = !creatorStats || creatorStats.voiceStatus === 'ready'
+  const fanPageUrl = walletAddress && origin && voiceReady
     ? `${origin}/fan/${walletAddress}`
     : ''
   const shareText = encodeURIComponent(
@@ -326,6 +330,47 @@ export default function Dashboard({
 
         {tab === 'overview' && (
           <>
+            {/* PVC training / verification status banner */}
+            {creatorStats?.cloneType === 'pvc' && creatorStats.voiceStatus !== 'ready' && (
+              <Card
+                className={`p-5 border ${
+                  creatorStats.voiceStatus === 'failed'
+                    ? 'bg-red-500/10 border-red-500/40'
+                    : 'bg-amber-500/10 border-amber-500/40'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  {creatorStats.voiceStatus === 'training' ? (
+                    <Loader2 className="w-5 h-5 text-amber-300 animate-spin mt-0.5 shrink-0" />
+                  ) : creatorStats.voiceStatus === 'failed' ? (
+                    <XCircle className="w-5 h-5 text-red-300 mt-0.5 shrink-0" />
+                  ) : (
+                    <Clock className="w-5 h-5 text-amber-300 mt-0.5 shrink-0" />
+                  )}
+                  <div className="space-y-1">
+                    <p className="font-display font-bold">
+                      {t(
+                        creatorStats.voiceStatus === 'failed'
+                          ? 'dashboard.trainingFailedTitle'
+                          : creatorStats.voiceStatus === 'pending_verification'
+                            ? 'dashboard.pendingVerificationTitle'
+                            : 'dashboard.trainingTitle'
+                      )}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {t(
+                        creatorStats.voiceStatus === 'failed'
+                          ? 'dashboard.trainingFailedDesc'
+                          : creatorStats.voiceStatus === 'pending_verification'
+                            ? 'dashboard.pendingVerificationDesc'
+                            : 'dashboard.trainingDesc'
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
+
             {/* Stats Row */}
             <motion.div
               className="grid grid-cols-1 md:grid-cols-3 gap-4"

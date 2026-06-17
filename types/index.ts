@@ -1,5 +1,13 @@
 // ─── Database Models ───────────────────────────────────
 
+// How the voice was cloned. IVC = Instant Voice Cloning (synchronous, ~90s sample).
+// PVC = Professional Voice Cloning (asynchronous, 30min+ samples, captcha + training).
+export type CloneType = 'ivc' | 'pvc'
+
+// Lifecycle of a creator's voice. IVC voices are 'ready' immediately. PVC voices
+// progress: pending_verification (captcha needed) → training (2-6h) → ready / failed.
+export type VoiceStatus = 'ready' | 'pending_verification' | 'training' | 'failed'
+
 export interface Creator {
   id: string
   wallet_address: string
@@ -15,6 +23,8 @@ export interface Creator {
   block_political: boolean
   language: string
   nft_mint: string | null
+  clone_type: CloneType
+  voice_status: VoiceStatus
 }
 
 export interface Purchase {
@@ -146,6 +156,38 @@ export interface RegisterCreatorResponse {
   voiceId?: string
   creatorId?: string
   error?: string
+}
+
+// ─── PVC (Professional Voice Cloning) ──────────────────
+
+// register-pvc is sent as multipart/form-data (large audio samples), so there is no
+// JSON request interface — the route reads files + metadata fields from FormData.
+export interface RegisterPvcResponse {
+  success: boolean
+  voiceId?: string
+  creatorId?: string
+  // Base64 data URL of the captcha image the voice owner must read aloud to verify consent.
+  captchaImage?: string
+  error?: string
+  code?: string
+}
+
+export interface VerifyPvcRequest {
+  walletAddress: string
+  // Base64-encoded recording of the creator reading the captcha text aloud.
+  recordingBase64: string
+}
+
+export interface VerifyPvcResponse {
+  success: boolean
+  voiceStatus?: VoiceStatus
+  error?: string
+}
+
+export interface PvcStatusResponse {
+  voice_status: VoiceStatus
+  // Fine-tuning progress 0-1 while training, when available.
+  progress?: number
 }
 
 export interface GenerateVoiceRequest {

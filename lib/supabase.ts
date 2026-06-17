@@ -4,11 +4,12 @@ import type {
   AnalyticsResponse,
   AnalyticsSummary,
   AnalyticsTimeseriesPoint,
+  CloneType,
   Creator,
   Purchase,
   PurchaseStatus,
   RecentPurchaseRow,
-  RegisterCreatorRequest,
+  VoiceStatus,
 } from '@/types'
 import { VocliraError, CreatorNotFoundError } from '@/lib/errors'
 
@@ -38,9 +39,18 @@ export async function getCreatorByWallet(walletAddress: string): Promise<Creator
   return data as Creator
 }
 
-export async function saveCreator(
-  data: RegisterCreatorRequest & { voiceId: string }
-): Promise<Creator> {
+export async function saveCreator(data: {
+  walletAddress: string
+  creatorName: string
+  voiceId: string
+  priceInLamports: number
+  language?: string
+  // IVC creators default to a ready instant clone. PVC creators pass cloneType:'pvc',
+  // an initial voiceStatus and isActive:false until training completes.
+  cloneType?: CloneType
+  voiceStatus?: VoiceStatus
+  isActive?: boolean
+}): Promise<Creator> {
   const { data: row, error } = await supabase
     .from('creators')
     .upsert(
@@ -50,7 +60,9 @@ export async function saveCreator(
         voice_id: data.voiceId,
         price_lamports: data.priceInLamports,
         language: data.language ?? 'en',
-        is_active: true,
+        is_active: data.isActive ?? true,
+        clone_type: data.cloneType ?? 'ivc',
+        voice_status: data.voiceStatus ?? 'ready',
         block_adult: true,
         block_profanity: true,
         block_political: true,
@@ -68,6 +80,22 @@ export async function saveCreator(
   }
 
   return row as Creator
+}
+
+export async function updateCreatorVoiceStatus(
+  walletAddress: string,
+  status: VoiceStatus,
+  opts?: { isActive?: boolean }
+): Promise<void> {
+  const payload: Record<string, unknown> = { voice_status: status }
+  if (opts?.isActive !== undefined) payload.is_active = opts.isActive
+
+  const { error } = await supabase
+    .from('creators')
+    .update(payload)
+    .eq('wallet_address', walletAddress)
+
+  if (error) throw new VocliraError('Failed to update voice status', 'DB_ERROR', 500)
 }
 
 export async function getPurchaseByTxSignature(txSignature: string): Promise<Purchase | null> {
@@ -219,7 +247,7 @@ export async function updateCreatorFilters(
 export async function deleteCreatorVoice(walletAddress: string): Promise<void> {
   const { error } = await supabase
     .from('creators')
-    .update({ voice_id: '', is_active: false })
+    .update({ voice_id: '', is_active: false, voice_status: 'ready' })
     .eq('wallet_address', walletAddress)
 
   if (error) throw new VocliraError('Failed to delete voice', 'DB_ERROR', 500)
