@@ -117,3 +117,37 @@ export async function uploadPrivateObject(
 export async function deletePublicObject(objectKey: string): Promise<void> {
     await r2().send(new DeleteObjectCommand({ Bucket: PUBLIC_BUCKET(), Key: objectKey }))
 }
+
+/** Maps a public R2 URL back to its object key. Returns null if it isn't one of ours. */
+export function publicUrlToObjectKey(publicUrl: string): string | null {
+    const base = process.env.R2_PUBLIC_URL?.replace(/\/$/, '')
+    if (!base || !publicUrl.startsWith(`${base}/`)) return null
+    return publicUrl.slice(base.length + 1)
+}
+
+/**
+ * Purges a public URL from Cloudflare's edge cache. Required after takedown because
+ * fan outputs are served with `immutable, max-age=1y` — deleting the object alone
+ * leaves cached copies live at the edge. Best-effort: skips (with a warning) if the
+ * Cloudflare token/zone are not configured.
+ */
+export async function purgeCdnCache(url: string): Promise<void> {
+    const token = process.env.CLOUDFLARE_API_TOKEN
+    const zoneId = process.env.CLOUDFLARE_ZONE_ID
+    if (!token || !zoneId) {
+        console.warn('[R2] CDN purge skipped — CLOUDFLARE_API_TOKEN/CLOUDFLARE_ZONE_ID not set')
+        return
+    }
+    try {
+        const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/purge_cache`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ files: [url] }),
+        })
+        if (!res.ok) {
+            console.error('[R2] CDN purge failed:', res.status, await res.text().catch(() => ''))
+        }
+    } catch (e) {
+        console.error('[R2] CDN purge error:', e)
+    }
+}

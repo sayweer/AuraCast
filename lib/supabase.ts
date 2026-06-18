@@ -419,3 +419,17 @@ export async function getPurchaseById(purchaseId: string): Promise<Purchase | nu
 
   return (data as Purchase | null) ?? null
 }
+
+/** Marks a purchase's audio as taken down (after the R2 object + CDN cache are removed). */
+export async function markPurchaseAudioTakenDown(purchaseId: string, reason: string): Promise<void> {
+  const { error } = await supabase
+    .from('purchases')
+    .update({
+      audio_url: null,
+      audio_deleted_at: new Date().toISOString(),
+      takedown_reason: reason,
+    })
+    .eq('id', purchaseId)
+
+  if (error) dbError(`DB error: ${error.message}`)
+}
