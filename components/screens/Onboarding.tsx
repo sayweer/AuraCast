@@ -28,6 +28,7 @@ interface OnboardingProps {
   onSelectPrice: (price: number) => void;
   onLaunch: () => void;
   onAudioReady: (blob: Blob, mimeType: string) => void;
+  onDiscardRecording: () => void;
   isRegistering: boolean;
   registerError: string | null;
   selectedLanguage: 'en' | 'tr';
@@ -70,6 +71,7 @@ export default function Onboarding({
   onSelectPrice,
   onLaunch,
   onAudioReady,
+  onDiscardRecording,
   isRegistering,
   registerError,
   selectedLanguage,
@@ -361,6 +363,11 @@ export default function Onboarding({
     onAudioReady(file, file.type || 'audio/webm')
   }
 
+  const handleDiscardRecording = () => {
+    setSavedDuration(0)
+    onDiscardRecording()
+  }
+
   const totalSteps = 3
 
   return (
@@ -546,6 +553,15 @@ export default function Onboarding({
                 <p className="text-sm text-red-400 text-center max-w-xs">
                   {t('onboarding.minDurationError')}
                 </p>
+              )}
+              {audioReady && (
+                <button
+                  type="button"
+                  onClick={handleDiscardRecording}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <RotateCw className="w-3.5 h-3.5" /> {t('onboarding.reRecord')}
+                </button>
               )}
               {micError && (
                 <p className="text-sm text-red-400 text-center max-w-xs">{micError}</p>

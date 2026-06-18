@@ -334,6 +334,12 @@ export default function App() {
     setIsRecording(false)
   }
 
+  const handleDiscardRecording = () => {
+    setAudioReady(false)
+    setAudioBlob(null)
+    setRecordingSeconds(0)
+  }
+
   const handleConsentRecorded = (blob: Blob | null) => {
     setConsentBlob(blob)
   }
@@ -489,7 +495,8 @@ export default function App() {
           isRegistering={isRegistering}
           registerError={registerError}
           selectedLanguage={selectedLanguage}
-          onSelectLanguage={setSelectedLanguage}
+          onSelectLanguage={setLanguage}
+          onDiscardRecording={handleDiscardRecording}
         />
       )}
 

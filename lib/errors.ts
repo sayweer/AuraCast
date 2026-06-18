@@ -33,16 +33,6 @@ export class UnsafeContentError extends VocliraError {
   }
 }
 
-export class ElevenLabsError extends VocliraError {
-  constructor(
-    message: string,
-    public readonly status: number
-  ) {
-    super(message, 'ELEVENLABS_ERROR', 502)
-    this.name = 'ElevenLabsError'
-  }
-}
-
 export class TtsError extends VocliraError {
   constructor(
     message: string,
@@ -57,17 +47,6 @@ export class StorageError extends VocliraError {
   constructor(message: string) {
     super(message, 'STORAGE_ERROR', 502)
     this.name = 'StorageError'
-  }
-}
-
-export class VoiceNotFoundError extends VocliraError {
-  constructor(voiceId: string) {
-    super(
-      `Voice not found: ${voiceId}`,
-      'VOICE_NOT_FOUND',
-      404
-    )
-    this.name = 'VoiceNotFoundError'
   }
 }
 

@@ -55,8 +55,8 @@ export async function GET(
         price_lamports: creator.price_lamports,
         is_active: creator.is_active,
         language: creator.language,
-        // A PVC voice exists in ElevenLabs from creation but is only usable once trained.
-        has_voice: Boolean(creator.voice_id) && creator.voice_status === 'ready',
+        // Zero-shot Chatterbox: a creator can generate as soon as their reference WAV exists.
+        has_voice: Boolean(creator.voice_profile_object_key),
         clone_type: creator.clone_type,
         voice_status: creator.voice_status,
       }

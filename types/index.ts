@@ -133,14 +133,6 @@ export interface ModerationResult {
   processingMs: number
 }
 
-// ─── ElevenLabs ────────────────────────────────────────
-
-export interface VoiceSettings {
-  stability: number
-  similarity_boost: number
-  style?: number
-}
-
 export type Mood =
   | 'happy'
   | 'excited'
@@ -148,19 +140,6 @@ export type Mood =
   | 'sad'
   | 'angry'
   | 'romantic'
-
-export interface GenerateSpeechOptions {
-  voiceId: string
-  text: string
-  language?: string
-  voiceSettings?: Partial<VoiceSettings>
-}
-
-export interface GenerateSpeechResult {
-  audioBase64: string
-  durationMs: number
-  modelUsed: string
-}
 
 // ─── API Requests / Responses ──────────────────────────
 
@@ -188,14 +167,6 @@ export interface GenerateVoiceRequest {
   txSignature: string
   buyerWallet: string
   mood?: Mood
-}
-
-export interface GenerateVoiceResponse {
-  success: boolean
-  audioBase64?: string
-  error?: string
-  refundNeeded?: boolean
-  purchaseId?: string
 }
 
 
