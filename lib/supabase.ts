@@ -42,7 +42,9 @@ export async function getCreatorByWallet(walletAddress: string): Promise<Creator
 export async function saveCreator(data: {
   walletAddress: string
   creatorName: string
-  voiceId: string
+  // voiceId is legacy (ElevenLabs). Chatterbox/Fal creators have no voice_id and
+  // instead store a zero-shot reference at voiceProfileObjectKey. Defaults to '' (NOT NULL).
+  voiceId?: string
   priceInLamports: number
   language?: string
   // IVC creators default to a ready instant clone. PVC creators pass cloneType:'pvc',
@@ -50,25 +52,37 @@ export async function saveCreator(data: {
   cloneType?: CloneType
   voiceStatus?: VoiceStatus
   isActive?: boolean
+  // Chatterbox/Fal migration + consent.
+  voiceProfileObjectKey?: string
+  consentAt?: string
+  consentIp?: string
+  consentTextVersion?: string
+  verificationAudioObjectKey?: string
 }): Promise<Creator> {
+  const payload: Record<string, unknown> = {
+    wallet_address: data.walletAddress,
+    creator_name: data.creatorName,
+    voice_id: data.voiceId ?? '',
+    price_lamports: data.priceInLamports,
+    language: data.language ?? 'en',
+    is_active: data.isActive ?? true,
+    clone_type: data.cloneType ?? 'ivc',
+    voice_status: data.voiceStatus ?? 'ready',
+    block_adult: true,
+    block_profanity: true,
+    block_political: true,
+  }
+  if (data.voiceProfileObjectKey !== undefined) payload.voice_profile_object_key = data.voiceProfileObjectKey
+  if (data.consentAt !== undefined) payload.consent_at = data.consentAt
+  if (data.consentIp !== undefined) payload.consent_ip = data.consentIp
+  if (data.consentTextVersion !== undefined) payload.consent_text_version = data.consentTextVersion
+  if (data.verificationAudioObjectKey !== undefined) {
+    payload.verification_audio_object_key = data.verificationAudioObjectKey
+  }
+
   const { data: row, error } = await supabase
     .from('creators')
-    .upsert(
-      {
-        wallet_address: data.walletAddress,
-        creator_name: data.creatorName,
-        voice_id: data.voiceId,
-        price_lamports: data.priceInLamports,
-        language: data.language ?? 'en',
-        is_active: data.isActive ?? true,
-        clone_type: data.cloneType ?? 'ivc',
-        voice_status: data.voiceStatus ?? 'ready',
-        block_adult: true,
-        block_profanity: true,
-        block_political: true,
-      },
-      { onConflict: 'wallet_address' }
-    )
+    .upsert(payload, { onConflict: 'wallet_address' })
     .select()
     .single()
 

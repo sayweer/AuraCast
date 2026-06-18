@@ -27,6 +27,13 @@ export interface Creator {
   voice_status: VoiceStatus
   // Chatterbox/Fal migration: R2 private object key for the zero-shot reference WAV.
   voice_profile_object_key: string | null
+  // Consent / rıza kaydı (KVKK/GDPR).
+  consent_at: string | null
+  consent_ip: string | null
+  consent_text_version: string | null
+  verification_audio_object_key: string | null
+  allowed_usage: string | null
+  revoked_at: string | null
 }
 
 export interface Purchase {
