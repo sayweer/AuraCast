@@ -9,7 +9,7 @@ import SettingsModal from '@/components/SettingsModal';
 import { useWallet } from '@solana/wallet-adapter-react'
 import bs58 from 'bs58'
 import { useLanguage } from '@/components/LanguageProvider'
-import type { CloneType, VoiceStatus, RegisterCreatorRequest } from '@/types'
+import type { RegisterCreatorRequest } from '@/types'
 import { uploadReferenceAudio } from '@/lib/upload-client'
 
 export default function App() {
@@ -87,8 +87,6 @@ export default function App() {
     priceInLamports: number
     voiceId: string
     nftMint: string | null
-    voiceStatus: VoiceStatus
-    cloneType: CloneType
   } | null>(null)
   const [mintingLicense, setMintingLicense] = useState(false)
   const [licenseError, setLicenseError] = useState<string | null>(null)
@@ -129,14 +127,7 @@ export default function App() {
           const creator = await res.json()
           if (ignore) return
           const ready = creator.is_active && creator.has_voice
-          // A PVC creator mid-setup (verifying/training/failed) has no usable voice yet,
-          // but should land on the dashboard to see status — not be sent back to onboarding.
-          const pvcInProgress =
-            creator.clone_type === 'pvc' &&
-            (creator.voice_status === 'training' ||
-              creator.voice_status === 'pending_verification' ||
-              creator.voice_status === 'failed')
-          if (ready || pvcInProgress) {
+          if (ready) {
             setAppState('dashboard')
             return
           }
@@ -187,8 +178,6 @@ export default function App() {
             priceInLamports: creator.price_lamports,
             voiceId: creator.voice_id,
             nftMint: creator.nft_mint ?? null,
-            voiceStatus: creator.voice_status,
-            cloneType: creator.clone_type,
           })
           setBlockAdult(creator.block_adult ?? true)
           setBlockProfanity(creator.block_profanity ?? true)
@@ -220,37 +209,6 @@ export default function App() {
     fetchStats()
     return () => { ignore = true }
   }, [appState, walletAddressStr, getAuthHeaders])
-
-  // Poll PVC training status while a voice is still fine-tuning. The status endpoint
-  // syncs DB state lazily; once it returns a non-training status we update local state
-  // (which removes the dashboard banner and re-enables the fan page) and stop polling.
-  useEffect(() => {
-    if (appState !== 'dashboard' || !walletAddressStr) return
-    if (creatorStats?.voiceStatus !== 'training') return
-
-    let ignore = false
-    let timer: ReturnType<typeof setTimeout>
-
-    const poll = async () => {
-      try {
-        const res = await fetch(`/api/creator/pvc-status/${walletAddressStr}`, { cache: 'no-store' })
-        if (ignore) return
-        if (res.ok) {
-          const data = (await res.json()) as { voice_status: VoiceStatus }
-          if (data.voice_status !== 'training') {
-            setCreatorStats((prev) => (prev ? { ...prev, voiceStatus: data.voice_status } : prev))
-            return
-          }
-        }
-      } catch {
-        // transient error — keep polling
-      }
-      if (!ignore) timer = setTimeout(poll, 45000)
-    }
-
-    timer = setTimeout(poll, 45000)
-    return () => { ignore = true; clearTimeout(timer) }
-  }, [appState, walletAddressStr, creatorStats?.voiceStatus])
 
   const handleDisconnectWallet = async () => {
     await disconnect()

@@ -182,38 +182,6 @@ export interface RegisterCreatorResponse {
   error?: string
 }
 
-// ─── PVC (Professional Voice Cloning) ──────────────────
-
-// register-pvc is sent as multipart/form-data (large audio samples), so there is no
-// JSON request interface — the route reads files + metadata fields from FormData.
-export interface RegisterPvcResponse {
-  success: boolean
-  voiceId?: string
-  creatorId?: string
-  // Base64 data URL of the captcha image the voice owner must read aloud to verify consent.
-  captchaImage?: string
-  error?: string
-  code?: string
-}
-
-export interface VerifyPvcRequest {
-  walletAddress: string
-  // Base64-encoded recording of the creator reading the captcha text aloud.
-  recordingBase64: string
-}
-
-export interface VerifyPvcResponse {
-  success: boolean
-  voiceStatus?: VoiceStatus
-  error?: string
-}
-
-export interface PvcStatusResponse {
-  voice_status: VoiceStatus
-  // Fine-tuning progress 0-1 while training, when available.
-  progress?: number
-}
-
 export interface GenerateVoiceRequest {
   creatorWallet: string
   fanText: string
