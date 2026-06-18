@@ -43,6 +43,23 @@ export class ElevenLabsError extends VocliraError {
   }
 }
 
+export class TtsError extends VocliraError {
+  constructor(
+    message: string,
+    public readonly providerErrorType?: string
+  ) {
+    super(message, 'TTS_ERROR', 502)
+    this.name = 'TtsError'
+  }
+}
+
+export class StorageError extends VocliraError {
+  constructor(message: string) {
+    super(message, 'STORAGE_ERROR', 502)
+    this.name = 'StorageError'
+  }
+}
+
 export class VoiceNotFoundError extends VocliraError {
   constructor(voiceId: string) {
     super(
