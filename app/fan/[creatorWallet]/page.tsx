@@ -18,7 +18,7 @@ import LanguageToggle from '@/components/LanguageToggle'
 import { BrandLogo } from '@/components/BrandLogo'
 import { BorderBeam } from '@/components/ui/border-beam'
 import { WavePath } from '@/components/ui/wave-path'
-import { downloadAudio } from '@/lib/audio-download'
+import { downloadAudio, audioSrcFromStored } from '@/lib/audio-download'
 import type { Mood } from '@/types'
 
 interface Creator {
@@ -37,22 +37,6 @@ const MOOD_OPTIONS: Array<{ id: Mood; emoji: string }> = [
   { id: 'romantic', emoji: '💝' },
 ]
 
-const base64ToBlobUrl = (base64: string, contentType = 'audio/mpeg') => {
-  try {
-    const byteCharacters = atob(base64)
-    const byteNumbers = new Array(byteCharacters.length)
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i)
-    }
-    const byteArray = new Uint8Array(byteNumbers)
-    const blob = new Blob([byteArray], { type: contentType })
-    return URL.createObjectURL(blob)
-  } catch (e) {
-    console.error('Failed to convert base64 to blob url', e)
-    return `data:${contentType};base64,${base64}`
-  }
-}
-
 export default function FanPage() {
   const params = useParams()
   const creatorWallet = params.creatorWallet as string
@@ -65,21 +49,12 @@ export default function FanPage() {
   const [selectedMood, setSelectedMood] = useState<Mood>('calm')
   const [isPaying, setIsPaying] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
-  const [audioBase64Raw, setAudioBase64Raw] = useState<string | null>(null)
+  const [audioDownloadUrl, setAudioDownloadUrl] = useState<string | null>(null)
   const [downloadHint, setDownloadHint] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [txSignature, setTxSignature] = useState<string | null>(null)
   const [purchaseId, setPurchaseId] = useState<string | null>(null)
   const [platformWallet, setPlatformWallet] = useState<string | null>(null)
-
-  // Cleanup object URL to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (audioUrl && audioUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(audioUrl)
-      }
-    }
-  }, [audioUrl])
 
   // Fetch creator on mount
   useEffect(() => {
@@ -134,7 +109,7 @@ export default function FanPage() {
     setIsPaying(true)
     setError(null)
     setAudioUrl(null)
-    setAudioBase64Raw(null)
+    setAudioDownloadUrl(null)
     setDownloadHint(null)
 
     try {
@@ -192,9 +167,9 @@ export default function FanPage() {
         return
       }
 
-      const blobUrl = base64ToBlobUrl(data.audioBase64)
-      setAudioUrl(blobUrl)
-      setAudioBase64Raw(typeof data.audioBase64 === 'string' ? data.audioBase64 : null)
+      const url = typeof data.audioUrl === 'string' ? data.audioUrl : null
+      setAudioUrl(url ? audioSrcFromStored(url) : null)
+      setAudioDownloadUrl(url)
       setPurchaseId(typeof data.purchaseId === 'string' ? data.purchaseId : null)
       setTxSignature(null)
     } catch (err: unknown) {
@@ -206,10 +181,10 @@ export default function FanPage() {
   }
 
   const handleDownload = async () => {
-    if (!audioBase64Raw) return
+    if (!audioDownloadUrl) return
     setDownloadHint(null)
     const result = await downloadAudio({
-      base64: audioBase64Raw,
+      url: audioDownloadUrl,
       filename: 'voice-message.mp3',
     })
     if (result === 'opened-new-tab') {
@@ -430,6 +405,9 @@ export default function FanPage() {
                           {t('fan.voiceReady')}
                         </p>
                       </div>
+                      <p className="text-[10px] uppercase tracking-wider text-voclira-burgundy/50">
+                        {t('fan.aiGenerated')}
+                      </p>
                       <audio
                         controls
                         playsInline
@@ -449,7 +427,7 @@ export default function FanPage() {
                       <button
                         type="button"
                         onClick={handleDownload}
-                        disabled={!audioBase64Raw}
+                        disabled={!audioDownloadUrl}
                         className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 bg-voclira-terracotta/15 border border-voclira-terracotta/40 text-voclira-burgundy hover:bg-voclira-terracotta/25 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {t('fan.downloadAudio')}

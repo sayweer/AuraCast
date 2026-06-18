@@ -21,7 +21,7 @@ import type { Purchase } from '@/types';
 import { useLanguage } from '@/components/LanguageProvider';
 import LanguageToggle from '@/components/LanguageToggle';
 import { BrandLogo } from '@/components/BrandLogo';
-import { downloadAudio } from '@/lib/audio-download';
+import { downloadAudio, audioSrcFromStored } from '@/lib/audio-download';
 
 interface PlayScreenProps {
   purchase: Purchase | null;
@@ -34,16 +34,19 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [downloadHint, setDownloadHint] = useState<string | null>(null);
+  // audio_url is either a raw base64 MP3 (legacy) or an R2 public URL (current).
+  const audioSrc = purchase?.audio_url ? audioSrcFromStored(purchase.audio_url) : null;
 
   const audioInstance = useRef<HTMLAudioElement | null>(null);
 
   const handleDownload = async () => {
     if (!purchase?.audio_url) return;
     setDownloadHint(null);
+    const stored = purchase.audio_url;
+    const isUrl = /^https?:\/\//.test(stored);
     const result = await downloadAudio({
-      base64: purchase.audio_url,
+      ...(isUrl ? { url: stored } : { base64: stored }),
       filename: `voice-message-${purchase.id.slice(0, 8)}.mp3`,
     });
     if (result === 'opened-new-tab') {
@@ -61,29 +64,6 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
     }
   };
 
-  // Convert base64 audio to Blob URL for mobile download compatibility
-  useEffect(() => {
-    if (purchase && purchase.audio_url) {
-      try {
-        const byteCharacters = atob(purchase.audio_url);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'audio/mpeg' });
-        const url = URL.createObjectURL(blob);
-        setDownloadUrl(url);
-
-        return () => {
-          URL.revokeObjectURL(url);
-        };
-      } catch (e) {
-        console.error('Failed to convert base64 to blob url', e);
-        setDownloadUrl(`data:audio/mpeg;base64,${purchase.audio_url}`);
-      }
-    }
-  }, [purchase]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameId = useRef<number | null>(null);
 
@@ -179,10 +159,9 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
   }
 
   const handlePlayToggle = () => {
-    if (!purchase.audio_url) return;
+    if (!audioSrc) return;
 
     if (!audioInstance.current) {
-      const audioSrc = downloadUrl || `data:audio/mpeg;base64,${purchase.audio_url}`;
       const newAudio = new Audio(audioSrc);
       audioInstance.current = newAudio;
 
@@ -305,6 +284,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
           {/* Audio Player Controls */}
           {purchase.status === 'completed' && purchase.audio_url ? (
             <div className="space-y-3">
+              <p className="text-[10px] uppercase tracking-wider text-voclira-burgundy/50">{t('play.aiGenerated')}</p>
               <div className="flex items-center gap-4 bg-voclira-cream/70 px-4 py-3 rounded-lg border border-voclira-burgundy/20">
                 <button
                   onClick={handlePlayToggle}
@@ -332,7 +312,7 @@ export default function PlayScreen({ purchase, creatorName }: PlayScreenProps) {
                 </div>
               </div>
 
-              {downloadUrl && (
+              {audioSrc && (
                 <button
                   type="button"
                   onClick={handleDownload}

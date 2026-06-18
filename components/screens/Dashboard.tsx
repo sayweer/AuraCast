@@ -32,6 +32,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import type { RecentPurchaseRow } from '@/types';
+import { audioSrcFromStored } from '@/lib/audio-download';
 import { useLanguage } from '@/components/LanguageProvider';
 import LanguageToggle from '@/components/LanguageToggle';
 
@@ -186,7 +187,7 @@ export default function Dashboard({
     setOrigin(window.location.origin);
   }, []);
 
-  const playAudio = (purchaseId: string, base64Audio: string) => {
+  const playAudio = (purchaseId: string, stored: string) => {
     if (playingId === purchaseId) {
       if (isPlaying) {
         audioRef.current?.pause();
@@ -204,7 +205,7 @@ export default function Dashboard({
       audioRef.current.pause();
     }
 
-    const audioUrl = `data:audio/mpeg;base64,${base64Audio}`;
+    const audioUrl = audioSrcFromStored(stored);
     const newAudio = new Audio(audioUrl);
     audioRef.current = newAudio;
     setPlayingId(purchaseId);

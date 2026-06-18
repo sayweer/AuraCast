@@ -1,7 +1,13 @@
 export type DownloadResult = 'shared' | 'downloaded' | 'opened-new-tab' | 'cancelled' | 'failed'
 
+/** Stored audio_url may be a raw base64 MP3 (legacy purchases) or an R2 public URL (current). */
+export function audioSrcFromStored(stored: string): string {
+    return /^https?:\/\//.test(stored) ? stored : `data:audio/mpeg;base64,${stored}`
+}
+
 interface DownloadOptions {
-    base64: string
+    base64?: string
+    url?: string
     filename: string
     mimeType?: string
 }
@@ -67,9 +73,17 @@ export async function downloadAudio(opts: DownloadOptions): Promise<DownloadResu
 
     let blob: Blob
     try {
-        blob = base64ToBlob(opts.base64, mimeType)
+        if (opts.url) {
+            const res = await fetch(opts.url)
+            if (!res.ok) throw new Error(`fetch failed: ${res.status}`)
+            blob = await res.blob()
+        } else if (opts.base64) {
+            blob = base64ToBlob(opts.base64, mimeType)
+        } else {
+            throw new Error('no audio source provided')
+        }
     } catch (err) {
-        console.error('[audio-download] base64 decode failed:', err)
+        console.error('[audio-download] source load failed:', err)
         return 'failed'
     }
 

@@ -218,6 +218,7 @@ export const translations = {
       voiceReady: 'Your voice message is ready!',
       downloadAudio: '⬇ Download Audio',
       protectedSafety: '🛡 Protected by Codex AI brand safety',
+      aiGenerated: '🤖 AI-generated',
     },
     play: {
       clipNotFound: 'Voice Clip Not Found',
@@ -237,6 +238,7 @@ export const translations = {
       paid: 'Paid:',
       ctaDesc: 'Rent your own AI voice clone on Voclira! Clone your voice in 5 minutes and start earning while you sleep.',
       ctaButton: 'License Your Own Voice',
+      aiGenerated: '🤖 AI-generated',
     },
     license: {
       title: 'Voice License',
@@ -468,6 +470,7 @@ export const translations = {
       voiceReady: 'Sesli mesajınız hazır!',
       downloadAudio: '⬇ Sesi İndir',
       protectedSafety: '🛡 Codex AI marka güvenliği ile korunmaktadır',
+      aiGenerated: '🤖 Yapay zeka ile üretildi',
     },
     play: {
       clipNotFound: 'Ses Klibi Bulunamadı',
@@ -487,6 +490,7 @@ export const translations = {
       paid: 'Ödenen:',
       ctaDesc: 'Voclira\'te kendi yapay zeka ses klonunuzu kiralayın! Sesinizi 5 dakikada klonlayın ve siz uyurken kazanmaya başlayın.',
       ctaButton: 'Kendi Sesini Lisansla',
+      aiGenerated: '🤖 Yapay zeka ile üretildi',
     },
     license: {
       title: 'Ses Lisansı',
