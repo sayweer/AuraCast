@@ -25,6 +25,8 @@ export interface Creator {
   nft_mint: string | null
   clone_type: CloneType
   voice_status: VoiceStatus
+  // Chatterbox/Fal migration: R2 private object key for the zero-shot reference WAV.
+  voice_profile_object_key: string | null
 }
 
 export interface Purchase {
@@ -40,11 +42,24 @@ export interface Purchase {
   play_count: number
   rejection_reason: string | null
   created_at: string
+  // Chatterbox/Fal migration: generation tracking.
+  generation_engine: string | null
+  provider_request_id: string | null
+  provider_error_type: string | null
+  input_char_count: number | null
+  error_message: string | null
+  generation_attempt_count: number
+  retry_count: number
+  generation_started_at: string | null
+  generation_completed_at: string | null
+  audio_deleted_at: string | null
+  takedown_reason: string | null
 }
 
 export type PurchaseStatus =
   | 'pending'
   | 'completed'
+  | 'failed'
   | 'refunded'
   | 'rejected'
 

@@ -1,4 +1,5 @@
 import Groq from 'groq-sdk'
+import { createHash } from 'crypto'
 import type { ModerationResult, ModerationCategory } from '@/types'
 import { VocliraError, ModerationError, UnsafeContentError } from '@/lib/errors'
 
@@ -60,6 +61,34 @@ export function validateTextLength(text: string): void {
       400
     )
   }
+}
+
+// Per-language character ceilings (Chatterbox engine limits, MVP):
+//   Multilingual (tr) max 300 → 280 buffer for tags/punctuation
+//   Turbo (en) max 5000 → 500 MVP cap (cost + "mini message" format)
+const MIN_TEXT_LENGTH = 5
+export const MAX_TEXT_LENGTH_BY_LANGUAGE: Record<'tr' | 'en', number> = { tr: 280, en: 500 }
+
+export function maxTextLengthFor(language: string): number {
+  return MAX_TEXT_LENGTH_BY_LANGUAGE[language === 'tr' ? 'tr' : 'en']
+}
+
+/** Length guard keyed to the creator's language. Used pre-payment AND post-optimizer. */
+export function validateTextLengthForLanguage(text: string, language: string): void {
+  const trimmed = text.trim().length
+  const max = maxTextLengthFor(language)
+  if (trimmed < MIN_TEXT_LENGTH) {
+    throw new VocliraError(`Text too short (minimum ${MIN_TEXT_LENGTH} characters)`, 'INVALID_TEXT_LENGTH', 400)
+  }
+  if (trimmed > max) {
+    throw new VocliraError(`Text too long (maximum ${max} characters for ${language})`, 'INVALID_TEXT_LENGTH', 400)
+  }
+}
+
+/** Normalized hash of the fan's RAW text — locks pre-payment moderation to the generate call. */
+export function hashUserText(rawText: string): string {
+  const normalized = rawText.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
+  return createHash('sha256').update(normalized).digest('hex')
 }
 
 export async function moderateText(

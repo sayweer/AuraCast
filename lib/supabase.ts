@@ -166,15 +166,32 @@ export async function savePurchase(data: {
   return row as Purchase
 }
 
+export interface PurchaseUpdateFields {
+  audioUrl?: string
+  rejectionReason?: string
+  generationEngine?: string
+  providerRequestId?: string
+  providerErrorType?: string
+  inputCharCount?: number
+  errorMessage?: string
+}
+
 export async function updatePurchaseStatus(
   txSignature: string,
   status: PurchaseStatus,
-  audioUrl?: string,
-  rejectionReason?: string
+  fields: PurchaseUpdateFields = {}
 ): Promise<void> {
-  const payload: Record<string, string> = { status }
-  if (audioUrl !== undefined) payload.audio_url = audioUrl
-  if (rejectionReason !== undefined) payload.rejection_reason = rejectionReason
+  const payload: Record<string, unknown> = { status }
+  if (fields.audioUrl !== undefined) payload.audio_url = fields.audioUrl
+  if (fields.rejectionReason !== undefined) payload.rejection_reason = fields.rejectionReason
+  if (fields.generationEngine !== undefined) payload.generation_engine = fields.generationEngine
+  if (fields.providerRequestId !== undefined) payload.provider_request_id = fields.providerRequestId
+  if (fields.providerErrorType !== undefined) payload.provider_error_type = fields.providerErrorType
+  if (fields.inputCharCount !== undefined) payload.input_char_count = fields.inputCharCount
+  if (fields.errorMessage !== undefined) payload.error_message = fields.errorMessage
+  if (status === 'completed' || status === 'failed') {
+    payload.generation_completed_at = new Date().toISOString()
+  }
 
   const { error: updateError } = await supabase
     .from('purchases')
