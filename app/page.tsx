@@ -9,7 +9,8 @@ import SettingsModal from '@/components/SettingsModal';
 import { useWallet } from '@solana/wallet-adapter-react'
 import bs58 from 'bs58'
 import { useLanguage } from '@/components/LanguageProvider'
-import type { CloneType, VoiceStatus } from '@/types'
+import type { CloneType, VoiceStatus, RegisterCreatorRequest } from '@/types'
+import { uploadReferenceAudio } from '@/lib/upload-client'
 
 export default function App() {
   const wallet = useWallet()
@@ -67,11 +68,8 @@ export default function App() {
 
   const [appState, setAppState] = useState<'landing' | 'onboarding' | 'dashboard'>('landing');
   const [onboardingStep, setOnboardingStep] = useState<1 | 2 | 3>(1);
-  const [cloneType, setCloneType] = useState<CloneType>('ivc');
-  const [pvcFiles, setPvcFiles] = useState<File[]>([]);
-  const [captchaImage, setCaptchaImage] = useState<string | null>(null);
-  const [isVerifyingCaptcha, setIsVerifyingCaptcha] = useState(false);
-  const [captchaError, setCaptchaError] = useState<string | null>(null);
+  const [consented, setConsented] = useState(false);
+  const [consentBlob, setConsentBlob] = useState<Blob | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [audioReady, setAudioReady] = useState(false);
@@ -270,11 +268,8 @@ export default function App() {
     setBlockPolitical(true)
     setSelectedPrice(0.05)
     setSelectedLanguage('en')
-    setCloneType('ivc')
-    setPvcFiles([])
-    setCaptchaImage(null)
-    setCaptchaError(null)
-    setIsVerifyingCaptcha(false)
+    setConsented(false)
+    setConsentBlob(null)
   }
 
   const handleFilterUpdate = async (
@@ -358,9 +353,8 @@ export default function App() {
         setCreatorStats(null)
         setAppState('onboarding')
         setOnboardingStep(1)
-        setCloneType('ivc')
-        setPvcFiles([])
-        setCaptchaImage(null)
+        setConsented(false)
+        setConsentBlob(null)
         setAudioReady(false)
         setAudioBlob(null)
       } catch {
@@ -382,105 +376,18 @@ export default function App() {
     setIsRecording(false)
   }
 
-  const handleSelectCloneType = (type: CloneType) => {
-    setCloneType(type)
-    // Switching modes invalidates whichever sample input was in progress.
-    setAudioReady(false)
-    setAudioBlob(null)
-    setPvcFiles([])
-    setRegisterError(null)
-  }
-
-  const handlePvcFiles = (files: File[]) => {
-    setPvcFiles(files)
-  }
-
-  const handleLaunchPvc = async () => {
-    if (!publicKey || pvcFiles.length === 0) {
-      setRegisterError(!publicKey ? 'Wallet not connected' : 'No audio files selected.')
-      return
-    }
-    setIsRegistering(true)
-    setRegisterError(null)
-
-    try {
-      const form = new FormData()
-      form.append('walletAddress', publicKey.toBase58())
-      form.append('creatorName', publicKey.toBase58().slice(0, 8))
-      form.append('priceInLamports', String(Math.round(selectedPrice * 1_000_000_000)))
-      form.append('language', selectedLanguage)
-      pvcFiles.forEach((f) => form.append('files', f, f.name))
-
-      const res = await fetch('/api/creator/register-pvc', { method: 'POST', body: form })
-      const data = await res.json()
-
-      if (!res.ok) {
-        // 409 without PVC_SLOT_FULL means the creator already exists → go to dashboard.
-        if (res.status === 409 && data.code !== 'PVC_SLOT_FULL') {
-          setAppState('dashboard')
-          return
-        }
-        setRegisterError(data.error ?? 'Registration failed')
-        return
-      }
-
-      setCaptchaImage(data.captchaImage ?? null)
-      setOnboardingStep(3)
-    } catch {
-      setRegisterError('Network error. Please try again.')
-    } finally {
-      setIsRegistering(false)
-    }
-  }
-
-  const handleVerifyCaptcha = async (recording: Blob) => {
-    if (!publicKey) {
-      setCaptchaError('Wallet not connected')
-      return
-    }
-    const walletAddr = publicKey.toBase58()
-    setIsVerifyingCaptcha(true)
-    setCaptchaError(null)
-
-    try {
-      const arrayBuffer = await recording.arrayBuffer()
-      const base64 = Buffer.from(arrayBuffer).toString('base64')
-
-      const verify = async (retry = true): Promise<void> => {
-        const headers = await getAuthHeaders(walletAddr)
-        const res = await fetch('/api/creator/verify-pvc', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...headers },
-          body: JSON.stringify({ walletAddress: walletAddr, recordingBase64: base64 }),
-        })
-        if (res.status === 401 && retry) {
-          sessionStorage.removeItem(`voclira_session_${walletAddr}`)
-          return verify(false)
-        }
-        const data = await res.json().catch(() => null)
-        if (!res.ok) throw new Error(data?.error ?? 'Verification failed')
-      }
-
-      await verify()
-      // Training has started — the dashboard polls for completion.
-      setAppState('dashboard')
-    } catch (err) {
-      setCaptchaError(err instanceof Error ? err.message : 'Verification failed')
-    } finally {
-      setIsVerifyingCaptcha(false)
-    }
+  const handleConsentRecorded = (blob: Blob | null) => {
+    setConsentBlob(blob)
   }
 
   const handleLaunch = async () => {
-    if (cloneType === 'pvc') {
-      await handleLaunchPvc()
-      return
-    }
-    if (!publicKey || !audioBlob) {
+    if (!publicKey || !audioBlob || !consentBlob) {
       setRegisterError(
         !publicKey
           ? 'Wallet not connected'
-          : 'No audio recording found. Please go back and record your voice.'
+          : !consentBlob
+            ? 'Please record the consent sentence before continuing.'
+            : 'No audio recording found. Please go back and record your voice.'
       )
       return
     }
@@ -488,26 +395,29 @@ export default function App() {
     setRegisterError(null)
 
     try {
-      const arrayBuffer = await audioBlob.arrayBuffer()
-      const base64 = Buffer.from(arrayBuffer).toString('base64')
+      const walletAddr = publicKey.toBase58()
 
-      const extension = audioMimeType.includes('mp4') || audioMimeType.includes('m4a') ? 'mp4'
-        : audioMimeType.includes('ogg') ? 'ogg'
-        : audioMimeType.includes('mpeg') || audioMimeType.includes('mp3') ? 'mp3'
-        : audioMimeType.includes('wav') ? 'wav'
-        : 'webm'
+      // Convert + upload both WAVs (reference voice + consent verification) to R2,
+      // then register with the one-time upload sessions instead of base64 audio.
+      const [uploadSessionId, verificationUploadSessionId] = await Promise.all([
+        uploadReferenceAudio(audioBlob, walletAddr, 'voice-profile'),
+        uploadReferenceAudio(consentBlob, walletAddr, 'verification-audio'),
+      ])
+
+      const body: RegisterCreatorRequest = {
+        walletAddress: walletAddr,
+        creatorName: walletAddr.slice(0, 8),
+        priceInLamports: Math.round(selectedPrice * 1_000_000_000),
+        language: selectedLanguage,
+        uploadSessionId,
+        verificationUploadSessionId,
+        consentTextVersion: 'v1',
+      }
 
       const res = await fetch('/api/creator/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          walletAddress: publicKey.toBase58(),
-          creatorName: publicKey.toBase58().slice(0, 8),
-          audioBase64: base64,
-          fileName: `voice.${extension}`,
-          priceInLamports: Math.round(selectedPrice * 1_000_000_000),
-          language: selectedLanguage,
-        }),
+        body: JSON.stringify(body),
       })
 
       const data = await res.json()
@@ -522,8 +432,8 @@ export default function App() {
       }
 
       setAppState('dashboard')
-    } catch {
-      setRegisterError('Network error. Please try again.')
+    } catch (err) {
+      setRegisterError(err instanceof Error ? err.message : 'Network error. Please try again.')
     } finally {
       setIsRegistering(false)
     }
@@ -608,17 +518,13 @@ export default function App() {
           audioReady={audioReady}
           selectedPrice={selectedPrice}
           walletAddress={walletAddress}
-          cloneType={cloneType}
-          pvcReady={pvcFiles.length > 0}
-          captchaImage={captchaImage}
-          isVerifyingCaptcha={isVerifyingCaptcha}
-          captchaError={captchaError}
-          onSelectCloneType={handleSelectCloneType}
-          onPvcFiles={handlePvcFiles}
-          onVerifyCaptcha={handleVerifyCaptcha}
+          consented={consented}
+          consentBlob={consentBlob}
+          onConsentChange={setConsented}
+          onConsentRecorded={handleConsentRecorded}
           onStartRecording={handleStartRecording}
-          onNextStep={() => setOnboardingStep(2)}
-          onBackStep={() => setOnboardingStep(1)}
+          onNextStep={() => setOnboardingStep((s) => (s < 3 ? ((s + 1) as 1 | 2 | 3) : s))}
+          onBackStep={() => setOnboardingStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3) : s))}
           onSelectPrice={setSelectedPrice}
           onAudioReady={handleAudioReady}
           onLaunch={handleLaunch}
@@ -661,10 +567,8 @@ export default function App() {
           setAudioMimeType('audio/webm');
           setRegisterError(null);
           setCreatorStats(null);
-          setCloneType('ivc');
-          setPvcFiles([]);
-          setCaptchaImage(null);
-          setCaptchaError(null);
+          setConsented(false);
+          setConsentBlob(null);
           setSettingsOpen(false);
         }}
         onPriceUpdate={(newPrice) => {

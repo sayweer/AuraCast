@@ -167,15 +167,17 @@ export interface GenerateSpeechResult {
 export interface RegisterCreatorRequest {
   walletAddress: string
   creatorName: string
-  audioBase64: string
-  fileName: string
   priceInLamports: number
   language?: string
+  // Chatterbox/Fal onboarding: reference + consent WAVs are uploaded to R2 first;
+  // register consumes the one-time upload sessions instead of receiving base64 audio.
+  uploadSessionId: string
+  verificationUploadSessionId: string
+  consentTextVersion: string
 }
 
 export interface RegisterCreatorResponse {
   success: boolean
-  voiceId?: string
   creatorId?: string
   error?: string
 }

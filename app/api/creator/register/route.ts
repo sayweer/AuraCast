@@ -5,6 +5,7 @@ import { consumeSession } from '@/lib/session'
 import { getErrorResponse } from '@/lib/errors'
 import { safeParseJson, isValidWalletAddress, isValidPrice, getClientIp } from '@/lib/validation'
 import { checkRateLimit } from '@/lib/rate-limit'
+import type { RegisterCreatorRequest } from '@/types'
 
 // Chatterbox/Fal onboarding: no ElevenLabs cloning. The creator's reference WAV and
 // consent verification WAV are uploaded directly to R2 (private) via presigned PUT;
@@ -18,16 +19,6 @@ interface UploadSession {
   type: 'voice-profile' | 'verification-audio'
 }
 
-interface RegisterBody {
-  walletAddress: string
-  creatorName: string
-  priceInLamports: number
-  language?: string
-  uploadSessionId: string
-  verificationUploadSessionId: string
-  consentTextVersion: string
-}
-
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const ip = getClientIp(req)
   if (!(await checkRateLimit(ip, 10, 60 * 60 * 1000))) {
@@ -37,7 +28,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  const body = await safeParseJson<Partial<RegisterBody>>(req)
+  const body = await safeParseJson<Partial<RegisterCreatorRequest>>(req)
   if (body === null) {
     return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }

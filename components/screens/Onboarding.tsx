@@ -8,13 +8,8 @@ import { useLanguage } from '@/components/LanguageProvider';
 import LanguageToggle from '@/components/LanguageToggle';
 import { BrandLogo } from '@/components/BrandLogo';
 import { WavePath } from '@/components/ui/wave-path';
-import { CloneTypeSelect } from '@/components/onboarding/CloneTypeSelect';
 import { AudioUpload } from '@/components/onboarding/AudioUpload';
-import { PvcCaptcha } from '@/components/onboarding/PvcCaptcha';
-import type { CloneType } from '@/types';
-
-// PVC needs at least 30 minutes of audio (recommended ~3 hours).
-const PVC_MIN_DURATION_SEC = 30 * 60;
+import { ConsentStep } from '@/components/onboarding/ConsentStep';
 
 interface OnboardingProps {
   step: 1 | 2 | 3;
@@ -23,14 +18,10 @@ interface OnboardingProps {
   audioReady: boolean;
   selectedPrice: number;
   walletAddress: string;
-  cloneType: CloneType;
-  pvcReady: boolean;
-  captchaImage: string | null;
-  isVerifyingCaptcha: boolean;
-  captchaError: string | null;
-  onSelectCloneType: (type: CloneType) => void;
-  onPvcFiles: (files: File[], totalDurationSec: number) => void;
-  onVerifyCaptcha: (recording: Blob, mimeType: string) => void;
+  consented: boolean;
+  consentBlob: Blob | null;
+  onConsentChange: (value: boolean) => void;
+  onConsentRecorded: (blob: Blob | null) => void;
   onStartRecording: () => void;
   onNextStep: () => void;
   onBackStep: () => void;
@@ -49,33 +40,9 @@ const formatTime = (seconds: number) => {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
 
-const SCRIPT_EN = `Welcome. My name is recorded here to create my personal voice clone.
+const SCRIPT_EN = `Hello. I'm recording this to create an AI clone of my voice. I love walking outdoors, reading a good book, and spending time with the people I care about. I hope this voice turns out as warm and natural as I sound right now.`
 
-I enjoy spending time outdoors, especially on warm sunny days when the sky is perfectly clear. There is something truly special about the way morning light falls through the trees and illuminates everything around you.
-
-When I was younger, I used to read books for hours without stopping. Stories about adventure, science, history, and the mysteries of the universe always fascinated me deeply.
-
-I believe that technology has the power to connect people in ways we never imagined before. Every single day, new ideas emerge that change how we live, how we work, and how we communicate with one another.
-
-Cooking is another thing I genuinely enjoy. The process of combining simple ingredients to create something delicious feels almost like a form of art. My favorite meals are the ones shared with people I care about.
-
-Music has always been a big part of my life. Different songs carry different memories, and sometimes a single melody can take you back to a moment you had almost forgotten.
-
-Thank you for listening. This recording will help create an accurate and natural clone of my voice.`
-
-const SCRIPT_TR = `Merhaba. Kişisel ses klonum oluşturmak için bu kaydı yapıyorum.
-
-Açık havada vakit geçirmeyi çok severim, özellikle güneşin parlak olduğu ve gökyüzünün tertemiz göründüğü sıcak günlerde. Sabah ışığının ağaçların arasından süzülüp her yanı aydınlatma biçiminde gerçekten çok özel bir şey var.
-
-Küçükken saatlerce durmadan kitap okurdum. Macera, bilim, tarih ve evrenin gizemlerine dair hikayeler her zaman derin bir şekilde ilgimi çekmiştir.
-
-Teknolojinin insanları daha önce hiç hayal edemediğimiz biçimlerde birbirine bağlama gücüne sahip olduğuna inanıyorum. Her geçen gün, yaşama, çalışma ve birbirimizle iletişim kurma şeklimizi değiştiren yeni fikirler ortaya çıkıyor.
-
-Yemek yapmak da gerçekten keyif aldığım bir şey. Basit malzemeleri bir araya getirerek lezzetli bir şey yaratma süreci neredeyse bir sanat formu gibi hissettiriyor. En sevdiğim yemekler, önem verdiğim insanlarla paylaştıklarım.
-
-Müzik her zaman hayatımın büyük bir parçası olmuştur. Farklı şarkılar farklı anılar taşır ve bazen tek bir melodi sizi neredeyse unuttuğunuz bir ana geri götürebilir.
-
-Dinlediğiniz için teşekkürler. Bu kayıt, sesimin doğru ve doğal bir klonunu oluşturmama yardımcı olacak.`
+const SCRIPT_TR = `Merhaba. Bu kaydı, sesimin yapay zeka klonunu oluşturmak için yapıyorum. Açık havada yürüyüş yapmayı, güzel bir kitap okumayı ve sevdiklerimle vakit geçirmeyi severim. Umarım bu ses de tıpkı şu an konuştuğum kadar sıcak ve doğal çıkar.`
 
 const priceOptions = [0.01, 0.03, 0.05, 0.08, 0.1];
 const usdPrices: Record<number, number> = {
@@ -93,14 +60,10 @@ export default function Onboarding({
   audioReady,
   selectedPrice,
   walletAddress,
-  cloneType,
-  pvcReady,
-  captchaImage,
-  isVerifyingCaptcha,
-  captchaError,
-  onSelectCloneType,
-  onPvcFiles,
-  onVerifyCaptcha,
+  consented,
+  consentBlob,
+  onConsentChange,
+  onConsentRecorded,
   onStartRecording,
   onNextStep,
   onBackStep,
@@ -318,7 +281,7 @@ export default function Onboarding({
   }
 
   useEffect(() => {
-    if (isRecording && recordingSeconds >= 180) {
+    if (isRecording && recordingSeconds >= 25) {
       mediaRecorderRef.current?.stop()
     }
   }, [isRecording, recordingSeconds])
@@ -388,17 +351,17 @@ export default function Onboarding({
     }
   }
 
-  // Uploaded IVC file feeds the same downstream state as a recording. Duration metadata
-  // can be unknown (0) for some containers; in that case we let the server-side byte-size
-  // guard enforce the minimum rather than blocking a valid upload.
-  const handleIvcUpload = (files: File[], durationSec: number) => {
+  // An uploaded reference file feeds the same downstream state as a recording. Duration
+  // metadata can be unknown (0) for some containers; in that case assume it clears the
+  // minimum rather than blocking a valid upload.
+  const handleReferenceUpload = (files: File[], durationSec: number) => {
     const file = files[0]
     if (!file) return
-    setSavedDuration(durationSec > 0 ? durationSec : 90)
+    setSavedDuration(durationSec > 0 ? durationSec : 8)
     onAudioReady(file, file.type || 'audio/webm')
   }
 
-  const totalSteps = cloneType === 'pvc' ? 3 : 2
+  const totalSteps = 3
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -443,7 +406,7 @@ export default function Onboarding({
             )
           })}
           <span className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground ml-4">
-            {t(cloneType === 'pvc' ? 'onboarding.stepLabelPvc' : 'onboarding.stepLabel', { step })}
+            {t('onboarding.stepLabel', { step })}
           </span>
         </div>
       </div>
@@ -451,18 +414,13 @@ export default function Onboarding({
       {/* Content */}
       <div className="flex-1 flex items-center justify-center px-4 pb-8">
         {step === 1 ? (
+          /* Step 1: language + consent */
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
-              <h2 className="font-display text-2xl font-bold">{t('onboarding.title')}</h2>
-              {cloneType === 'ivc' && (
-                <p className="text-muted-foreground">{t('onboarding.subtitle')}</p>
-              )}
+              <h2 className="font-display text-2xl font-bold">{t('onboarding.consentTitle')}</h2>
             </div>
 
-            {/* Clone method picker */}
-            <CloneTypeSelect value={cloneType} onChange={onSelectCloneType} />
-
-            {/* Language Selector (both modes) */}
+            {/* Language Selector */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">{t('onboarding.selectLanguage')}</label>
               <div className="flex gap-3">
@@ -489,120 +447,141 @@ export default function Onboarding({
               </div>
             </div>
 
-            {cloneType === 'ivc' ? (
-              <>
-                {/* Info Box */}
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-                  <p className="text-sm text-amber-100">
-                    {t('onboarding.infoBox')}
-                  </p>
-                </div>
-
-                {/* Script Box */}
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">{t('onboarding.readAloud')}</label>
-                  <div className="bg-black/40 border border-border rounded-lg p-4 max-h-48 overflow-y-auto text-sm font-mono">
-                    <textarea
-                      readOnly
-                      value={selectedLanguage === 'tr' ? SCRIPT_TR : SCRIPT_EN}
-                      className="w-full bg-transparent text-foreground text-sm font-mono resize-none outline-none"
-                      rows={8}
-                    />
-                  </div>
-                </div>
-
-                {/* Live Waveform Visualizer */}
-                {!audioReady && (
-                  <div className="w-full bg-black/40 border border-border/60 rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden h-24">
-                    <canvas
-                      ref={canvasRef}
-                      className="w-full h-full block"
-                      width={640}
-                      height={160}
-                    />
-                    {!isRecording && (
-                      <span className="absolute bottom-2 font-display text-[10px] text-muted-foreground tracking-[0.25em] uppercase pointer-events-none">
-                        {t('onboarding.visualizerReady')}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Recording Button */}
-                <div className="flex flex-col items-center gap-4">
-                  <button
-                    onClick={handleRecord}
-                    disabled={audioReady}
-                    className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${
-                      audioReady
-                        ? 'bg-accent'
-                        : isRecording
-                        ? 'bg-ember-3 pulse-ring'
-                        : 'bg-primary hover:bg-secondary'
-                    } text-primary-foreground disabled:opacity-75`}
-                  >
-                    {audioReady ? (
-                      <span className="text-2xl">✓</span>
-                    ) : isRecording ? (
-                      <Mic className="w-8 h-8 text-ember-4" />
-                    ) : (
-                      <Mic className="w-8 h-8" />
-                    )}
-                  </button>
-                  <p className="text-sm text-muted-foreground">
-                    {audioReady
-                      ? t('onboarding.recordingComplete')
-                      : isRecording
-                      ? `${formatTime(recordingSeconds)} — ${t('onboarding.tapToStop')}`
-                      : t('onboarding.tapToStart')}
-                  </p>
-                  {isRecording && recordingSeconds < 90 && (
-                    <p className="text-xs text-amber-400 text-center max-w-xs">
-                      {t('onboarding.cloneQualityWarn')}
-                    </p>
-                  )}
-                  {audioReady && savedDuration < 90 && (
-                    <p className="text-sm text-red-400 text-center max-w-xs">
-                      {t('onboarding.minDurationError')}
-                    </p>
-                  )}
-                  {micError && (
-                    <p className="text-sm text-red-400 text-center max-w-xs">{micError}</p>
-                  )}
-                </div>
-
-                {/* Upload alternative */}
-                <div className="flex items-center gap-3">
-                  <div className="h-px flex-1 bg-border" />
-                  <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                    {t('onboarding.orRecord')}
-                  </span>
-                  <div className="h-px flex-1 bg-border" />
-                </div>
-                <AudioUpload multiple={false} minDurationSec={90} onFiles={handleIvcUpload} />
-              </>
-            ) : (
-              /* PVC: upload pre-recorded samples (30 min+) */
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <h3 className="font-display font-bold">{t('onboarding.pvcSampleTitle')}</h3>
-                  <p className="text-sm text-muted-foreground">{t('onboarding.pvcSampleSubtitle')}</p>
-                </div>
-                <p className="text-xs text-muted-foreground">{t('onboarding.uploadHintPvc')}</p>
-                <AudioUpload multiple minDurationSec={PVC_MIN_DURATION_SEC} onFiles={onPvcFiles} />
-              </div>
-            )}
+            <ConsentStep
+              language={selectedLanguage}
+              consented={consented}
+              onConsentChange={onConsentChange}
+              consentBlob={consentBlob}
+              onConsentRecorded={onConsentRecorded}
+            />
 
             {/* Continue Button */}
             <Button
               onClick={onNextStep}
-              disabled={cloneType === 'pvc' ? !pvcReady : !audioReady || savedDuration < 90}
+              disabled={!consented || !consentBlob}
               className="w-full bg-primary text-primary-foreground hover:bg-secondary disabled:bg-primary/30 disabled:text-primary/50 disabled:cursor-not-allowed"
             >
-              {t('onboarding.buttonCreateVoice')} <ChevronRight className="w-4 h-4 ml-2" />
+              {t('onboarding.buttonContinue')} <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           </Card>
         ) : step === 2 ? (
+          /* Step 2: reference voice recording */
+          <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
+            <div className="space-y-2">
+              <h2 className="font-display text-2xl font-bold">{t('onboarding.title')}</h2>
+              <p className="text-muted-foreground">{t('onboarding.subtitle')}</p>
+            </div>
+
+            {/* Info Box */}
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+              <p className="text-sm text-amber-100">
+                {t('onboarding.infoBox')}
+              </p>
+            </div>
+
+            {/* Script Box */}
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">{t('onboarding.readAloud')}</label>
+              <div className="bg-black/40 border border-border rounded-lg p-4 max-h-48 overflow-y-auto text-sm font-mono">
+                <textarea
+                  readOnly
+                  value={selectedLanguage === 'tr' ? SCRIPT_TR : SCRIPT_EN}
+                  className="w-full bg-transparent text-foreground text-sm font-mono resize-none outline-none"
+                  rows={4}
+                />
+              </div>
+            </div>
+
+            {/* Live Waveform Visualizer */}
+            {!audioReady && (
+              <div className="w-full bg-black/40 border border-border/60 rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden h-24">
+                <canvas
+                  ref={canvasRef}
+                  className="w-full h-full block"
+                  width={640}
+                  height={160}
+                />
+                {!isRecording && (
+                  <span className="absolute bottom-2 font-display text-[10px] text-muted-foreground tracking-[0.25em] uppercase pointer-events-none">
+                    {t('onboarding.visualizerReady')}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Recording Button */}
+            <div className="flex flex-col items-center gap-4">
+              <button
+                onClick={handleRecord}
+                disabled={audioReady}
+                className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${
+                  audioReady
+                    ? 'bg-accent'
+                    : isRecording
+                    ? 'bg-ember-3 pulse-ring'
+                    : 'bg-primary hover:bg-secondary'
+                } text-primary-foreground disabled:opacity-75`}
+              >
+                {audioReady ? (
+                  <span className="text-2xl">✓</span>
+                ) : isRecording ? (
+                  <Mic className="w-8 h-8 text-ember-4" />
+                ) : (
+                  <Mic className="w-8 h-8" />
+                )}
+              </button>
+              <p className="text-sm text-muted-foreground">
+                {audioReady
+                  ? t('onboarding.recordingComplete')
+                  : isRecording
+                  ? `${formatTime(recordingSeconds)} — ${t('onboarding.tapToStop')}`
+                  : t('onboarding.tapToStart')}
+              </p>
+              {isRecording && recordingSeconds < 8 && (
+                <p className="text-xs text-amber-400 text-center max-w-xs">
+                  {t('onboarding.cloneQualityWarn')}
+                </p>
+              )}
+              {audioReady && savedDuration < 8 && (
+                <p className="text-sm text-red-400 text-center max-w-xs">
+                  {t('onboarding.minDurationError')}
+                </p>
+              )}
+              {micError && (
+                <p className="text-sm text-red-400 text-center max-w-xs">{micError}</p>
+              )}
+            </div>
+
+            {/* Upload alternative */}
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                {t('onboarding.orRecord')}
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <AudioUpload multiple={false} minDurationSec={8} onFiles={handleReferenceUpload} />
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 pt-2">
+              <Button
+                onClick={onBackStep}
+                variant="outline"
+                className="flex-1 border-border hover:bg-primary/10"
+              >
+                {t('onboarding.backButton')}
+              </Button>
+              <Button
+                onClick={onNextStep}
+                disabled={!audioReady || savedDuration < 8}
+                className="flex-1 bg-primary text-primary-foreground hover:bg-secondary disabled:bg-primary/30 disabled:text-primary/50 disabled:cursor-not-allowed"
+              >
+                {t('onboarding.buttonCreateVoice')} <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </Card>
+        ) : (
+          /* Step 3: price + launch */
           <Card className="w-full max-w-lg bg-card border-border p-8 space-y-6">
             <div className="space-y-2">
               <h2 className="font-display text-2xl font-bold">{t('onboarding.priceTitle')}</h2>
@@ -666,10 +645,8 @@ export default function Onboarding({
                 {isRegistering ? (
                   <>
                     <RotateCw className="w-4 h-4 mr-2 animate-spin" />
-                    {cloneType === 'pvc' ? t('onboarding.pvcUploading') : t('onboarding.creatingVoice')}
+                    {t('onboarding.creatingVoice')}
                   </>
-                ) : cloneType === 'pvc' ? (
-                  t('onboarding.pvcContinue')
                 ) : (
                   t('onboarding.launchButton')
                 )}
@@ -678,15 +655,6 @@ export default function Onboarding({
             {registerError && (
               <p className="text-sm text-red-400 text-center">{registerError}</p>
             )}
-          </Card>
-        ) : (
-          <Card className="w-full max-w-lg bg-card border-border p-8">
-            <PvcCaptcha
-              captchaImage={captchaImage}
-              isSubmitting={isVerifyingCaptcha}
-              error={captchaError}
-              onSubmit={onVerifyCaptcha}
-            />
           </Card>
         )}
       </div>
