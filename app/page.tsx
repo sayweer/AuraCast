@@ -93,13 +93,7 @@ export default function App() {
   const [blockAdult, setBlockAdult] = useState(true)
   const [blockProfanity, setBlockProfanity] = useState(true)
   const [blockPolitical, setBlockPolitical] = useState(true)
-  const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'tr'>('en')
   const [statsLoading, setStatsLoading] = useState(true)
-
-  // Sync selectedLanguage with general language
-  useEffect(() => {
-    setSelectedLanguage(language)
-  }, [language])
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -183,9 +177,6 @@ export default function App() {
           setBlockProfanity(creator.block_profanity ?? true)
           setBlockPolitical(creator.block_political ?? true)
           setSelectedPrice(creator.price_lamports / 1_000_000_000)
-          if (creator.language === 'en' || creator.language === 'tr') {
-            setSelectedLanguage(creator.language)
-          }
 
           if (
             creator.block_adult == null ||
@@ -225,7 +216,6 @@ export default function App() {
     setBlockProfanity(true)
     setBlockPolitical(true)
     setSelectedPrice(0.05)
-    setSelectedLanguage('en')
     setConsented(false)
     setConsentBlob(null)
   }
@@ -372,7 +362,7 @@ export default function App() {
         walletAddress: walletAddr,
         creatorName: walletAddr.slice(0, 8),
         priceInLamports: Math.round(selectedPrice * 1_000_000_000),
-        language: selectedLanguage,
+        language,
         uploadSessionId,
         verificationUploadSessionId,
         consentTextVersion: 'v1',
@@ -494,7 +484,7 @@ export default function App() {
           onLaunch={handleLaunch}
           isRegistering={isRegistering}
           registerError={registerError}
-          selectedLanguage={selectedLanguage}
+          selectedLanguage={language}
           onSelectLanguage={setLanguage}
           onDiscardRecording={handleDiscardRecording}
         />

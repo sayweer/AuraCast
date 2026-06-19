@@ -3,7 +3,6 @@ import { getCreatorByWallet } from '@/lib/supabase'
 import { getErrorResponse } from '@/lib/errors'
 import { isValidWalletAddress } from '@/lib/validation'
 import { verifyWalletAuthOrSession } from '@/lib/auth'
-import type { CloneType, VoiceStatus } from '@/types'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -26,8 +25,6 @@ interface PublicCreatorInfo {
   is_active: boolean
   language: string
   has_voice: boolean
-  clone_type: CloneType
-  voice_status: VoiceStatus
 }
 
 export async function GET(
@@ -57,8 +54,6 @@ export async function GET(
         language: creator.language,
         // Zero-shot Chatterbox: a creator can generate as soon as their reference WAV exists.
         has_voice: Boolean(creator.voice_profile_object_key),
-        clone_type: creator.clone_type,
-        voice_status: creator.voice_status,
       }
       return jsonNoStore(publicInfo, 200)
     }

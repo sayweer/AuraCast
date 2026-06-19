@@ -1,12 +1,8 @@
 // ─── Database Models ───────────────────────────────────
 
-// How the voice was cloned. IVC = Instant Voice Cloning (synchronous, ~90s sample).
-// PVC = Professional Voice Cloning (asynchronous, 30min+ samples, captcha + training).
-export type CloneType = 'ivc' | 'pvc'
-
-// Lifecycle of a creator's voice. IVC voices are 'ready' immediately. PVC voices
-// progress: pending_verification (captcha needed) → training (2-6h) → ready / failed.
-export type VoiceStatus = 'ready' | 'pending_verification' | 'training' | 'failed'
+// Languages a voice can be generated in — drives the TTS engine and the moderation
+// length ceiling. tr → Chatterbox multilingual, en → Chatterbox turbo.
+export type SupportedLanguage = 'tr' | 'en'
 
 export interface Creator {
   id: string
@@ -23,8 +19,6 @@ export interface Creator {
   block_political: boolean
   language: string
   nft_mint: string | null
-  clone_type: CloneType
-  voice_status: VoiceStatus
   // Chatterbox/Fal migration: R2 private object key for the zero-shot reference WAV.
   voice_profile_object_key: string | null
   // Consent / rıza kaydı (KVKK/GDPR).
@@ -32,8 +26,6 @@ export interface Creator {
   consent_ip: string | null
   consent_text_version: string | null
   verification_audio_object_key: string | null
-  allowed_usage: string | null
-  revoked_at: string | null
 }
 
 export interface Purchase {
@@ -55,9 +47,6 @@ export interface Purchase {
   provider_error_type: string | null
   input_char_count: number | null
   error_message: string | null
-  generation_attempt_count: number
-  retry_count: number
-  generation_started_at: string | null
   generation_completed_at: string | null
   audio_deleted_at: string | null
   takedown_reason: string | null
@@ -167,6 +156,7 @@ export interface GenerateVoiceRequest {
   txSignature: string
   buyerWallet: string
   mood?: Mood
+  language?: SupportedLanguage
 }
 
 

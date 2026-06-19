@@ -1,6 +1,6 @@
 import Groq from 'groq-sdk'
 import { createHash } from 'crypto'
-import type { ModerationResult, ModerationCategory } from '@/types'
+import type { ModerationResult, ModerationCategory, SupportedLanguage } from '@/types'
 import { VocliraError, ModerationError, UnsafeContentError } from '@/lib/errors'
 
 const groq = new Groq({
@@ -67,7 +67,12 @@ export function validateTextLength(text: string): void {
 //   Multilingual (tr) max 300 → 280 buffer for tags/punctuation
 //   Turbo (en) max 5000 → 500 MVP cap (cost + "mini message" format)
 const MIN_TEXT_LENGTH = 5
-export const MAX_TEXT_LENGTH_BY_LANGUAGE: Record<'tr' | 'en', number> = { tr: 280, en: 500 }
+export const MAX_TEXT_LENGTH_BY_LANGUAGE: Record<SupportedLanguage, number> = { tr: 280, en: 500 }
+
+/** Coerces arbitrary input to a supported generation language, falling back when invalid. */
+export function normalizeLanguage(input: unknown, fallback: SupportedLanguage = 'en'): SupportedLanguage {
+  return input === 'tr' || input === 'en' ? input : fallback
+}
 
 export function maxTextLengthFor(language: string): number {
   return MAX_TEXT_LENGTH_BY_LANGUAGE[language === 'tr' ? 'tr' : 'en']

@@ -1,5 +1,6 @@
 import { fal } from '@fal-ai/client'
 import { TtsError } from '@/lib/errors'
+import type { Mood } from '@/types'
 
 // Dual-engine Chatterbox via Fal.ai:
 //   tr → multilingual (no paralinguistic tags)
@@ -41,10 +42,28 @@ function extractFalAudioUrl(data: unknown): string {
     throw new TtsError('Fal audio URL not found in response')
 }
 
+// Mood → Chatterbox acoustic delivery. The message text is NEVER altered — mood only
+// steers the model's native expressiveness knobs. Multilingual (tr) exposes `exaggeration`
+// (0.25–2, emotion intensity) + `cfg_scale` (0–1, pacing; lower = slower/more deliberate).
+// Turbo (en) only exposes `temperature`, so en mood is milder.
+const MOOD_MULTILINGUAL: Record<Mood, { exaggeration: number; cfg_scale: number }> = {
+    calm:     { exaggeration: 0.35, cfg_scale: 0.5 },
+    sad:      { exaggeration: 0.3,  cfg_scale: 0.3 },
+    happy:    { exaggeration: 0.7,  cfg_scale: 0.5 },
+    excited:  { exaggeration: 1.0,  cfg_scale: 0.6 },
+    angry:    { exaggeration: 0.85, cfg_scale: 0.65 },
+    romantic: { exaggeration: 0.5,  cfg_scale: 0.35 },
+}
+
+const MOOD_TURBO_TEMPERATURE: Record<Mood, number> = {
+    calm: 0.6, sad: 0.6, happy: 0.85, excited: 1.0, angry: 0.95, romantic: 0.7,
+}
+
 export interface GenerateSpeechParams {
     text: string
     referenceAudioSignedUrl: string // short-lived signed GET URL to the creator's reference WAV
     language: 'tr' | 'en'
+    mood: Mood
 }
 
 export interface TtsResult {
@@ -57,6 +76,7 @@ export async function generateSpeech({
     text,
     referenceAudioSignedUrl,
     language,
+    mood,
 }: GenerateSpeechParams): Promise<TtsResult> {
     ensureConfigured()
     const start = Date.now()
@@ -64,14 +84,13 @@ export async function generateSpeech({
     const modelId = language === 'en' ? TURBO_MODEL() : MULTILINGUAL_MODEL()
     const input =
         language === 'en'
-            ? { text, audio_url: referenceAudioSignedUrl, temperature: 0.8 }
+            ? { text, audio_url: referenceAudioSignedUrl, temperature: MOOD_TURBO_TEMPERATURE[mood] }
             : {
                   text,
                   voice: referenceAudioSignedUrl,
                   custom_audio_language: 'turkish',
                   temperature: 0.8,
-                  exaggeration: 0.5,
-                  cfg_scale: 0.5,
+                  ...MOOD_MULTILINGUAL[mood],
               }
 
     try {

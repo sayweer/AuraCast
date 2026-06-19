@@ -202,6 +202,7 @@ export const translations = {
       receiveAiVoiceClip: "You'll pay in SOL and receive a personalised AI voice clip in return",
       typeMessagePlaceholder: 'Type your message here...',
       moodLabel: 'Choose the mood',
+      languageLabel: 'Voice language',
       mood: {
         happy: 'Happy',
         excited: 'Excited',
@@ -455,6 +456,7 @@ export const translations = {
       receiveAiVoiceClip: 'SOL ile ödeme yapıp karşılığında kişiselleştirilmiş bir yapay zeka ses klibi alacaksınız',
       typeMessagePlaceholder: 'Mesajınızı buraya yazın...',
       moodLabel: 'Ruh halini seç',
+      languageLabel: 'Seslendirme dili',
       mood: {
         happy: 'Mutlu',
         excited: 'Heyecanlı',

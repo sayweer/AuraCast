@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MotionConfig, motion } from 'framer-motion'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletButton } from '@/components/WalletButton'
@@ -19,13 +19,14 @@ import { BrandLogo } from '@/components/BrandLogo'
 import { BorderBeam } from '@/components/ui/border-beam'
 import { WavePath } from '@/components/ui/wave-path'
 import { downloadAudio, audioSrcFromStored } from '@/lib/audio-download'
-import type { Mood } from '@/types'
+import type { Mood, SupportedLanguage } from '@/types'
 
 interface Creator {
   wallet_address: string
   creator_name: string
   price_lamports: number
   is_active: boolean
+  language: string
 }
 
 const MOOD_OPTIONS: Array<{ id: Mood; emoji: string }> = [
@@ -35,6 +36,11 @@ const MOOD_OPTIONS: Array<{ id: Mood; emoji: string }> = [
   { id: 'sad',      emoji: '🥲' },
   { id: 'angry',    emoji: '😤' },
   { id: 'romantic', emoji: '💝' },
+]
+
+const LANGUAGE_OPTIONS: Array<{ id: SupportedLanguage; emoji: string; label: string }> = [
+  { id: 'tr', emoji: '🇹🇷', label: 'Türkçe' },
+  { id: 'en', emoji: '🇬🇧', label: 'English' },
 ]
 
 export default function FanPage() {
@@ -47,6 +53,9 @@ export default function FanPage() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [selectedMood, setSelectedMood] = useState<Mood>('calm')
+  // Generation language: defaults to the creator's declared language, fan can override.
+  const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguage>('en')
+  const languagePicked = useRef(false)
   const [isPaying, setIsPaying] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [audioDownloadUrl, setAudioDownloadUrl] = useState<string | null>(null)
@@ -64,6 +73,7 @@ export default function FanPage() {
         if (res.ok) {
           const data = await res.json()
           setCreator(data)
+          if (!languagePicked.current) setSelectedLanguage(data.language === 'tr' ? 'tr' : 'en')
         } else {
           setError(res.status === 404 ? t('fan.creatorNotFound') : (language === 'tr' ? 'Yaratıcı yüklenemedi' : 'Failed to load creator'))
         }
@@ -157,6 +167,7 @@ export default function FanPage() {
           txSignature: signature,
           buyerWallet: publicKey.toBase58(),
           mood: selectedMood,
+          language: selectedLanguage,
         }),
       })
 
@@ -314,6 +325,36 @@ export default function FanPage() {
                         >
                           <span className="mr-1">{m.emoji}</span>
                           {t(`fan.mood.${m.id}`)}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Generation language selector — defaults to the creator's language */}
+                <div className="flex flex-col gap-2">
+                  <label className="font-display text-xs font-medium text-voclira-burgundy/60 uppercase tracking-[0.25em]">
+                    {t('fan.languageLabel')}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {LANGUAGE_OPTIONS.map((opt) => {
+                      const active = selectedLanguage === opt.id
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            languagePicked.current = true
+                            setSelectedLanguage(opt.id)
+                          }}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                            active
+                              ? 'bg-voclira-olive border-voclira-olive text-voclira-cream shadow-[0_2px_12px_rgba(96,116,86,0.35)]'
+                              : 'bg-voclira-paper border-voclira-burgundy/20 text-voclira-burgundy/70 hover:border-voclira-burgundy/40'
+                          }`}
+                        >
+                          <span className="mr-1">{opt.emoji}</span>
+                          {opt.label}
                         </button>
                       )
                     })}

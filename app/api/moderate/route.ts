@@ -5,6 +5,7 @@ import {
     validateTextLengthForLanguage,
     hashUserText,
     maxTextLengthFor,
+    normalizeLanguage,
 } from '@/lib/moderation'
 import { createSession } from '@/lib/session'
 import { getErrorResponse, UnsafeContentError } from '@/lib/errors'
@@ -23,6 +24,8 @@ interface ModerateRequest {
     creatorWallet: string
     buyerWallet: string
     text: string
+    // Fan-selected generation language; defaults to the creator's declared language.
+    language?: string
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -39,7 +42,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
     }
 
-    const { creatorWallet, buyerWallet, text } = body
+    const { creatorWallet, buyerWallet, text, language: rawLanguage } = body
     if (!creatorWallet || !buyerWallet || typeof text !== 'string') {
         return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
     }
@@ -56,7 +59,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ success: false, error: 'Creator is not active' }, { status: 403 })
         }
 
-        const language = creator.language
+        // Fan picks the generation language; fall back to the creator's declared language.
+        const language = normalizeLanguage(rawLanguage, normalizeLanguage(creator.language))
         validateTextLengthForLanguage(text, language)
 
         try {

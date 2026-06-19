@@ -12,18 +12,11 @@ CREATE TABLE IF NOT EXISTS creators (
   total_earned BIGINT DEFAULT 0,
   total_messages INTEGER DEFAULT 0,
   nft_mint TEXT,
-  clone_type TEXT DEFAULT 'ivc',
-  voice_status TEXT DEFAULT 'ready',
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- Migration for existing deployments: add the on-chain voice license mint address.
 ALTER TABLE creators ADD COLUMN IF NOT EXISTS nft_mint TEXT;
-
--- Migration: clone type (ivc/pvc) + async PVC training status.
--- Existing rows default to a ready IVC clone, preserving current behaviour.
-ALTER TABLE creators ADD COLUMN IF NOT EXISTS clone_type TEXT DEFAULT 'ivc';
-ALTER TABLE creators ADD COLUMN IF NOT EXISTS voice_status TEXT DEFAULT 'ready';
 
 CREATE TABLE IF NOT EXISTS purchases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { getCreatorByWallet, savePurchase, updatePurchaseStatus, getPurchaseByTxSignature } from '@/lib/supabase'
 import { verifyTransaction } from '@/lib/solana'
-import { isSafeToGenerate, validateTextLengthForLanguage, hashUserText } from '@/lib/moderation'
+import { isSafeToGenerate, validateTextLengthForLanguage, hashUserText, normalizeLanguage } from '@/lib/moderation'
 import { generateSpeech } from '@/lib/tts'
 import { getSignedGetUrl, uploadPublicObject } from '@/lib/r2'
-import { optimizeTextForVoice } from '@/lib/text-optimizer'
 import { consumeSession } from '@/lib/session'
 import { getErrorResponse, UnsafeContentError, TtsError } from '@/lib/errors'
 import { safeParseJson, isValidWalletAddress, isValidTxSignature, getClientIp } from '@/lib/validation'
@@ -39,7 +38,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { creatorWallet, fanText, txSignature, buyerWallet, mood: rawMood, moderationSessionId } = body
+  const { creatorWallet, fanText, txSignature, buyerWallet, mood: rawMood, language: rawLanguage, moderationSessionId } = body
 
   if (!creatorWallet || !fanText || !txSignature || !buyerWallet) {
     return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
@@ -90,7 +89,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       )
     }
 
-    const language = creator.language
+    // Fan picks the generation language per message; fall back to the creator's declared language.
+    const language = normalizeLanguage(rawLanguage, normalizeLanguage(creator.language))
 
     // Optional moderation session: if the fan went through /api/moderate (pre-payment),
     // enforce that the approved raw text + parties match. Generation ALWAYS re-moderates
@@ -147,15 +147,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         throw moderationError
       }
 
-      const optimizedText = await optimizeTextForVoice(fanText, mood, language)
-      validateTextLengthForLanguage(optimizedText, language)
-
-      // Reference WAV lives in the private bucket; hand Fal a short-lived signed GET URL.
+      // The fan's exact text is spoken verbatim (already moderated + length-validated above).
+      // Mood is applied as Chatterbox acoustic params inside generateSpeech — never by rewriting text.
       const referenceAudioSignedUrl = await getSignedGetUrl(creator.voice_profile_object_key, 300)
       const tts = await generateSpeech({
-        text: optimizedText,
+        text: fanText,
         referenceAudioSignedUrl,
-        language: language === 'tr' ? 'tr' : 'en',
+        language,
+        mood,
       })
       const engine = language === 'tr' ? 'chatterbox-multilingual' : 'chatterbox-turbo'
 
@@ -172,7 +171,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         audioUrl,
         generationEngine: engine,
         providerRequestId: tts.requestId,
-        inputCharCount: optimizedText.length,
+        inputCharCount: fanText.length,
       })
 
       console.log('[VoiceGenerate] completed', { engine, durationMs: tts.durationMs, requestId: tts.requestId })
@@ -182,7 +181,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         { status: 200 }
       )
     } catch (postSaveError) {
-      // Generation failed mid-flight → mark 'failed' (retry_count stays 0; no retry happened).
+      // Generation failed mid-flight → mark 'failed' so the purchase never stays stuck.
       const providerErrorType = postSaveError instanceof TtsError ? 'tts' : 'internal'
       const errorMessage = postSaveError instanceof Error ? postSaveError.message : String(postSaveError)
       try {
