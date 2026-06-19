@@ -41,12 +41,13 @@ function extractFalAudioUrl(data: unknown): string {
     throw new TtsError('Fal audio URL not found in response')
 }
 
-// Fixed, natural delivery. There is no per-message mood — it only changed speaking speed
-// and felt gimmicky. These are the calmest values: low `exaggeration` keeps a natural pace
-// (high exaggeration sped speech up unnaturally), low `cfg_scale` keeps it measured.
-// Multilingual (tr) → exaggeration + cfg_scale + temperature; Turbo (en) → temperature only.
-const TR_EXAGGERATION = 0.5
-const TR_CFG_SCALE = 0.35
+// Fixed, natural delivery — no per-message mood (it only changed speed and felt gimmicky).
+// Tuned by ear: `exaggeration` gives expressiveness / "soul" (too low = lifeless; too high
+// speeds speech up unnaturally), `cfg_scale` sets pace (lower = slower / more deliberate,
+// higher = faster). Multilingual (tr) → exaggeration + cfg_scale + temperature; Turbo (en)
+// → temperature only.
+const TR_EXAGGERATION = 0.65
+const TR_CFG_SCALE = 0.45
 const TR_TEMPERATURE = 0.8
 const EN_TEMPERATURE = 0.7
 
