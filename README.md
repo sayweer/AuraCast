@@ -146,7 +146,7 @@ GET /api/creator/license-metadata/[walletAddress]
 On-chain metadata JSON for the creator's Voice License NFT.
 
 POST /api/voice/generate
-Body: { creatorWallet, fanText, txSignature, buyerWallet, mood?, moderationSessionId? }
+Body: { creatorWallet, fanText, txSignature, buyerWallet, language?, moderationSessionId? }
 Re-moderates regardless of moderationSessionId, generates via Fal.ai Chatterbox, uploads to R2.
 Returns: { success, audioUrl, durationMs, purchaseId }
 

@@ -19,7 +19,7 @@ import { BrandLogo } from '@/components/BrandLogo'
 import { BorderBeam } from '@/components/ui/border-beam'
 import { WavePath } from '@/components/ui/wave-path'
 import { downloadAudio, audioSrcFromStored } from '@/lib/audio-download'
-import type { Mood, SupportedLanguage } from '@/types'
+import type { SupportedLanguage } from '@/types'
 
 interface Creator {
   wallet_address: string
@@ -28,15 +28,6 @@ interface Creator {
   is_active: boolean
   language: string
 }
-
-const MOOD_OPTIONS: Array<{ id: Mood; emoji: string }> = [
-  { id: 'happy',    emoji: '😊' },
-  { id: 'excited',  emoji: '🎉' },
-  { id: 'calm',     emoji: '🌿' },
-  { id: 'sad',      emoji: '🥲' },
-  { id: 'angry',    emoji: '😤' },
-  { id: 'romantic', emoji: '💝' },
-]
 
 const LANGUAGE_OPTIONS: Array<{ id: SupportedLanguage; emoji: string; label: string }> = [
   { id: 'tr', emoji: '🇹🇷', label: 'Türkçe' },
@@ -52,7 +43,6 @@ export default function FanPage() {
   const [creator, setCreator] = useState<Creator | null>(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
-  const [selectedMood, setSelectedMood] = useState<Mood>('calm')
   // Generation language: defaults to the creator's declared language, fan can override.
   const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguage>('en')
   const languagePicked = useRef(false)
@@ -166,7 +156,6 @@ export default function FanPage() {
           fanText: message,
           txSignature: signature,
           buyerWallet: publicKey.toBase58(),
-          mood: selectedMood,
           language: selectedLanguage,
         }),
       })
@@ -282,7 +271,7 @@ export default function FanPage() {
                 </div>
               </div>
 
-              {/* Message form — textarea + mood always visible (composing does not require wallet) */}
+              {/* Message form — textarea always visible (composing does not require wallet) */}
               <div className="flex flex-col gap-4">
 
                 {/* Textarea */}
@@ -301,33 +290,6 @@ export default function FanPage() {
                     >
                       {message.length}/300
                     </span>
-                  </div>
-                </div>
-
-                {/* Mood selector */}
-                <div className="flex flex-col gap-2">
-                  <label className="font-display text-xs font-medium text-voclira-burgundy/60 uppercase tracking-[0.25em]">
-                    {t('fan.moodLabel')}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {MOOD_OPTIONS.map((m) => {
-                      const active = selectedMood === m.id
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => setSelectedMood(m.id)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                            active
-                              ? 'bg-voclira-olive border-voclira-olive text-voclira-cream shadow-[0_2px_12px_rgba(96,116,86,0.35)]'
-                              : 'bg-voclira-paper border-voclira-burgundy/20 text-voclira-burgundy/70 hover:border-voclira-burgundy/40'
-                          }`}
-                        >
-                          <span className="mr-1">{m.emoji}</span>
-                          {t(`fan.mood.${m.id}`)}
-                        </button>
-                      )
-                    })}
                   </div>
                 </div>
 

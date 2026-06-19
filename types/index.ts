@@ -122,14 +122,6 @@ export interface ModerationResult {
   processingMs: number
 }
 
-export type Mood =
-  | 'happy'
-  | 'excited'
-  | 'calm'
-  | 'sad'
-  | 'angry'
-  | 'romantic'
-
 // ─── API Requests / Responses ──────────────────────────
 
 export interface RegisterCreatorRequest {
@@ -155,7 +147,6 @@ export interface GenerateVoiceRequest {
   fanText: string
   txSignature: string
   buyerWallet: string
-  mood?: Mood
   language?: SupportedLanguage
 }
 

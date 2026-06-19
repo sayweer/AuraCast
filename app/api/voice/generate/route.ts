@@ -9,12 +9,10 @@ import { consumeSession } from '@/lib/session'
 import { getErrorResponse, UnsafeContentError, TtsError } from '@/lib/errors'
 import { safeParseJson, isValidWalletAddress, isValidTxSignature, getClientIp } from '@/lib/validation'
 import { checkRateLimit } from '@/lib/rate-limit'
-import type { GenerateVoiceRequest, Mood } from '@/types'
+import type { GenerateVoiceRequest } from '@/types'
 
 // Fal warm pool returns in 2-5s; fail fast rather than burn provisioned memory / show a long spinner.
 export const maxDuration = 15
-
-const VALID_MOODS: Mood[] = ['happy', 'excited', 'calm', 'sad', 'angry', 'romantic']
 
 const MOD_SESSION_PREFIX = 'mod-session'
 interface ModerationSession {
@@ -38,13 +36,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { creatorWallet, fanText, txSignature, buyerWallet, mood: rawMood, language: rawLanguage, moderationSessionId } = body
+  const { creatorWallet, fanText, txSignature, buyerWallet, language: rawLanguage, moderationSessionId } = body
 
   if (!creatorWallet || !fanText || !txSignature || !buyerWallet) {
     return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
   }
-
-  const mood: Mood = rawMood && VALID_MOODS.includes(rawMood as Mood) ? (rawMood as Mood) : 'calm'
 
   if (!isValidWalletAddress(creatorWallet)) {
     return NextResponse.json({ success: false, error: 'Invalid creator wallet address' }, { status: 400 })
@@ -148,13 +144,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }
 
       // The fan's exact text is spoken verbatim (already moderated + length-validated above).
-      // Mood is applied as Chatterbox acoustic params inside generateSpeech — never by rewriting text.
+      // Delivery uses fixed natural acoustic params inside generateSpeech — text is never rewritten.
       const referenceAudioSignedUrl = await getSignedGetUrl(creator.voice_profile_object_key, 300)
       const tts = await generateSpeech({
         text: fanText,
         referenceAudioSignedUrl,
         language,
-        mood,
       })
       const engine = language === 'tr' ? 'chatterbox-multilingual' : 'chatterbox-turbo'
 
