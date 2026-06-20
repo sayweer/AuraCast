@@ -16,7 +16,6 @@ import { Mic } from 'lucide-react'
 import { useLanguage } from '@/components/LanguageProvider'
 import LanguageToggle from '@/components/LanguageToggle'
 import { BrandLogo } from '@/components/BrandLogo'
-import { BorderBeam } from '@/components/ui/border-beam'
 import { WavePath } from '@/components/ui/wave-path'
 import { downloadAudio, audioSrcFromStored } from '@/lib/audio-download'
 import type { SupportedLanguage } from '@/types'
@@ -246,7 +245,6 @@ export default function FanPage() {
 
               {/* Creator identity card */}
               <div className="relative overflow-hidden rounded-2xl border-2 border-voclira-burgundy/25 bg-voclira-paper shadow-[0_8px_30px_rgba(123,37,37,0.12)] p-6 flex flex-col gap-3">
-                <BorderBeam lightColor="#7B2525" lightWidth={220} duration={9} borderWidth={2} />
                 {/* Avatar */}
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 bg-voclira-burgundy/10 border-2 border-voclira-burgundy/25">
