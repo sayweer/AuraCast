@@ -1,37 +1,78 @@
-# 🎙 Voclira
-> License your voice. Earn while you sleep.
-Built on Solana · Powered by Fal.ai Chatterbox (open-source TTS) · Protected by Llama 3.1 (Groq)
+<p align="center">
+  <img src="docs/banner.png" alt="Voclira" width="100%" />
+</p>
+
+<h3 align="center">License your voice. Earn while you sleep.</h3>
+
+<p align="center">
+  Built on <b>Solana</b> · Powered by <b>Fal.ai Chatterbox</b> (open-source TTS) · Protected by <b>Llama 3.1</b> (Groq)
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white" alt="Next.js 14" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Solana-devnet-14F195?logo=solana&logoColor=black" alt="Solana" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/license-all_rights_reserved-red" alt="License" />
+</p>
+
+---
 
 ## Overview
-Voclira is a Web3 voice licensing platform. Creators record a short voice reference once, set a price in SOL, and earn SOL every time a fan requests a personalized AI-generated voice message via their dedicated Fan Page. Voclira features a selectable bilingual interface (English and Turkish) and filters all requests through an AI moderation firewall before audio is generated.
+
+**Voclira** is a Web3 voice licensing platform. Creators record a short voice reference once, set a price in SOL, and earn every time a fan requests a personalized AI-generated voice message through their dedicated Fan Page. A selectable bilingual interface (English & Turkish) sits on top, and every request passes through an AI moderation firewall before any audio is generated.
+
+The voice clone is **zero-shot** — there is no training step or waiting period. A creator records ~15 seconds, and their voice is ready to license instantly.
+
+---
 
 ## How It Works
 
-### Creator Flow
-1. Record (or upload) an 8–25s voice reference + a spoken consent statement — zero-shot cloning, no training wait
-2. Set price in SOL (e.g., per 150 characters) and brand safety filters
-3. Get a dedicated Fan Page link → share anywhere
+### 🎙 Creator Flow
 
-### Fan Flow
-1. Click the Fan Page link
-2. Type message → approve SOL payment via connected Phantom wallet
-3. AI moderates text for safety checks (<800ms)
-4. Fal.ai Chatterbox generates audio in the creator's voice (zero-shot, no training step)
-5. Fan plays and downloads the generated audio clip
+1. **Record** (or upload) an 8–25s voice reference + a spoken consent statement — zero-shot cloning, no training wait
+2. **Set** a price in SOL and your brand-safety filters
+3. **Share** your dedicated Fan Page link anywhere
+
+<p align="center">
+  <img src="docs/screenshot-onboarding.png" alt="Creating a voice identity by reading a short script aloud" width="340" />
+</p>
+
+### 💬 Fan Flow
+
+1. Open the creator's **Fan Page** link
+2. Type a message → approve the SOL payment via a connected Phantom wallet
+3. The text is screened by the **AI moderation firewall** (&lt;800ms)
+4. **Fal.ai Chatterbox** generates audio in the creator's voice (zero-shot, no training step)
+5. The fan plays and downloads the generated clip
+
+### 📊 Creator Dashboard & Analytics
+
+Creators track earnings, play counts, success rate, and net SOL over time — with CSV export.
+
+<p align="center">
+  <img src="docs/screenshot-dashboard.png" alt="Creator analytics dashboard showing earnings and activity over time" width="100%" />
+</p>
+
+---
 
 ## Tech Stack
+
 | Layer | Technology | Purpose |
 |---|---|---|
-| Frontend | Next.js 14 (App Router) | Dashboard, Fan/Play views, & API routes |
+| Frontend | Next.js 14 (App Router) | Dashboard, Fan/Play views & API routes |
 | Blockchain | Solana Devnet | Wallet connections, transactions & payments |
 | Voice AI | Fal.ai (Chatterbox, open-source) | Zero-shot voice cloning & text-to-speech |
 | Storage | Cloudflare R2 | Reference audio (private) & generated audio (public CDN) |
-| Moderation | Llama 3.1 8B (Groq) | Brand safety AI firewall |
-| Database | Supabase (Postgres) | Creator profiles, settings, & transaction records |
+| Moderation | Llama 3.1 8B (Groq) | Brand-safety AI firewall |
+| Database | Supabase (Postgres) | Creator profiles, settings & transaction records |
 | Rate Limiting | Upstash Redis | Persistent API rate limiting + one-time sessions |
 | Styling | Tailwind CSS | Modern glassmorphism UI |
 
+---
+
 ## Architecture
+
 ```
 [Creator]
     ↓ records voice reference + spoken consent
@@ -44,23 +85,30 @@ Voclira is a Web3 voice licensing platform. Creators record a short voice refere
 [Solana Transaction] → 90% creator wallet / 10% platform wallet
     ↓
 [Llama 3.1 Moderation]
-    ├── UNSAFE → Transaction fails, request rejected
+    ├── UNSAFE → transaction fails, request rejected
     └── SAFE → Fal.ai Chatterbox TTS generates audio (zero-shot, signed reference URL)
                     ↓
               Audio copied from Fal's ephemeral URL into the R2 public bucket
                     ↓
-              Fan plays audio on play screen
+              Fan plays audio on the play screen
 ```
 
-## Bilingual Support (TR/EN)
-Voclira has full bilingual capabilities. Users can dynamically switch between English and Turkish:
-- Persists user preferences locally via `localStorage` under `voclira_lang`.
-- Responsive floating glassmorphism `<LanguageToggle />` button.
-- Comprehensive UI localization covering landing, onboarding, analytics charts, settings, creator dashboard, and purchase playback pages.
+---
+
+## Bilingual Support (TR / EN)
+
+Voclira ships with full bilingual capabilities. Users can switch between English and Turkish on the fly:
+
+- Preference persisted locally via `localStorage` under `voclira_lang`
+- Responsive floating glassmorphism `<LanguageToggle />` button
+- Comprehensive UI localization across landing, onboarding, analytics charts, settings, dashboard, and playback pages
+
+---
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - Solana CLI + Phantom wallet (devnet)
 - Fal.ai account & API key (+ account credit for generation)
@@ -70,45 +118,50 @@ Voclira has full bilingual capabilities. Users can dynamically switch between En
 - Upstash Redis database (rate limiting + one-time upload/moderation sessions)
 
 ### Installation
+
 ```bash
 git clone https://github.com/sayweer/voclira
 cd voclira
 npm install
-cp .env.local.example .env.local
+cp .env.local.example .env.local   # then fill in your keys
 npm run dev
 ```
 
 ### Environment Variables
-Configure your `.env.local` file with the following:
+
+Configure your `.env.local` (see [`.env.local.example`](.env.local.example)):
 
 | Variable | Description | Where to get |
 |---|---|---|
-| GROQ_API_KEY | Groq API key | console.groq.com |
-| FAL_KEY | Fal.ai API key | fal.ai/dashboard |
-| FAL_CHATTERBOX_TURBO_MODEL | Fal model id used for EN generation | fal.ai/models (chatterbox/text-to-speech/turbo) |
-| FAL_CHATTERBOX_MULTILINGUAL_MODEL | Fal model id used for TR generation | fal.ai/models (chatterbox/text-to-speech/multilingual) |
-| R2_ACCOUNT_ID | Cloudflare account id (builds R2_ENDPOINT) | Cloudflare dashboard |
-| R2_ENDPOINT | `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com` | Cloudflare dashboard |
-| R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY | R2 API token | Cloudflare dashboard → R2 → Manage API tokens |
-| R2_PUBLIC_BUCKET | Bucket for fan-generated audio (public) | Cloudflare dashboard |
-| R2_PRIVATE_BUCKET | Bucket for reference + consent audio (private) | Cloudflare dashboard |
-| R2_PUBLIC_URL | Public domain/CDN fronting R2_PUBLIC_BUCKET | Cloudflare dashboard |
-| CLOUDFLARE_API_TOKEN / CLOUDFLARE_ZONE_ID | Optional — CDN purge on takedown | Cloudflare dashboard |
-| SUPABASE_URL | Supabase project URL | supabase.com dashboard |
-| SUPABASE_ANON_KEY | Supabase anon key | supabase.com dashboard |
-| SOLANA_RPC_URL | Solana devnet RPC endpoint | api.devnet.solana.com |
-| NEXT_PUBLIC_SOLANA_RPC_URL | Solana devnet RPC endpoint (Client-side) | api.devnet.solana.com |
-| NEXT_PUBLIC_SOLANA_NETWORK | `devnet` or `mainnet-beta` | wallet adapter config |
-| PLATFORM_WALLET | Platform fee wallet address | Phantom / Sollet wallet |
-| UPSTASH_REDIS_REST_URL | Upstash Redis REST URL | console.upstash.com |
-| UPSTASH_REDIS_REST_TOKEN | Upstash Redis REST token | console.upstash.com |
+| `GROQ_API_KEY` | Groq API key | console.groq.com |
+| `FAL_KEY` | Fal.ai API key | fal.ai/dashboard |
+| `FAL_CHATTERBOX_TURBO_MODEL` | Fal model id used for EN generation | fal.ai/models (chatterbox/text-to-speech/turbo) |
+| `FAL_CHATTERBOX_MULTILINGUAL_MODEL` | Fal model id used for TR generation | fal.ai/models (chatterbox/text-to-speech/multilingual) |
+| `R2_ACCOUNT_ID` | Cloudflare account id (builds `R2_ENDPOINT`) | Cloudflare dashboard |
+| `R2_ENDPOINT` | `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com` | Cloudflare dashboard |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | R2 API token | Cloudflare → R2 → Manage API tokens |
+| `R2_PUBLIC_BUCKET` | Bucket for fan-generated audio (public) | Cloudflare dashboard |
+| `R2_PRIVATE_BUCKET` | Bucket for reference + consent audio (private) | Cloudflare dashboard |
+| `R2_PUBLIC_URL` | Public domain/CDN fronting `R2_PUBLIC_BUCKET` | Cloudflare dashboard |
+| `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ZONE_ID` | Optional — CDN purge on takedown | Cloudflare dashboard |
+| `SUPABASE_URL` | Supabase project URL | supabase.com dashboard |
+| `SUPABASE_ANON_KEY` | Supabase anon key | supabase.com dashboard |
+| `SOLANA_RPC_URL` | Solana devnet RPC endpoint | api.devnet.solana.com |
+| `NEXT_PUBLIC_SOLANA_RPC_URL` | Solana RPC endpoint (client-side) | api.devnet.solana.com |
+| `NEXT_PUBLIC_SOLANA_NETWORK` | `devnet` or `mainnet-beta` | wallet adapter config |
+| `PLATFORM_WALLET` | Platform fee wallet address | Phantom wallet |
+| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST URL | console.upstash.com |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST token | console.upstash.com |
 
 ### Database Setup
-Run the SQL script in `lib/schema.sql` inside your Supabase SQL editor.
+
+Run the SQL script in [`lib/schema.sql`](lib/schema.sql) inside your Supabase SQL editor.
+
+---
 
 ## API Reference
 
-Routes marked **(auth)** require `x-wallet-signature` + `x-wallet-nonce` headers (see Security below) — the signature is never sent in the JSON body.
+Routes marked **(auth)** require `x-wallet-signature` + `x-wallet-nonce` headers (see [Security](#security)) — the signature is never sent in the JSON body.
 
 ```
 POST /api/upload-url
@@ -158,6 +211,39 @@ Body: { purchaseId, reason }
 Deletes the R2 object, purges the CDN cache, and marks the purchase taken down.
 ```
 
+---
+
+## Security
+
+- **Wallet signature verification** — all authenticated routes verify `nacl` + `bs58` signatures
+- **Replay protection** — single-use nonces in Upstash Redis (5-min TTL), atomically consumed
+- **Persistent rate limiting** — Upstash Redis with in-memory fallback
+- **Transaction validation** — verifies the buyer's balance decreased by at least the full transferred amount
+- **Race-condition safety** — purchases are idempotent (Postgres `unique_violation` reconciliation)
+- **Defense in depth** — voice is re-moderated at generation time even when a pre-payment session exists
+
+---
+
 ## Known Limitations
-- `delete-voice` clears the creator's DB row but does not delete the underlying R2 reference/consent audio objects yet.
-- Audio storage is dual-format during the ElevenLabs → Fal.ai/R2 migration: legacy purchases store `audio_url` as raw base64, current ones as an R2 public URL. The frontend handles both transparently via `audioSrcFromStored()`.
+
+- `delete-voice` clears the creator's DB row but does not yet delete the underlying R2 reference/consent audio objects.
+- Audio storage is dual-format following the ElevenLabs → Fal.ai/R2 migration: legacy purchases store `audio_url` as raw base64, current ones as an R2 public URL. The frontend handles both transparently via `audioSrcFromStored()`.
+
+---
+
+## ⚠️ Project Status
+
+Voclira currently runs entirely on **Solana devnet** and will stay there for now — so the full roadmap (long-form narration, **audiobooks**, and other planned features) is **not yet available** in production.
+
+Want to try it anyway? Head to **[voclira.xyz](https://voclira.xyz)**, create an account, and bring a voice to life for messages of **up to 300 characters**.
+
+---
+
+## License
+
+© 2026 Voclira — all rights reserved. Published publicly for reference; see [LICENSE](LICENSE) for terms.
+
+<p align="center">
+  <br />
+  <img src="docs/logo.png" alt="Voclira" width="72" />
+</p>
